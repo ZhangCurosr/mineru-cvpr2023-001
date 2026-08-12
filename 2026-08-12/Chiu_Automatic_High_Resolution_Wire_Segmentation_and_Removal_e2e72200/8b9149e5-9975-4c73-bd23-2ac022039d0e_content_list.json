@@ -1,0 +1,1546 @@
+[
+    {
+        "type": "text",
+        "text": "Automatic High Resolution Wire Segmentation and Removal",
+        "text_level": 1,
+        "bbox": [
+            178,
+            130,
+            790,
+            151
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Mang Tik Chiu<sup>1,2</sup>, Xuaner Zhang<sup>2</sup>, Zijun Wei<sup>2</sup>, Yuqian Zhou<sup>2</sup>, Eli Shechtman<sup>2</sup>, Connelly Barnes<sup>2</sup>, Zhe Lin<sup>2</sup>, Florian Kainz<sup>2</sup>, Sohrab Amirghodsi<sup>2</sup>, Humphrey Shi<sup>1,3</sup>",
+        "bbox": [
+            151,
+            180,
+            816,
+            217
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "<sup>1</sup>UIUC, <sup>2</sup>Adobe, <sup>3</sup>University of Oregon",
+        "bbox": [
+            364,
+            218,
+            606,
+            233
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "https://github.com/adobe-research/auto-wire-removal",
+        "bbox": [
+            254,
+            237,
+            714,
+            251
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/16d3563b85647f248843435cf4f2364806ea8101cae68ec22ac6ea3bf2b6e1f9.jpg",
+        "image_caption": [
+            "Figure 1. We present an automatic high-resolution wire segmentation and removal pipeline. Each triad shows the high-resolution input image, our automatic wire segmentation result masked in red, and our full-resolution wire removal result. The visual quality of thes photographs is greatly improved with our fully-automated wire clean-up system."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            78,
+            286,
+            890,
+            489
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            233,
+            556,
+            313,
+            571
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Wires and powerlines are common visual distractions that often undermine the aesthetics of photographs. The manual process ofprecisely segmenting and removing them is extremely tedious and may take up hours, especially on high-resolution photos where wires may span the entire space. In this paper, we present an automatic wire clean-up system that eases the process of wire segmentation and removal/inpainting to within a few seconds. We observe several unique challenges: wires are thin, lengthy, and sparse. These are rare properties of subjects that common segmentation tasks cannot handle, especially in highresolution images. We thus propose a two-stage method that leverages both global and local contexts to accurately segment wires in high-resolution images efficiently, and a tilebased inpainting strategy to remove the wires given our predicted segmentation masks. We also introduce the first wire segmentation benchmark dataset, WireSegHR. Finally, we demonstrate quantitatively and qualitatively that our wire clean-up system enables fully automated wire removal with great generalization to various wire appearances.",
+        "bbox": [
+            75,
+            580,
+            472,
+            885
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction",
+        "text_level": 2,
+        "bbox": [
+            501,
+            556,
+            632,
+            571
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Oftentimes wire-like objects such as powerlines and cables can cross the full width of an image and ruin an otherwise beautiful composition. Removing these “distractors” is thus an essential step in photo retouching to improve the visual quality of a photograph. Conventionally, removing a wire-like object requires two steps: 1) segmenting out the wire-like object, and 2) removing the selected wire and inpainting with plausible contents. Both steps, if done manually, are extremely tedious and error-prone, especially for high-resolution photographs that may take photographers up to hours to reach a high-quality retouching result.",
+        "bbox": [
+            496,
+            582,
+            893,
+            748
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we explore a fully-automated wire segmentation and inpainting solution for wire-like object segmentation and removal with tailored model architecture and data processing. For simplicity, we use wire to refer to all wire-like objects, including powerlines, cables, supporting/connecting wires, and objects with wire-like shapes.",
+        "bbox": [
+            498,
+            750,
+            893,
+            840
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Wire semantic segmentation has a seemingly similar problem setup with generic semantic segmentation tasks; they both take in a high-resolution image and generate dense predictions at a pixel level. However, wire semantic segmentation bears a number of unique challenges. First, wires are commonly long and thin, oftentimes spanning the entire image yet having a diameter of only a handful of pixels. A few examples are shown in Figure 2. This prevents us from getting a precise mask based on regions of interest. Second, the input images can have arbitrarily high resolution up to 10k×10k pixels for photographic retouching applications. Downsampling such high-resolution images can easily cause the thin wire structures to disappear. This poses a trade-off between preserving image size for inference quality and run-time efficiency. Third, while wires have regular parabolic shapes, they are often partially occluded and can reappear at arbitrary image location, thus not continuous. (e.g. [20, 36]).",
+        "bbox": [
+            498,
+            840,
+            893,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "",
+        "bbox": [
+            104,
+            2,
+            181,
+            41
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore.",
+        "bbox": [
+            235,
+            1,
+            810,
+            46
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "2183",
+        "bbox": [
+            480,
+            944,
+            516,
+            958
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            92,
+            470,
+            303
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To account for these challenges, we propose a system for automatic wire semantic segmentation and removal. For segmentation, we design a two-stage coarse-to-fine model that leverages both pixel-level details in local patches and global semantics from the full image content, and runs efficiently at inference time. For inpainting, we adopt an efficient network architecture [35], which enables us to use a tile-based approach to handle arbitrary high resolution. We design a training strategy to enforce color consistency between the inpainted region and the original image. We also present the first benchmark dataset, WireSegHR, for wire semantic segmentation tasks, where we collect and annotate high-resolution images with diverse scene contents and wire appearances. We provide analyses and baseline comparisons to justify our design choices, which include data collection, augmentation, and our two-stage model design. Together, these design choices help us overcome the unique challenges of accurately segmenting wires. Our contributions are as follows:",
+        "bbox": [
+            75,
+            303,
+            472,
+            590
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Wire segmentation model: We propose a two-stage model for wire semantic segmentation that leverages global context and local information to predict accurate wire masks at high resolution. We design an inference pipeline that can efficiently handle ultra-high resolution images.",
+        "bbox": [
+            96,
+            597,
+            470,
+            685
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Wire inpainting strategy: We design a tile-based inpainting strategy and tailor the inpainting method for our wire removal task given our segmentation results.",
+        "bbox": [
+            96,
+            686,
+            470,
+            731
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• WireSegHR, a benchmark dataset: We collect a wire segmentation benchmark dataset that consists of high resolution images, with diversity in wire shapes and scene contents. We also release the manual annotations that have been carefully curated to serve as ground truths. Besides, we also propose a benchmark dataset to evaluate inpainting quality.",
+        "bbox": [
+            96,
+            732,
+            472,
+            838
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2. Related Work",
+        "text_level": 2,
+        "bbox": [
+            76,
+            844,
+            220,
+            861
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Semantic segmentation Semantic segmentation has been actively researched over the past decade. For example, the",
+        "bbox": [
+            75,
+            869,
+            470,
+            901
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/ad4e9eba4b0259ce0a4caa1894c84b61eb48492c9c36381edcb7fd8abe558f70.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            503,
+            88,
+            599,
+            161
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/be345a0cc458a454f5f4a2288cf4f9afbfc5c56867beed89ded375a4614bc896.jpg",
+        "image_caption": [
+            "(b)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            601,
+            88,
+            694,
+            161
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/0f1e0c530a51adc8a0556c09e0320c06d8549f6488cfaa622e7830d6527a03e8.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            503,
+            178,
+            598,
+            251
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/885dd66b9b6e499c689ee8a9e50ac8bd20c9f1b1db25f02242cbbaa50e79a921.jpg",
+        "image_caption": [
+            "(c)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            696,
+            89,
+            792,
+            161
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/324a5a20e474995cf8aaef334f5d17995db90a91918914db7f784ae37182e0d9.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            794,
+            88,
+            888,
+            161
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/99270d8a9731cbe23003130bbeaf017c2bd73d56731cd54a4912101e856b410c.jpg",
+        "image_caption": [
+            "(e)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            599,
+            178,
+            696,
+            252
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/beca10234f4111c64edf4f2a24ff01dd1a66ab81a00cbb81fbfd4981be7eb2d6.jpg",
+        "image_caption": [
+            "(d)",
+            "(f)",
+            "(g)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            697,
+            178,
+            790,
+            252
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/aa74e1da23200a61646c9756cedbc2e334149eb1b75eb62931f76625d00c70ad.jpg",
+        "image_caption": [
+            "(h)",
+            "Figure 2. Challenges of wire segmentation. Wires have a diverse set of appearances. Challenges include but are not limited to (a) structural complexity, (b) visibility and thickness, (c) partial occlusion by other objects, (d) camera aberration artifacts, and variations in (e) object attachment, (f) color, (g) width and (h) shape."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            792,
+            178,
+            887,
+            251
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "DeepLab series [4–6] has been one of the most widely used set of semantic segmentation methods. They leverage dilated convolutions to capture long-range pixel correlations. Similarly, CCNet [14] attend to non-local regions via a twostep axial attention mechanism. PSPNet [48] use multiscale pooling to extract high-resolution features.",
+        "bbox": [
+            498,
+            354,
+            893,
+            445
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Recently, the self-attention mechanism [37] has gained increasing popularity. Transformer-based models for semantic segmentation [11, 12, 17, 18, 26, 31, 39, 51] significantly outperform convolution-based networks since the attention modules benefit from their global receptive fields [39], which let the models attend to objects that span across larger portions of the feature map.",
+        "bbox": [
+            496,
+            446,
+            893,
+            551
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "While these above methods work well in common object semantic segmentation, when applied to our task of wire segmentation in high-resolution images, they either drop significantly in segmentation quality or require long inference times. We show in Section 6 that directly applying these methods to our task yields undesirable results.",
+        "bbox": [
+            496,
+            551,
+            893,
+            642
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "High-resolution image segmentation Segmentation in high-resolution images involves additional design considerations. It is computationally infeasible to perform inference on the full-resolution image with a deep network. As a result, to maximally preserve image details within the available computation resources, many methods employ a global-local inference pipeline. For instance, GLNet [7] simultaneously predict a coarse segmentation map on the downsampled image and a fine segmentation map on local patches at the original resolution, then fuse them to produce the final prediction. MagNet [15] is a recent method that proposes to iteratively predict and refine coarse segmentation maps at multiple scales using a single feature extractor and multiple lightweight refinement modules. CascadePSP [8] train a standalone class-agnostic model to refine predictions at a higher resolution from a pretrained segmentation model. ISDNet [10] propose to use an extremely lightweight subnetwork to take in the entire full-resolution image. However, the subnetwork is limited in capacity and thus segmentation quality. We share the same idea with these past works on using a coarse-to-fine approach for wire segmentation, but modify the architecture and data processing to tailor to wires.",
+        "bbox": [
+            496,
+            643,
+            895,
+            902
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "2184",
+        "bbox": [
+            482,
+            944,
+            516,
+            958
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            92,
+            470,
+            183
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Wire/Curve segmentation While few works tackle wire segmentation in high-resolution images, there are prior works that handle similar objects. For example, Transmission Line Detection (TLD) is an actively researched area in aerial imagery for drone applications. Convolutional neural networks are used [2, 23, 28, 46] to segment overhanging power cables in outdoor scenes. However, wire patterns in TLD datasets are relatively consistent in appearance and shape – evenly spaced and only spanning locally. In contrast, we handle more generic wires seen in regular photographic contents, where the wire appearance has much higher variety.",
+        "bbox": [
+            75,
+            185,
+            472,
+            367
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Some other topics are loosely related to our task. Lane detection [20,34,36] aims to segment lanes for autonomous driving applications. These methods benefit from simple line parameterization (e.g., as two end-points), and strong positional priors. In contrast, as shown in Figure 2, wires vary drastically in shapes and sizes in our task, thus making them difficult to parameterize.",
+        "bbox": [
+            75,
+            367,
+            470,
+            474
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "High-Resolution Image Inpainting Image inpainting has been well-explored using patch synthesis-based methods [3, 9, 22, 38] or deep neural networks [16, 25, 29, 40, 43, 44]. Zhao et al. leveraged the powerful image sysnthesis ability of StyleGAN2 [21] and proposed CoModGAN [49] to push the image generation quality to a newer level, and was followed by [19, 50]. Most of these deep models cannot be applied to inpainting tasks at high-resolution images. The latest diffusion-based inpainting model like DALLE-2 [30], LDM [32], and StableDiffusion etc. also suffer from long inference time and low output resolution. ProFill [45] was first proposed to address high resolution inpainting via a guided super resolution module. HiFill [42] utilized a contextual residual aggregation module and the resolution can be up to 8K. LaMa [35] applied the fourier convoluational residual blocks to make the propagation of image structures well. LaMa was trained on only 256 × 256 images, but can be used for images up to 2K with high quality. Recently, Zhang et al. [47] proposed to use guided PatchMatch for any-resolution inpainting and extended the deep inpainting results from LaMa to modern camera resolution. The textures are better reused, while the structure and line completion at high-resolution can still be challenging. In this paper, we aim at removing wires from high resolution photos. The problem can become easier if we run inpainting in a local manner since wires are usually thin and long. Therefore, we propose to revisit LaMa for wire removal, and run the inference in a tile-based fashion.",
+        "bbox": [
+            75,
+            477,
+            472,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/1e9467b1d1376721dd7ec41507905c5b75543270982531f3d5644be8e74bf68b.jpg",
+        "image_caption": [
+            "(A) Input"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            504,
+            90,
+            638,
+            214
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/5a8da1be6e70be8a076b142cd2f2d949406b24e8d44336b5ab4a29235aa174be.jpg",
+        "image_caption": [
+            "(B) Annotation"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            642,
+            90,
+            776,
+            215
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/2e4ef05861363ed397293a26a182a38d0aa9559bc0380b9ccab60fe8ae6b17c2.jpg",
+        "image_caption": [
+            "(C) Zoom-in",
+            "Figure 3. Wire Annotation Example. An example wire annotation in our dataset. Our annotation (B) is accurate in different wire thicknesses (red), variations in wire shapes (orange) and accurate wire occlusions (yellow)."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            777,
+            89,
+            887,
+            215
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3. Dataset Collection and WireSegHR",
+        "text_level": 2,
+        "bbox": [
+            500,
+            308,
+            820,
+            325
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.1. Image Source and Annotations",
+        "text_level": 2,
+        "bbox": [
+            500,
+            333,
+            774,
+            349
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Our definition of wires include electrical wires/cables, power lines, supporting/connecting wires, and any wirelike object that resemble a wire structure. We collect highresolution images with wires from two sources: 80% of the images are from photo sharing platforms (Flickr, Pixabay, etc.), and 20% of the images are captured with different cameras (DSLRs and smartphones) in multiple countries on our own. For the internet images, we collect 400K candidate images by keyword-searching. Then, we remove duplicates and images where wires are the only subjects. We then curate the final 6K images that cover sufficient scene diversity like city, street, rural area and landscape.",
+        "bbox": [
+            496,
+            357,
+            893,
+            539
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Our wire annotation process contains two rounds. In the first round, annotators draw detailed masks over wires at full-resolution. The annotated masks enclose the main wire body and the boundary, oftentimes including a gradient falloff due to aliasing or defocus. The boundary region annotation is crucial so as to avoid residual artifacts during wire removal. In the second round, quality assurance is carried out to re-annotate unsatisfactory annotations. We show an example of our high-quality wire annotations in Figure 3.",
+        "bbox": [
+            496,
+            539,
+            893,
+            676
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.2. Dataset Statistics",
+        "text_level": 2,
+        "bbox": [
+            500,
+            685,
+            669,
+            700
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "In Table 1, we list the statistics of our dataset and compare them with existing wire-like datasets. Our dataset is the first wire dataset that contains high-resolution photographic images. The dataset is randomly split into 5000 training, 500 validation, and 500 testing images. We release 420 copyright-free test images with annotations.",
+        "bbox": [
+            498,
+            708,
+            893,
+            801
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4. High-Resolution Wire Segmentation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            814,
+            828,
+            832
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Wires appear visually different from common objects – being thin, long, sparse and oftentimes partially occluded. We find the following two design choices crucial to building an effective wire segmentation system: 1) having a two stage framework so that coarse prediction from global context guides precise segmentation from local patches and 2) maximally preserving and augmenting image features and annotations of wires throughout the pipeline.",
+        "bbox": [
+            498,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "2185",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/a530267c5002572d00c8c9be812ce6d0a177fd92d2a8f535bb6a7b4a8291827c.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            89,
+            92,
+            882,
+            309
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "table",
+        "img_path": "images/10143d5f06ee8cdccf7b0b081c6f5c50ba730451a1506abb4e39dd00870ef233.jpg",
+        "table_caption": [
+            "Figure 4. Our wire removal system. A system overview of our wire segmentation and removal for high resolution images. Input is concatenated with min- and max-filtered luminance channels. The downsampled input is fed into the coarse module to obtain the global probability. In the local stage, original-resolution patches are concatenated with the global probability map to obtain the local logit map. After a segmentation mask is predicted, we adopt LaMa architecture and use a tile-based approach to achieve wire removal. See Section 4, 5 for details.",
+            "Table 1. Statistics of our wire dataset compared to others."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Dataset</td><td># Wire Images</td><td>Min. Image Size</td><td>Max. Image Size</td><td>Median Image Size</td></tr><tr><td>Powerline [41]</td><td>2000</td><td>128×128</td><td>128×128</td><td>128×128</td></tr><tr><td>PLDU [46]</td><td>573</td><td> $5 4 0 \\times 3 6 0$ </td><td>540×360</td><td>540×360</td></tr><tr><td>PLDM [46]</td><td>287</td><td> $5 4 0 \\times 3 6 0$ </td><td> $5 4 0 \\times 3 6 0$ </td><td>540×360</td></tr><tr><td>TTPLA [2]</td><td>1100</td><td> $3 8 4 0 \\times 2 1 6 0$ </td><td> $3 8 4 0 \\times 2 1 6 0$ </td><td> $3 8 4 0 \\times 2 1 6 0$ </td></tr><tr><td>Ours</td><td>6000</td><td> $3 6 0 \\times 2 4 0$ </td><td> $\\overline { { 1 5 9 0 4 \\times 1 0 6 0 8 } }$ </td><td> $\\overline { { 5 0 4 0 \\times 3 3 6 0 } }$ </td></tr></table>",
+        "bbox": [
+            84,
+            422,
+            464,
+            516
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            546,
+            470,
+            608
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.1. The Two-stage Coarse to Fine Model",
+        "text_level": 2,
+        "bbox": [
+            76,
+            618,
+            397,
+            633
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Figure 4 shows the two-stage segmentation pipeline. It consists of a coarse and a fine module, which share an encoder E and have their own decoder $D _ { C }$ and $D _ { F }$ . Intuitively, the coarse module aims to capture the global contextual information from the entire image and highlight the image regions possibly containing wires. Conditioned on the predictions from the coarse module, the fine module achieves high-resolution wire segmentation by only looking at local patches likely containing wires.",
+        "bbox": [
+            75,
+            642,
+            470,
+            779
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Given a high-resolution image $I _ { \\mathrm { g l o } }$ , we first bilinearly downsample it to $I _ { \\mathrm { g l o } } ^ { d s }$ with a fixed size $p \\times p$ and feed it into the coarse module. The module predicts the global probability map $P _ { \\mathrm { { g l o } } } = \\mathrm { S o f t M a x } ( D _ { C } ( E ( I _ { \\mathrm { { g l o } } } ^ { d s } ) ) )$ containing the activation of the wire regions.",
+        "bbox": [
+            75,
+            779,
+            470,
+            854
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "For each patch $I _ { \\mathrm { l o c } }$ of size $p \\times p$ cropped from the fullresolution image $I _ { \\mathrm { g l o } }$ , and the corresponding conditional probability map $P _ { \\mathrm { c o n } }$ cropped from $P _ { \\mathrm { g l o } }$ , we predict the local probability $P _ { \\mathrm { l o c } } = \\mathrm { S o f t M a x } ( D _ { F } ( E ( I _ { \\mathrm { l o c } } , P _ { \\mathrm { c o n } } ) ) )$ . Note that E is shared between the coarse and the fine module, thus it should take inputs with the same number of channels. Therefore, for the coarse module, we concatenate an additional zero channel with the input image to make the channel number consistent.",
+        "bbox": [
+            75,
+            854,
+            470,
+            902
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            426,
+            893,
+            517
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We apply Cross Entropy (CE) loss to both the global $P _ { \\mathrm { g l o } }$ and local probability map $P _ { \\mathrm { l o c } } ,$ comparing with their ground truth annotations $G _ { \\mathrm { g l o } }$ and $G _ { \\mathrm { l o c } }$",
+        "bbox": [
+            498,
+            517,
+            892,
+            563
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "img_path": "images/ad6d1703771fa91f08089a0628efd4203d28e9f1fd17d73df78a934dda61b049.jpg",
+        "text": "$$\n\\begin{array} { r } { \\mathcal { L } _ { \\mathrm { g l o } } = C E ( P _ { \\mathrm { g l o } } , G _ { \\mathrm { g l o } } ) } \\\\ { \\mathcal { L } _ { \\mathrm { l o c } } = C E ( P _ { \\mathrm { l o c } } , G _ { \\mathrm { l o c } } ) } \\end{array}\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            617,
+            566,
+            772,
+            602
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The final loss L is the sum of the two:",
+        "bbox": [
+            500,
+            604,
+            753,
+            619
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "img_path": "images/362198cd0ed76f1ff7c695cc579ecb9d2081bad12117fe76271c54e12ee8fcba.jpg",
+        "text": "$$\n\\begin{array} { r } { \\mathcal { L } = \\mathcal { L } _ { \\mathrm { g l o } } + \\lambda \\mathcal { L } _ { \\mathrm { l o c } } , } \\end{array}\\tag{2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            625,
+            623,
+            751,
+            640
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where we set $\\lambda ~ = ~ 1$ for training. Similar to Focal loss [24] and Online Hard Example Mining [33], we balance the wire and background samples in the training set by selecting patches that contain at least 1% of wire pixels.",
+        "bbox": [
+            496,
+            643,
+            892,
+            704
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To perform inference, we first feed the downsampled image to the coarse module, which is the same as training. Local inference is done by running a sliding window over the entire image, where the patch is sampled only when there is at least some percentage of wire pixels (determined by α). This brings two advantages: First, we save computation time in regions where there are no wires. Second, the local fine module can leverage the information from the global branch for better inference quality.",
+        "bbox": [
+            496,
+            704,
+            893,
+            840
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.2. Wire Feature Preservation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            847,
+            741,
+            862
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "As wires are thin and sparse, applying downsampling to the input images may make the wire features vanish entirely.",
+        "bbox": [
+            498,
+            869,
+            893,
+            901
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "2186",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To mitigate this challenge, we propose a simple feature augmentation technique by taking the min and max pixel luminance values of the input image over a local window. Either the local min or the max value makes the wire pixels more visually apparent. In practice, we concatenate the min- and max-filtered luminance channels to the RGB image and condition map, resulting in 6 total channels as input. We name this component MinMax.",
+        "bbox": [
+            75,
+            92,
+            470,
+            213
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Besides feature augmentations, we also adapt the architecture to maximally preserve the sparse wire annotations. We propose to use “overprediction” and achieve this by using max-pool downsampling on the coarse labels during training, which preserves activation throughout the coarse branch. We name this component MaxPool. We provide ablation studies for these components in Section 6.",
+        "bbox": [
+            75,
+            219,
+            470,
+            325
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "5. High-Resolution Wire Inpainting",
+        "text_level": 2,
+        "bbox": [
+            76,
+            340,
+            379,
+            358
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Given a full-resolution wire segmentation mask estimated by our wire segmentation model, we propose an inpainting pipeline to remove and fill in the wire regions. Our approach addresses two major challenges in wire inpainting. First, recent state-of-the-art deep inpainting methods do not handle arbitrary resolution images, which is critical for high-resolution wire removal. Second, deep inpainting methods often suffer from color inconsistency when the background has uniform (or slowly varying) colors. This issue is particularly significant for wires, as they are often in front of uniform backgrounds, such as the sky or building facades. The commonly used reconstruction loss, such as L1, is not sensitive to color inconsistency, which further exacerbates this issue.",
+        "bbox": [
+            75,
+            373,
+            470,
+            585
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We thus revisit the efficient deep inpainting method LaMa [35]. Compared with other inpainting models, LaMa has two major advantages. First, it contains the Fourier convolutional layers which enables an efficient and highquality structural completion. This helps complete building facades and other man-made structures with fewer artifacts. Second, its high inference efficiency makes a tile-based inference approach possible for high resolution images.",
+        "bbox": [
+            75,
+            592,
+            470,
+            714
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To address color inconsistency, we propose a novel “onion-peel” color adjustment module. Specifically, we compute the mean of the RGB channels within the onionpeel regions $M _ { o } = D ( M , d ) - M$ of the wire mask $M .$ where D is the binary dilation operator, and d is the kernel size. The color difference for each channel $c \\in R , G , B$ becomes $\\mathtt { B i a s } _ { c } = \\mathbb { E } [ M _ { o } ( x _ { c } - y _ { c } ) ]$ , where x is the input image, and y is the output from the inpainting network. The final output of the inpainting model is: $\\hat { y _ { c } } = y _ { c } + \\mathbf { B } \\mathbf { i a s } _ { c }$ . Loss functions are then applied to $\\hat { y _ { c } }$ to achieve color consistency while compositing the final result $y _ { o u t } = ( 1 - M ) \\odot x +$ $M \\odot { \\hat { y } } .$",
+        "bbox": [
+            75,
+            719,
+            470,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "6. Experiments",
+        "text_level": 2,
+        "bbox": [
+            500,
+            90,
+            633,
+            107
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "6.1. Implementation Details",
+        "text_level": 2,
+        "bbox": [
+            500,
+            114,
+            717,
+            131
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Wire Segmentation Network. We experiment with ResNet-50 [13] and MixTransformer-B2 [39] as our shared feature extractor. We expand the input RGB channel to six channels by concatenating the conditional probability map, min- and max-filtered luminance channels. For the min and max filtering, we use a fixed 6x6 kernel. We use separate decoders for the coarse and fine modules, denoted as $D _ { C }$ and $D _ { F }$ respectively.",
+        "bbox": [
+            498,
+            137,
+            893,
+            258
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We use the MLP decoder proposed in [39] for the Mix-Transformer segmentation model, and the ASPP decoder in [6] for our ResNet-50 segmentation model. In both the segmentation and inpainting modules, we take the per-pixel average of the predicted probability when merging overlapping patches. To crop $P _ { \\mathrm { c o n } }$ from $P _ { \\mathrm { g l o } } ,$ , we upsample the predicted $P _ { \\mathrm { g l o } }$ to the original resolution, then crop the predicted regions according to the sliding window position.",
+        "bbox": [
+            496,
+            258,
+            893,
+            380
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To train the segmentation module, we downsample the image $I _ { \\mathrm { g l o } } \\tan { p \\times p }$ to obtain $I _ { \\mathrm { g l o } } ^ { \\mathrm { d s } }$ . From $I _ { \\mathrm { g l o } } ,$ , we randomly crop one $p \\times p$ patch $I _ { \\mathrm { l o c } }$ that contains at least 1% wire pixels. This gives a pair of $I _ { \\mathrm { g l o } } ^ { \\mathrm { d s } }$ and $I _ { \\mathrm { l o c } }$ to compute the losses. During inference, $I _ { \\mathrm { g l o } } ^ { \\mathrm { d s } }$ is obtained in the same way as training, while multiple $I _ { \\mathrm { l o c } }$ are obtained via a sliding window sampled only when the proportion of wire pixels is above α. All feature extractors are pretrained on ImageNet.",
+        "bbox": [
+            496,
+            381,
+            893,
+            502
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We train our model on 5000 training images. The model is trained for 80k iterations with a batch size of 4. We set patch size $p = 5 1 2$ during training. For all ResNet models, we use SGD with a learning rate of 0.01, a momentum of 0.9 and weight decay of 0.0005. For MixTransformer models, we use AdamW [27] with a learning rate of 0.0002 and weight decay of 0.0001. Our training follows the “poly” learning rate schedule with a power of 0.9. During inference, we set both the global image size and local patch size p to 1024. Unless otherwise specified, we set the percentage for local refinement to 1% $( \\alpha = 0 . 0 1 )$ .",
+        "bbox": [
+            498,
+            503,
+            893,
+            670
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Wire Inpainting Network. We adopt LaMa [35] for wire inpainting by finetuning on an augmented wire dataset. To prepare the wire training set, we randomly crop ten 680 × 680 patches from the non-wire regions of each image in our training partition. In total, we have 50K more training images in addition to the 8M Places2 [52] dataset, and increase its sampling rate by 10× to balance the dataset. We also use all the ground truth segmentation maps in our training set to sample wire-like masks. During training, we start from Big-LaMa weights, and train the model on $5 1 2 \\times 5 1 2$ patches. We also prepare a synthetic wire inpainting quality evaluation dataset, containing 1000 images at 512 × 512 with synthetic wire masks. While running inference on fullresolution images, we apply a tile-based approach, by fixing the window size at $5 1 2 \\times 5 1 2$ with an 32-pixel overlap.",
+        "bbox": [
+            496,
+            674,
+            893,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "2187",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "6.2. Wire Segmentation Evaluation",
+        "text_level": 2,
+        "bbox": [
+            76,
+            90,
+            351,
+            107
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Quantitative Evaluation We compare with several widely-used object semantic segmentation and highresolution semantic segmentation models. Specifically, we train DeepLabv3+ [6] with ResNet-50 [13] backbone under two settings: global and local. In the global setting, the original images are resized to 1024×1024. In the local setting, we randomly crop 1024×1024 patches from the original images. We train our models on 4 Nvidia V100 GPUs and test them on a single V100 GPU. For highresolution semantic segmentation models, we compare with CascadePSP [8], MagNet [15] and ISDNet [10]. We describe the training details of these works in the supplement.",
+        "bbox": [
+            75,
+            113,
+            472,
+            295
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We present the results of in Table 2 tested on Wire-SegHR. We report wire IoU, F1-score, precision and recall for quantitative evaluation. We also report wire IoUs for images at three scales, small (0 – 3000×3000), medium (3000×3000 – 6000×6000) and large (6000×6000+), which are useful for analyzing model characteristics. Finally, we report average, minimum and maximum inference times on WireSegHR.",
+        "bbox": [
+            75,
+            295,
+            470,
+            415
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "As shown in Table 2, while the global model runs fast, it has lower wire IoUs. In contrast, the local model produces high-quality predictions, but requires a very long inference time. Meanwhile, although CascadePSP is a class-agnostic refinement model designed for high-resolution segmentation refinement, it primarily targets common objects and does not generalize to wires. For MagNet, its refinement module only takes in probability maps without image features, thus failing to refine when the input prediction is inaccurate. Among these works, ISDNet is relatively effective and efficient at wire prediction. However, their shallow network design trades off capacity for efficiency, limiting the performance of wire segmentation that is thin and sparse.",
+        "bbox": [
+            75,
+            416,
+            472,
+            612
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Compared to the methods above, our model achieves the best trade-off between accuracy and memory consumption. By leveraging the fact that wires are sparse and thin, our pipeline captures both global and local features more efficiently, thus saving a lot of computation while maintaining high segmentation quality.",
+        "bbox": [
+            75,
+            612,
+            470,
+            703
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Qualitative Evaluation We provide visual comparisons of segmentation models in Figure 6. We show the “local” DeepLabv3+ model as it consistently outperforms its “global” variant given that “local” predicts wire masks in a sliding-window manner at the original image resolution. As a trade-off, without global context, the model suffers from over-prediction. CascadePSP is designed to refine common object masks given a coarse input mask, thus fails to produce satisfactory results when the input is inaccurate or incomplete. Similarly, the refinement module of MagNet does not handle inaccurate wire predictions. ISDNet performs the best among related methods, but the quality is still unsatisfactory as it uses a lightweight model with limited capacity. Compared to all these methods, our model captures both global context and local details, thus producing more accurate mask predictions.",
+        "bbox": [
+            75,
+            704,
+            472,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            92,
+            893,
+            137
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Ablation Studies In Table 3, we report wire IoUs after removing each component in our model, including Min-Max, MaxPool, and Coarse condition concatenation. We find that all components play a significant role for accurate wire prediction, particularly in large images. Both MinMax and MaxPool are effective in encouraging prediction, which is shown by the drop in recall without either component, also shown in Figure 6. Coarse condition, as described in Section 4, is crucial in providing global context to the local network, without which the wire IoU drops significantly.",
+        "bbox": [
+            496,
+            141,
+            893,
+            291
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Table 4 shows the wire IoUs and inference speed of our two-stage model as α changes. We observe a consistent decrease in performance as α increases. On the other hand, setting α to 0.01 barely decreases IoU, while significantly boosting inference speed, which means the coarse network is effectively activated at wire regions.",
+        "bbox": [
+            496,
+            291,
+            893,
+            383
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "6.3. Wire Inpainting Evaluation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            392,
+            750,
+            407
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We evaluate our wire inpainting model using the synthetic dataset. Results are shown in Table 5. Our model structure is highly related to LaMa [35]. The difference is the training data and the proposed color adjustment module to address color inconsistency. We also compare our methods with PatchMatch [3] based on patch synthesis, Deep-Fillv2 [44] based on Contextual Attention, CMGAN [50] and FcF [19] based on StyleGAN2 [21] and LDM [32] based on Diffusion. Inference speed is measured on a single A100-80G GPU. Visual results on synthetic and real images are shown in Figure 7. PatchMatch, as a traditional patch synthesis method, produces consistent color and texture that leads to high PSNR. However, it performs severely worse on complicated structural completion. StyleGANbased CMGAN and FcF are both too heavy for wires that are thin and sparse. Besides, diffusion-based models like LDM tends to generate arbitrary objects and patterns. Deep-Fill and the official Big-LaMa both have severe color inconsistency issue, especially in the sky region. Our model has a balanced quality and efficiency, and performs well on structural completion and color consistency. Note that we use a tile-based method at inference time. The reason the tile-based strategy can be employed is due to the wire characteristics: sparse, thin and lengthy. More high-resolution inpainting results are in the supplementary materials.",
+        "bbox": [
+            496,
+            411,
+            895,
+            791
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "7. Discussion",
+        "text_level": 2,
+        "bbox": [
+            500,
+            803,
+            616,
+            819
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "7.1. Comparison with Google Pixel 6",
+        "text_level": 2,
+        "bbox": [
+            500,
+            821,
+            787,
+            838
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Recently, Google Pixel 6 [1] announced the “Magic Eraser” photo feature that automatically detects and removes distractors. Note that this is a product feature and is not specifically designed for wires, and thus is hardly comparable with our method. We compare against this feature by uploading the images to Google Photos and applying “Magic Eraser” without manual intervention. We find that “Magic Eraser” performs well on wires with clear background, but it suffers from thin wires that are hardly visible and wires with complicated background. We show two examples in the supplementary material.",
+        "bbox": [
+            498,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "2188",
+        "bbox": [
+            480,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "table",
+        "img_path": "images/da1e81c5b4a190e284d5248691b98918616493dbac34fa61985bd5d4bcec39e0.jpg",
+        "table_caption": [
+            "Table 2. Performances of common semantic segmentation and recent high-resolution semantic segmentation models on our dataset. We find that our dataset poses many challenges that high-resolution segmentation models fail to tackle effectively."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\"></td><td rowspan=\"2\">Wire Model IoU</td><td rowspan=\"2\">F1</td><td rowspan=\"2\">Precision</td><td rowspan=\"2\">Recall</td><td rowspan=\"2\">IoU (Small)</td><td rowspan=\"2\">IoU (Medium)</td><td rowspan=\"2\">IoU (Large)</td><td rowspan=\"2\">Avg. Time (s/img)</td><td rowspan=\"2\">Min. Time (s/img)</td><td rowspan=\"2\">Max. Time (s/img)</td></tr><tr><td></td></tr><tr><td>DeepLabv3+ (Global) [6]</td><td>37.77</td><td>54.83</td><td>69.68</td><td>45.20</td><td>51.62</td><td>38.89</td><td>31.89</td><td>0.22</td><td>0.07</td><td>0.78</td></tr><tr><td>DeepLabv3+ (Local) [6]</td><td>48.66</td><td>65.46</td><td>68.13</td><td>63.0</td><td>60.23</td><td>51.44</td><td>40.17</td><td>3.27</td><td>0.05</td><td>16.59</td></tr><tr><td>CascadePSP (Pretrained) [8]</td><td>20.44</td><td>33.94</td><td>62.19</td><td>23.34</td><td>33.64</td><td>21.80</td><td>13.78</td><td>2.32</td><td>0.37</td><td>36.79</td></tr><tr><td>CascadePSP (Retrained) [8]</td><td>26.85</td><td>42.33</td><td>52.44</td><td>35.49</td><td>48.22</td><td>28.97</td><td>15.80</td><td>2.25</td><td>0.37</td><td>25.37</td></tr><tr><td>MagNet [15]</td><td>33.71</td><td>50.42</td><td>87.69</td><td>35.38</td><td>43.59</td><td>32.67</td><td>34.48</td><td>3.89</td><td>0.54</td><td>17.97</td></tr><tr><td>MagNet-Fast [15]</td><td>37.87</td><td>54.94</td><td>67.98</td><td>46.09</td><td>46.75</td><td>35.88</td><td>41.42</td><td>1.36</td><td>0.55</td><td>5.33</td></tr><tr><td>ISDNet (R-18) [10]</td><td>46.52</td><td>63.50</td><td>77.56</td><td>53.75</td><td>55.09</td><td>47.15</td><td>43.34</td><td>0.29</td><td>0.12</td><td>0.86</td></tr><tr><td>ISDNet (MiT-b2) [10]</td><td>47.90</td><td>64.77</td><td>77.38</td><td>55.70</td><td>54.48</td><td>46.77</td><td>49.51</td><td>0.26</td><td>0.13</td><td>1.02</td></tr><tr><td>Ours (R-50)</td><td>47.75</td><td>64.64</td><td>74.86</td><td>56.87</td><td>60.68</td><td>50.19</td><td>38.19</td><td>1.24</td><td>0.13</td><td>4.67</td></tr><tr><td>Ours (MiT-b2)</td><td>60.83</td><td>75.65</td><td>83.62</td><td>69.06</td><td>63.52</td><td>59.83</td><td>62.93</td><td>0.82</td><td>0.07</td><td>3.36</td></tr></table>",
+        "bbox": [
+            94,
+            94,
+            874,
+            276
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/a32bd8a5fcf0d4c3c97850b68ccf4a990fd326424f69a05f582a49da9890ca91.jpg",
+        "image_caption": [
+            "(A) Input",
+            "(B) Label",
+            "(C) DeepLabv3+",
+            "(D) Cascade PSP",
+            "(E) MagNet",
+            "(F) ISDNet",
+            "(G) Ours",
+            "(Local)",
+            "Figure 5. Qualitative comparison of several semantic segmentation models. A common object semantic segmentation model (DeepLabv3+) either fails to find thin wires or overpredicts due to lack of global context. On the other hand, CascadePSP and Mag-Net, being refinement-based models, cannot work well on wires when the predictions are inaccurate or missing. While ISDNet can capture many thin wires regions, it cannot produce a high-quality prediction. In contrast, our model is able to both capture accurate wire regions and produce fine wire masks, and maintain low inference time."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            83,
+            325,
+            887,
+            672
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            780,
+            470,
+            887
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "7.2. Failure cases",
+        "text_level": 2,
+        "bbox": [
+            500,
+            779,
+            637,
+            794
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "While our proposed wire segmentation model produces high-quality masks in most situations, there are still some challenging cases that our model cannot resolve. In particular, wires that are heavily blended in with surrounding structures/background, or wires under extreme lighting conditions are challenging to segment accurately. We show several examples in the supplementary material.",
+        "bbox": [
+            496,
+            795,
+            893,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "2189",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/8e94665a358b85a702a87744cecb27e8db2beea4e4bc98d8c3cf11bc449cf666.jpg",
+        "image_caption": [
+            "(A) Input"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            78,
+            95,
+            194,
+            282
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/a374e8505fa93f02fbfb8fe434bd0ed993f5762ed30d04d477991baa34cd06dc.jpg",
+        "image_caption": [
+            "(B) Input Min-filtered"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            194,
+            95,
+            310,
+            284
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/d4c0dfd1c8369e4933840b264245798b8cbb2dbad7ff919f0b3e787c8a94f89b.jpg",
+        "image_caption": [
+            "(C) Input Max-filtered"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            310,
+            94,
+            424,
+            284
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/045c3d1a0926c35b8f4b140b0bc25fb464609ba6db9fabd63c40c9830dcc69bd.jpg",
+        "image_caption": [
+            "(D) Label"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            426,
+            95,
+            539,
+            282
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/db26de8ec61e509a9db97eb0166dd0bf634de0a3c79da4b79ed97b4591f7685d.jpg",
+        "image_caption": [
+            "(E) No MinMax"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            540,
+            95,
+            655,
+            284
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/2c863d016bcc48c18146fa5daacba5f9b399df19780cac16a502f7668e3c6293.jpg",
+        "image_caption": [
+            "(F) No MaxPool"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            656,
+            95,
+            771,
+            284
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/4d40d65d721a7d731a0804672b08a5d3b165bebceb60205251847c7021675965.jpg",
+        "image_caption": [
+            "(G) Ours"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            772,
+            95,
+            887,
+            282
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/0f1cd2721bb1c4926ac1728a955ef20f12b6b7e0621790bb0eaf98b2c3aa74cc.jpg",
+        "table_caption": [
+            "Figure 6. Qualitative comparison of our model components. MinMax enhances wire image features when they are too subtle to see in RGB, while MaxPool encourages aggressive predictions in the coarse branch. Both components enable the model to pick up more regions for the final wire mask prediction."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Model</td><td>Wire IoU</td><td>F1</td><td>Precision</td><td>Recall</td><td>IoU (Small)</td><td>IoU (Medium)</td><td>IoU (Large)</td></tr><tr><td>Ours</td><td>60.83</td><td>75.65</td><td>83.62</td><td>69.06</td><td>63.52</td><td>59.83</td><td>62.93</td></tr><tr><td>- MinMax</td><td>60.01</td><td>75.01</td><td>84.87</td><td>67.2</td><td>63.67</td><td>58.99</td><td>61.97</td></tr><tr><td>- MaxPool</td><td>59.86</td><td>74.89</td><td>85.25</td><td>66.78</td><td>61.45</td><td>59.40</td><td>60.76</td></tr><tr><td>– Coarse</td><td>56.92</td><td>72.55</td><td>82.91</td><td>64.49</td><td>62.83</td><td>57.42</td><td>54.47</td></tr></table>",
+        "bbox": [
+            88,
+            381,
+            472,
+            454
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/f4fa2c6bbd888c05a004a9ce9a40988de423968864b3c77a895f8a02439bce57.jpg",
+        "table_caption": [
+            "Table 3. Ablation study of our model components.",
+            "Table 4. Ablation on the threshold for refinement. At α = 0.0, all windows are passed to the fine module."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>α</td><td>Wire IoU</td><td>F1</td><td>Precision</td><td>Recall</td><td>Avg. Time (s/img)</td><td>Speed up</td></tr><tr><td>0.0</td><td>60.97</td><td>75.75</td><td>82.63</td><td>69.93</td><td>1.91</td><td>1×</td></tr><tr><td>0.01</td><td>60.83</td><td>75.65</td><td>83.62</td><td>69.06</td><td>0.82</td><td>2.3×</td></tr><tr><td>0.02</td><td>60.35</td><td>75.27</td><td>83.97</td><td>68.20</td><td>0.75</td><td>2.5×</td></tr><tr><td>0.05</td><td>55.17</td><td>71.11</td><td>84.84</td><td>61.20</td><td>0.58</td><td>3.3×</td></tr><tr><td>0.1</td><td>42.44</td><td>59.59</td><td>86.06</td><td>45.57</td><td>0.4</td><td>4.8×</td></tr></table>",
+        "bbox": [
+            102,
+            486,
+            444,
+            573
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/1970dfb89bcdc34762bc89f1d74205319a3677f205478e13d4512dceb43aa7bc.jpg",
+        "table_caption": [
+            "Table 5. Quantitative results of inpainting on our synthetic wire inpainting evaluation dataset (1000 images). Our model achieves the highest perceptual quality in terms of FID, and has a balanced speed and quality."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Model</td><td>PSNR↑</td><td>LPIPS↓</td><td>FID↓</td><td>Speed (s/img)</td></tr><tr><td>PatchMatch [3]</td><td>50.29</td><td>0.0294</td><td>5.0403</td><td></td></tr><tr><td>DeepFillv2 [44]</td><td>47.01</td><td>0.0374</td><td>8.0086</td><td>0.009</td></tr><tr><td>CMGAN [50]</td><td>50.07</td><td>0.0255</td><td>3.8286</td><td>0.141</td></tr><tr><td>FcF [19]</td><td>48.82</td><td>0.0322</td><td>4.7848</td><td>0.048</td></tr><tr><td>LDM [32]</td><td>45.96</td><td>0.0401</td><td>10.1687</td><td>4.280</td></tr><tr><td>Big-LaMa [35]</td><td>49.63</td><td>0.0267</td><td>4.1245</td><td>0.034</td></tr><tr><td>Ours (LaMa-Wire)</td><td>50.06</td><td>0.0259</td><td>3.6950</td><td>0.034</td></tr></table>",
+        "bbox": [
+            83,
+            625,
+            460,
+            723
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "8. Conclusion",
+        "text_level": 2,
+        "bbox": [
+            76,
+            813,
+            196,
+            829
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we propose a fully automated wire segmentation and removal system for high-resolution imagery. We demonstrate a segmentation method that maximally preserves sparse wire features and annotations, with a twostage model that effectively uses global context and local details. The predicted segmentation mask is used in our tile-based wire inpainting model that has been demonstrated to produce seamless inpainting results. We also introduce WireSegHR, the first benchmark wire dataset with highquality annotations. We hope our proposed method will provide insights into tackling semantic segmentation with high resolution image and annotation properties, and that our benchmark dataset encourage further research in wire segmentation and removal.",
+        "bbox": [
+            75,
+            840,
+            470,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/7b5758f411837b5df0934fec552093424f1d07264e63e8584dd2060d224481f3.jpg",
+        "image_caption": [
+            "Figure 7. Inpainting Comparison. Our model performs well on complicated structure completion and color consistency, especially on building facades and sky regions containing plain and uniform color."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            501,
+            381,
+            892,
+            656
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            750,
+            893,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "2190",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            78,
+            89,
+            176,
+            106
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[1] Pixel 6, a smarter chip for a smarter phone - google store. https://store.google.com/product/pixel\\_ 6?hl=en-US. (Accessed on 11/14/2021). 6",
+            "[2] Rabab Abdelfattah, Xiaofeng Wang, and Song Wang. Ttpla: An aerial-image dataset for detection and segmentation of transmission towers and power lines. In Proceedings of the Asian Conference on Computer Vision, 2020. 3, 4",
+            "[3] Connelly Barnes, Eli Shechtman, Adam Finkelstein, and Dan B Goldman. Patchmatch: A randomized correspondence algorithm for structural image editing. ACM Trans. Graph., 28(3):24, 2009. 3, 6, 8",
+            "[4] Liang-Chieh Chen, George Papandreou, Iasonas Kokkinos, Kevin Murphy, and Alan L Yuille. Deeplab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs. IEEE transactions on pattern analysis and machine intelligence, 40(4):834–848, 2017. 2",
+            "[5] Liang-Chieh Chen, George Papandreou, Florian Schroff, and Hartwig Adam. Rethinking atrous convolution for semantic image segmentation. arXiv preprint arXiv:1706.05587, 2017. 2",
+            "[6] Liang-Chieh Chen, Yukun Zhu, George Papandreou, Florian Schroff, and Hartwig Adam. Encoder-decoder with atrous separable convolution for semantic image segmentation. In Proceedings of the European conference on computer vision (ECCV), pages 801–818, 2018. 2, 5, 6, 7",
+            "[7] Wuyang Chen, Ziyu Jiang, Zhangyang Wang, Kexin Cui, and Xiaoning Qian. Collaborative global-local networks for memory-efficient segmentation of ultra-high resolution images. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8924–8933, 2019. 2",
+            "[8] Ho Kei Cheng, Jihoon Chung, Yu-Wing Tai, and Chi-Keung Tang. Cascadepsp: toward class-agnostic and very highresolution segmentation via global and local refinement. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8890–8899, 2020. 2, 6, 7",
+            "[9] Soheil Darabi, Eli Shechtman, Connelly Barnes, Dan B Goldman, and Pradeep Sen. Image melding: Combining inconsistent images using patch-based synthesis. ACM Transactions on graphics (TOG), 31(4):1–10, 2012. 3",
+            "[10] Shaohua Guo, Liang Liu, Zhenye Gan, Yabiao Wang, Wuhao Zhang, Chengjie Wang, Guannan Jiang, Wei Zhang, Ran Yi, Lizhuang Ma, et al. Isdnet: Integrating shallow and deep networks for efficient ultra-high resolution segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 4361–4370, 2022. 2, 6, 7",
+            "[11] Ali Hassani and Humphrey Shi. Dilated neighborhood attention transformer. 2022. 2",
+            "[12] Ali Hassani, Steven Walton, Jiachen Li, Shen Li, and Humphrey Shi. Neighborhood attention transformer. 2022. 2",
+            "[13] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceed-",
+            "ings ofthe IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 5, 6",
+            "[14] Zilong Huang, Xinggang Wang, Lichao Huang, Chang Huang, Yunchao Wei, and Wenyu Liu. Ccnet: Criss-cross attention for semantic segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 603–612, 2019. 2",
+            "[15] Chuong Huynh, Anh Tuan Tran, Khoa Luu, and Minh Hoai. Progressive semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16755–16764, 2021. 2, 6, 7",
+            "[16] Satoshi Iizuka, Edgar Simo-Serra, and Hiroshi Ishikawa. Globally and locally consistent image completion. ACM Transactions on Graphics (ToG), 36(4):1–14, 2017. 3",
+            "[17] Jitesh Jain, Jiachen Li, MangTik Chiu, Ali Hassani, Nikita Orlov, and Humphrey Shi. OneFormer: One Transformer to Rule Universal Image Segmentation. 2023. 2",
+            "[18] Jitesh Jain, Anukriti Singh, Nikita Orlov, Zilong Huang, Jiachen Li, Steven Walton, and Humphrey Shi. Semask: Semantically masking transformer backbones for effective semantic segmentation. arXiv, 2021. 2",
+            "[19] Jitesh Jain, Yuqian Zhou, Ning Yu, and Humphrey Shi. Keys to better image inpainting: Structure and texture go hand in hand. arXiv preprint arXiv:2208.03382, 2022. 3, 6, 8",
+            "[20] Oshada Jayasinghe, Damith Anhettigama, Sahan Hemachandra, Shenali Kariyawasam, Ranga Rodrigo, and Peshala Jayasekara. Swiftlane: Towards fast and efficient lane detection. arXiv preprint arXiv:2110.11779, 2021. 2, 3",
+            "[21] Tero Karras, Samuli Laine, Miika Aittala, Janne Hellsten, Jaakko Lehtinen, and Timo Aila. Analyzing and improving the image quality of stylegan. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 8110–8119, 2020. 3, 6",
+            "[22] Alexandre Kaspar, Boris Neubert, Dani Lischinski, Mark Pauly, and Johannes Kopf. Self tuning texture optimization. In Computer Graphics Forum, volume 34, pages 349–359. Wiley Online Library, 2015. 3",
+            "[23] Bo Li, Cheng Chen, Shiwen Dong, and Junfeng Qiao. Transmission line detection in aerial images: An instance segmentation approach based on multitask neural networks. Signal Processing: Image Communication, 96:116278, 2021. 3",
+            "[24] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollar. Focal loss for dense object detection. In´ Proceedings of the IEEE international conference on computer vision, pages 2980–2988, 2017. 4",
+            "[25] Guilin Liu, Fitsum A Reda, Kevin J Shih, Ting-Chun Wang, Andrew Tao, and Bryan Catanzaro. Image inpainting for irregular holes using partial convolutions. In Proceedings of the European conference on computer vision (ECCV), pages 85–100, 2018. 3",
+            "[26] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. arXiv preprint arXiv:2103.14030, 2021. 2",
+            "[27] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101, 2017. 5"
+        ],
+        "bbox": [
+            84,
+            116,
+            468,
+            156
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "2191",
+        "bbox": [
+            480,
+            945,
+            514,
+            957
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[28] Van Nhan Nguyen, Robert Jenssen, and Davide Roverso. Lsnet: Fast single-shot line-segment detector. arXiv preprint arXiv:1912.09532, 2019. 3",
+            "[29] Deepak Pathak, Philipp Krahenbuhl, Jeff Donahue, Trevor Darrell, and Alexei A Efros. Context encoders: Feature learning by inpainting. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 2536–2544, 2016. 3",
+            "[30] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022. 3",
+            "[31] Rene Ranftl, Alexey Bochkovskiy, and Vladlen Koltun. Vi-´ sion transformers for dense prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 12179–12188, 2021. 2",
+            "[32] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjorn Ommer. High-resolution image¨ synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 10684–10695, 2022. 3, 6, 8",
+            "[33] Abhinav Shrivastava, Abhinav Gupta, and Ross Girshick. Training region-based object detectors with online hard example mining. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 761–769, 2016. 4",
+            "[34] Jinming Su, Chao Chen, Ke Zhang, Junfeng Luo, Xiaoming Wei, and Xiaolin Wei. Structure guided lane detection. arXiv preprint arXiv:2105.05403, 2021. 3",
+            "[35] Roman Suvorov, Elizaveta Logacheva, Anton Mashikhin, Anastasia Remizova, Arsenii Ashukha, Aleksei Silvestrov, Naejin Kong, Harshith Goka, Kiwoong Park, and Victor Lempitsky. Resolution-robust large mask inpainting with fourier convolutions. In Proceedings ofthe IEEE/CVF Winter Conference on Applications of Computer Vision, pages 2149–2159, 2022. 2, 3, 5, 6, 8",
+            "[36] Lucas Tabelini, Rodrigo Berriel, Thiago M Paixao, Claudine Badue, Alberto F De Souza, and Thiago Oliveira-Santos. Keep your eyes on the lane: Real-time attention-guided lane detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 294–302, 2021. 2, 3",
+            "[37] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in neural information processing systems, pages 5998–6008, 2017. 2",
+            "[38] Yonatan Wexler, Eli Shechtman, and Michal Irani. Spacetime completion of video. IEEE Transactions on pattern analysis and machine intelligence, 29(3):463–476, 2007. 3",
+            "[39] Enze Xie, Wenhai Wang, Zhiding Yu, Anima Anandkumar, Jose M Alvarez, and Ping Luo. Segformer: Simple and efficient design for semantic segmentation with transformers. arXiv preprint arXiv:2105.15203, 2021. 2, 5",
+            "[40] Xingqian Xu, Shant Navasardyan, Vahram Tadevosyan, Andranik Sargsyan, Yadong Mu, and Humphrey Shi. Image completion with heterogeneously filtered spectral hints. In WACV, 2023. 3",
+            "[41] Omer Emre Yetgin,<sup>¨</sup> Omer Nezih Gerek, and<sup>¨</sup> Omer Nezih.<sup>¨</sup> Power image dataset (infrared-ir and visible light-vl). Mendeley Data, 8, 2017. 4",
+            "[42] Zili Yi, Qiang Tang, Shekoofeh Azizi, Daesik Jang, and Zhan Xu. Contextual residual aggregation for ultra high-resolution image inpainting. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7508–7517, 2020. 3",
+            "[43] Jiahui Yu, Zhe Lin, Jimei Yang, Xiaohui Shen, Xin Lu, and Thomas S Huang. Generative image inpainting with contextual attention. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 5505–5514, 2018. 3",
+            "[44] Jiahui Yu, Zhe Lin, Jimei Yang, Xiaohui Shen, Xin Lu, and Thomas S Huang. Free-form image inpainting with gated convolution. In Proceedings of the IEEE/CVF international conference on computer vision, pages 4471–4480, 2019. 3, 6, 8",
+            "[45] Yu Zeng, Zhe Lin, Jimei Yang, Jianming Zhang, Eli Shechtman, and Huchuan Lu. High-resolution image inpainting with iterative confidence feedback and guided upsampling. In European conference on computer vision, pages 1–17. Springer, 2020. 3",
+            "[46] Heng Zhang, Wen Yang, Huai Yu, Haijian Zhang, and Gui-Song Xia. Detecting power lines in uav images with convolutional features and structured constraints. Remote Sensing, 11(11):1342, 2019. 3, 4",
+            "[47] Lingzhi Zhang, Connelly Barnes, Kevin Wampler, Sohrab Amirghodsi, Eli Shechtman, Zhe Lin, and Jianbo Shi. Inpainting at modern camera resolution by guided patchmatch with auto-curation. In European Conference on Computer Vision, pages 51–67. Springer, 2022. 3",
+            "[48] Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia. Pyramid scene parsing network. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 2881–2890, 2017. 2",
+            "[49] Shengyu Zhao, Jonathan Cui, Yilun Sheng, Yue Dong, Xiao Liang, Eric I Chang, and Yan Xu. Large scale image completion via co-modulated generative adversarial networks. arXiv preprint arXiv:2103.10428, 2021. 3",
+            "[50] Haitian Zheng, Zhe Lin, Jingwan Lu, Scott Cohen, Eli Shechtman, Connelly Barnes, Jianming Zhang, Ning Xu, Sohrab Amirghodsi, and Jiebo Luo. Cm-gan: Image inpainting with cascaded modulation gan and object-aware training. arXiv preprint arXiv:2203.11947, 2022. 3, 6, 8",
+            "[51] Sixiao Zheng, Jiachen Lu, Hengshuang Zhao, Xiatian Zhu, Zekun Luo, Yabiao Wang, Yanwei Fu, Jianfeng Feng, Tao Xiang, Philip HS Torr, et al. Rethinking semantic segmentation from a sequence-to-sequence perspective with transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6881– 6890, 2021. 2",
+            "[52] Bolei Zhou, Agata Lapedriza, Aditya Khosla, Aude Oliva, and Antonio Torralba. Places: A 10 million image database for scene recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2017. 5"
+        ],
+        "bbox": [
+            78,
+            93,
+            468,
+            133
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "2192",
+        "bbox": [
+            480,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 9
+    }
+]
