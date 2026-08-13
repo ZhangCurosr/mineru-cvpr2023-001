@@ -1,0 +1,3962 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "DynIBaR: Neural Dynamic Image-Based Rendering"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                222,
+                130,
+                748,
+                152
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Zhengqi Li<sup>1</sup>, Qianqian Wang<sup>1</sup>,<sup>2</sup>, Forrester Cole<sup>1</sup>, Richard Tucker<sup>1</sup>, Noah Snavely<sup>1</sup> <sup>1</sup>Google Research <sup>2</sup>Cornell Tech"
+                    }
+                ]
+            },
+            "bbox": [
+                161,
+                180,
+                805,
+                224
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/3aaf8eb3a723b7424ea29dee4dafb5b0196ff1b3eefebf3d8a57cbf73a9ad3d0.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                275,
+                666,
+                477
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b2d9d279cbcac1386f7bda6b82c0b0d519dedd6441bf29bca6d5bcfbf03f41d1.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Recent methods for synthesizing novel views from monocular videos of dynamic scenes–like HyperNeRF [50] and NSFF [35]– struggle to render high-quality views from long videos featuring complex camera and scene motion. We present a new approach that addresses these limitations, illustrated above via an application to 6DoF video stabilization, where we apply our approach and prior method on a 30-second, shaky video clip, and compare novel views rendered along a smoothed camera path (left). On a dynamic scenes dataset (right) [75], our approach significantly improves rendering fidelity, as indicated by synthesized images and LPIPS errors computed on pixel corresponding to moving objects (yellow numbers). Please see the supplementary video for full results."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                676,
+                276,
+                887,
+                481
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                588,
+                313,
+                604
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We address the problem ofsynthesizing novel viewsfrom a monocular video depicting a complex dynamic scene. Stateof-the-art methods based on temporally varying Neural Radiance Fields (aka dynamic NeRFs) have shown impressive results on this task. However, for long videos with complex object motions and uncontrolled camera trajectories, these methods can produce blurry or inaccurate renderings, hampering their use in real-world applications. Instead of encoding the entire dynamic scene within the weights of MLPs, we present a new approach that addresses these limitations by adopting a volumetric image-based rendering framework that synthesizes new viewpoints by aggregating featuresfrom nearby views in a scene motion–aware manner. Our system retains the advantages ofprior methods in its ability to model complex scenes and view-dependent effects, but also enables synthesizing photo-realistic novel views from long videos featuring complex scene dynamics with unconstrained camera trajectories. We demonstrate signifi-"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                628,
+                472,
+                904
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "cant improvements over state-of-the-art methods on dynamic scene datasets, and also apply our approach to in-the-wild videos with challenging camera and object motion, where prior methodsfail to produce high-quality renderings."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                589,
+                893,
+                651
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                679,
+                632,
+                695
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Computer vision methods can now produce freeviewpoint renderings of static 3D scenes with spectacular quality. What about moving scenes, like those featuring people or pets? Novel view synthesis from a monocular video of a dynamic scene is a much more challenging dynamic scene reconstruction problem. Recent work has made progress towards synthesizing novel views in both space and time, thanks to new time-varying neural volumetric representations like HyperNeRF [50] and Neural Scene Flow Fields (NSFF) [35], which encode spatiotemporally varying scene content volumetrically within a coordinate-based multi-layer perceptron (MLP)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                705,
+                895,
+                886
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, these dynamic NeRF methods have limitations that prevent their application to casual, in-the-wild videos. Local scene flow–based methods like NSFF struggle to scale to longer input videos captured with unconstrained camera motions: the NSFF paper only claims good performance for 1-second, forward-facing videos [35]. Methods like HyperNeRF that construct a canonical model are mostly constrained to object-centric scenes with controlled camera paths, and can fail on scenes with complex object motion."
+                    }
+                ]
+            },
+            "bbox": [
+                517,
+                887,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                236,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4273"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                212
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this work, we present a new approach that is scalable to dynamic videos captured with 1) long time duration, 2) unbounded scenes, 3) uncontrolled camera trajectories, and 4) fast and complex object motion. Our approach retains the advantages of volumetric scene representations that can model intricate scene geometry with view-dependent effects, while significantly improving rendering fidelity for both static and dynamic scene content compared to recent methods [35, 50], as illustrated in Fig. 1."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                213,
+                472,
+                348
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We take inspiration from recent methods for rendering static scenes that synthesize novel images by aggregating local image features from nearby views along epipolar lines [39, 64, 70]. However, scenes that are in motion violate the epipolar constraints assumed by those methods. We instead propose to aggregate multi-view image features in scene motion–adjusted ray space, which allows us to correctly reason about spatio-temporally varying geometry and appearance."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                348,
+                472,
+                484
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We also encountered many efficiency and robustness challenges in scaling up aggregation-based methods to dynamic scenes. To efficiently model scene motion across multiple views, we model this motion using motion trajectoryfields that span multiple frames, represented with learned basis functions. Furthermore, to achieve temporal coherence in our dynamic scene reconstruction, we introduce a new temporal photometric loss that operates in motion-adjusted ray space. Finally, to improve the quality of novel views, we propose to factor the scene into static and dynamic components through a new IBR-based motion segmentation technique within a Bayesian learning framework."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                484,
+                472,
+                665
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "On two dynamic scene benchmarks, we show that our approach can render highly detailed scene content and significantly improves upon the state-of-the-art, leading to an average reduction in LPIPS errors by over 50% both across entire scenes, as well as on regions corresponding to dynamic objects. We also show that our method can be applied to inthe-wild videos with long duration, complex scene motion, and uncontrolled camera trajectories, where prior state-ofthe-art methods fail to produce high quality renderings. We hope that our work advances the applicability of dynamic view synthesis methods to real-world videos."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                665,
+                472,
+                833
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                844,
+                220,
+                861
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Novel view synthesis. Classic image-based rendering (IBR) methods synthesize novel views by integrating pixel information from input images [58], and can be categorized according to their dependence on explicit geometry. Light field or lumigraph rendering methods [9, 21, 26, 32] generate new views by filtering and interpolating sampled rays, without use of explicit geometric models. To handle sparser input views, many approaches [7, 14, 18, 23, 24, 26, 30, 52, 54, 55] leverage pre-computed proxy geometry such as depth maps or meshes to render novel views."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                895,
+                212
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Recently, neural representations have demonstrated highquality novel view synthesis [12, 17, 38, 40, 46, 48, 59–62, 72, 81]. In particular, Neural Radiance Fields (NeRF) [46] achieves an unprecedented level of fidelity by encoding continuous scene radiance fields within multi-layer perceptrons (MLPs). Among all methods building on NeRF, IBRNet [70] is the most relevant to our work. IBRNet combines classical IBR techniques with volume rendering to produce a generalized IBR module that can render high-quality views without per-scene optimization. Our work extends this kind of volumetric IBR framework designed for static scenes [11, 64, 70] to more challenging dynamic scenes. Note that our focus is on synthesizing higher-quality novel views for long videos with complex camera and object motion, rather than on generalization across scenes."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                213,
+                897,
+                440
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Dynamic scene view synthesis. Our work is related to geometric reconstruction of dynamic scenes from RGBD [5, 15, 25, 47, 68, 83] or monocular videos [31, 44, 78, 80]. However, depth- or mesh-based representations struggle to model complex geometry and view-dependent effects."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                446,
+                895,
+                523
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Most prior work on novel view synthesis for dynamic scenes requires multiple synchronized input videos [1, 3, 6, 27, 33, 63, 69, 76, 82], limiting their real-world applicability. Some methods [8, 13, 22, 51, 71] use domain knowledge such as template models to achieve high-quality results, but are restricted to specific categories [41, 56]. More recently, many works propose to synthesize novel views of dynamic scenes from a single camera. Yoon et al. [75] render novel views through explicit warping using depth maps obtained via single-view depth and multi-view stereo. However, this method fails to model complex scene geometry and to fill in realistic and consistent content at disocclusions. With advances in neural rendering, NeRF-based dynamic view synthesis methods have shown state-of-theart results [16, 35, 53, 66, 74]. Some approaches, such as Nerfies [49] and HyperNeRF [50], represent scenes using a deformation field mapping each local observation to a canonical scene representation. These deformations are conditioned on time [53] or a per-frame latent code [49, 50, 66], and are parameterized as translations [53, 66] or rigid body motion fields [49,50]. These methods can handle long videos, but are mostly limited to object-centric scenes with relatively small object motion and controlled camera paths. Other methods represent scenes as time-varying NeRFs [19, 20, 35, 67, 74]. In particular, NSFF uses neural scene flow fields that can capture fast and complex 3D scene motion for in-the-wild videos [35]. However, this method only works well for short (1-2 second), forward-facing videos."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                523,
+                897,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4274"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/0c1922d0f6fea452d48ff4fd91ed5c90ef312ecbae24abc9d7fca43b595b442a.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Rendering via motion-adjusted multi-view feature aggregation. Given a sampled location x at time i along a target ray r, we estimate its motion trajectory, which determines the 3D correspondence of x at nearby time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j \\in \\mathcal { N } ( i )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", denoted "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Each warped point is then projected into its corresponding source view. Image features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "extracted along the projected curves are aggregated and fed to the ray transformer with time embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma ( i )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "producing per-sample color and density "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { i } , \\sigma _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The final pixel color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is then synthesized by volume rendering "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { i } , \\sigma _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "along r."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                80,
+                89,
+                464,
+                210
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                375,
+                470,
+                421
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Dynamic Image-Based Rendering"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                434,
+                385,
+                452
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given a monocular video of a dynamic scene with frames "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( I _ { 1 } , I _ { 2 } , \\ldots , I _ { N } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and known camera parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { P } _ { 1 } , \\mathbf { P } _ { 2 } , \\ldots , \\mathbf { P } _ { N } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", our goal is to synthesize a novel viewpoint at any desired time within the video. Like many other approaches, we train per-video, first optimizing a model to reconstruct the input frames, then using this model to render novel views."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                460,
+                470,
+                565
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Rather than encoding 3D color and density directly in the weights of an MLP as in recent dynamic NeRF methods, we integrate classical IBR ideas into a volumetric rendering framework. Compared to explicit surfaces, volumetric representations can more readily model complex scene geometry with view-dependent effects."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                565,
+                472,
+                656
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The following sections introduce our methods for scenemotion-adjusted multi-view feature aggregation (Sec. 3.1), and enforcing temporal consistency via cross-time rendering in motion-adjusted ray space (Sec. 3.2). Our full system combines a static model and a dynamic model to produce a color at each pixel. Accurate scene factorization is achieved via segmentation masks derived from a separately trained motion segmentation module within a Bayesian learning framework (Sec. 3.3)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                656,
+                472,
+                792
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Motion-adjusted feature aggregation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                801,
+                397,
+                818
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We synthesize new views by aggregating features extracted from temporally nearby source views. To render an image at time i, we first identify source views "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "within a temporal radius r frames of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i , j \\in \\mathcal { N } ( i ) = [ i - r , \\dot { i } + r ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". For each source view, we extract a 2D feature map "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "through a shared convolutional encoder network to form an input tuple "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ I _ { j } , \\mathbf { P } _ { j } , F _ { j } \\}"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                825,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                500,
+                92,
+                892,
+                122
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To predict the color and density of each point sampled along a target ray r, we must aggregate source view features while accounting for scene motion. For a static scene, points along a target ray will lie along a corresponding epipolar line in a neighboring source view, hence we can aggregate potential correspondences by simply sampling along neighboring epipolar lines [64, 70]. However, moving scene elements violate epipolar constraints, leading to inconsistent feature aggregation if motion is not accounted for. Hence, we perform motion-adjusted feature aggregation, as shown in Fig. 3. To determine correspondence in dynamic scenes, one straightforward idea is to estimate a scene flow field via an MLP [35] to determine a given point’s motion-adjusted 3D location at a nearby time. However, this strategy is computational infeasible in a volumetric IBR framework due to recursive unrolling of the MLPs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                122,
+                895,
+                364
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Motion trajectory fields. Instead, we represent scene motion using motion trajectory fields described in terms of learned basis functions. For a given 3D point x along target ray r at time i, we encode its trajectory coefficients with an MLP "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G _ { \\mathrm { M T } }"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                371,
+                893,
+                446
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\{ \\phi _ { i } ^ { l } ( \\mathbf { x } ) \\} _ { l = 1 } ^ { L } = G _ { \\mathrm { M T } } \\left( \\gamma ( \\mathbf { x } ) , \\gamma ( i ) \\right) ,\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d9951c48ca202f8c5601fbac56c3ebdf59ac0851ece8389be6c15d828ba1190b.jpg"
+                }
+            },
+            "bbox": [
+                584,
+                452,
+                807,
+                470
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\phi _ { i } ^ { l } \\in \\mathcal { R } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are basis coefficients (with separate coefficients for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "x , y ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "z ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using the motion basis described below) and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denotes positional encoding. We choose "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L = 6"
+                    },
+                    {
+                        "type": "text",
+                        "content": "bases and 16 linearly increasing frequencies for the encoding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "based on the assumption that scene motion tends to be low frequency [80]."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                477,
+                893,
+                568
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We also introduce a global learnable motion basis "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ h _ { i } ^ { l } \\} _ { l = 1 } ^ { L } , h _ { i } ^ { l } \\in \\mathcal { R }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", spanning every time step i of the input video, which is optimized jointly with the MLP. The motion trajectory of x is then defined as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\Gamma _ { \\mathbf { x } , i } ( j ) = \\sum _ { l = 1 } ^ { L } h _ { j } ^ { l } \\phi _ { i } ^ { l } ( \\mathbf { x } ) } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Pand thus, the relative displacement between x and its 3D correspondence "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at time j is computed as"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                568,
+                893,
+                660
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\Delta _ { \\mathbf { x } , i } ( j ) = \\Gamma _ { \\mathbf { x } , i } ( j ) - \\Gamma _ { \\mathbf { x } , i } ( i ) .\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/40417272e5e2910d45f017941171789884c01b83c4fc388944b79f83d1586087.jpg"
+                }
+            },
+            "bbox": [
+                598,
+                665,
+                792,
+                683
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "With this motion trajectory representation, finding 3D correspondences for a query point x in neighboring views requires just a single MLP query, allowing efficient multi-view feature aggregation within our volume rendering framework. We initialize the basis "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ h _ { i } ^ { l } \\} _ { l = } ^ { L }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with the DCT basis as proposed by Wang et al. [67], but fine-tune it along with other components during optimization, since we observe that a fixed DCT basis can fail to model a wide range of real-world motions (see third column of Fig. 4)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                689,
+                893,
+                825
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Using the estimated motion trajectory of x at time i, we denote x’s corresponding 3D point at time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } + \\Delta _ { \\mathbf { x } , i } ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We project each warped point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into its source view "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using camera parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { P } _ { j } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and extract color and feature vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at the projected 2D pixel location."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                825,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4275"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/516f90fb95cb5eaa9ea887cadbe2e1bd0aa5f8d51512b53cf8615f0564c43c4b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Temporal consistency via cross-time rendering. To enforce temporal consistency in a dynamic reconstruction, we render each frame "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using the scene model from a nearby time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "which we call cross-time rendering. A ray r from image i is instead rendered using a curved ray "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i \\to j } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", i.e., r warped to time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "That is, having computed the motion-adjusted point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j } = \\mathbf { x } + \\Delta _ { \\mathbf { x } , i } ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at nearby time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from every sampled location along r, we query "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and time j via the MLP to predict its motion trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Gamma _ { \\mathbf { x } _ { i } \\to j } , j ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "along which we aggregate image features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "extracted from source views within time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k \\in \\mathcal { N } ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "). The aggregated features along "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i \\to j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are fed to the ray transformer with time embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to produce per-sample color and density "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { j } , \\sigma _ { j } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". A pixel color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { j  i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is computed by volume rendering "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { j } , \\sigma _ { j } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and then compared to the ground truth color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { C } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to form a reconstruction loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { \\mathrm { p h o } }"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                83,
+                90,
+                460,
+                229
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The resulting set of source features across neighbor views "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is fed to a shared MLP whose output features are aggregated through weighted average pooling [70] to produce a single feature vector at each 3D sample point along ray r. A ray transformer network with time embedding γ(i) then pro cesses the sequence of aggregated features along the ray to predict per-sample colors and densities "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { i } , \\sigma _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(see Fig. 2). We then use standard NeRF volume rendering [4] to obtain a final pixel color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { i } ( \\mathbf { r } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for the ray from this sequence of colors and densities."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                467,
+                472,
+                619
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Cross-time rendering for temporal consistency"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                632,
+                468,
+                648
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "If we optimize our dynamic scene representation by comparing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { C } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "alone, the representation might overfit to the input images: it might perfectly reconstruct those views, but fail to render correct novel views. This can happen because the representation has the capacity to reconstruct completely separate models for each time instance, without utilizing or accurately reconstructing scene motion. Therefore, to recover a consistent scene with physically plausible motion, we enforce temporal coherence of the scene representation. One way to define temporal coherence in this context is that the scene at two neighboring times i and j should be consistent when taking scene motion into account [19, 35, 67]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                657,
+                472,
+                854
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In particular, we enforce temporal photometric consistency in our optimized representation via cross-time rendering in motion-adjusted ray space, as shown in Fig. 3. The idea is to render a view at time i but via some nearby time j, which we refer to as cross-time rendering. For each nearby time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j \\in \\mathcal { N } ( i )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", rather than directly using points x along ray r, we consider the points "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "along motion-adjusted ray "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i \\to j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and treat them as if they lie along a ray at time j."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                854,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                500,
+                92,
+                893,
+                167
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Specifically, having computed the motion-adjusted points "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } _ { i  j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we query the MLP to predict the coefficients of new trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\phi _ { j } ^ { l } ( { \\bf x } _ { i  j } \\} _ { l = 1 } ^ { L } \\ = \\ G _ { \\mathrm { M T } } ( { \\bf x } _ { i  j } , \\gamma ( j ) )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and use these to compute corresponding 3D points "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( { \\bf x } _ { i  j } ) _ { j  k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for images k in the temporal window "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { N } ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", using Eq. 2. These new 3D correspondences are then used to render a pixel color exactly as described for a “straight” ray "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in Sec. 3.1, except now along the curved, motion-adjusted ray "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i \\to j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". That is, each point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( { \\bf x } _ { i  j } ) _ { j  k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is projected into its source view "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and feature maps "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with camera parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { P } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to extract an RGB color and image feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and then these features are aggregated and input to the ray transformer with the time embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma ( j )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The result is a sequence of colors and densities "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { j } , \\sigma _ { j } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "along "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { i \\to j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "which can be composited through volume rendering to form a color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { j  i }"
+                    }
+                ]
+            },
+            "bbox": [
+                500,
+                167,
+                893,
+                395
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We can then compare "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { j  i } ( \\mathbf { r } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with the target pixel "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ { \\bf { C } } _ { i } } ( { \\bf { r } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "via a motion-disocclusion-aware RGB reconstruction loss:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                396,
+                892,
+                428
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { p h o } } = \\sum _ { \\mathbf { r } } \\sum _ { j \\in \\mathcal { N } ( i ) } \\hat { \\mathbf { W } } _ { j  i } ( \\mathbf { r } ) \\rho ( \\mathbf { C } _ { i } ( \\mathbf { r } ) , \\hat { \\mathbf { C } } _ { j  i } ( \\mathbf { r } ) ) .\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/4ab581b8627d39d88e4f49a0f6d5aad521b021e14c0d521573193b51bdf1e2de.jpg"
+                }
+            },
+            "bbox": [
+                524,
+                431,
+                846,
+                465
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We use a generalized Charbonnier loss [10] for the RGB loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\rho . \\hat { \\mathbf { W } } _ { j  i } ( \\mathbf { r } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a motion disocclusion weight computed by the difference of accumulated alpha weights between time i and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to address the motion disocclusion ambiguity described by NSFF [35] (see supplement for more details). Note that when "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "j = i ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", there is no scene motion–induced displacement, meaning "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { j  i } = \\hat { \\mathbf { C } } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and no disocclusion weights are involved "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\hat { \\mathbf { W } } _ { j  i } = 1 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We show a comparison between our method with and without enforcing temporal consistency in the first column of Fig. 4."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                472,
+                893,
+                626
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Combining static and dynamic models"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                635,
+                830,
+                651
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As observed in NSFF, synthesizing novel views using a small temporal window is insufficient to recover complete and high-quality content for static scene regions, since the contents may only be observed in spatially distant frames due to uncontrolled camera paths. Therefore, we follow the ideas of NSFF [35], and model the entire scene using two separate representations. Dynamic content "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } _ { i } , \\sigma _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is represented with a time-varying model as above (used for cross-time rendering during optimization). Static content "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { c } , \\sigma )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is represented with a time-invariant model, which renders in the same way as the time-varying model, but aggregates multiview features without scene motion adjustment (i.e., along epipolar lines)."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                659,
+                893,
+                854
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The dynamic and static predictions are combined and rendered to a single output color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { i } ^ { \\mathrm { { f u l l } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(or "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { j  i } ^ { \\mathrm { f u l l } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "during crosstime rendering) using the method for combining static and transient models of NeRF-W [45]. Each model’s color and density estimates can also be rendered separately, giving color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } ^ { \\mathrm { s t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for static content and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { C } } _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for dynamic content."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4276"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/e67fe7a5300cd0938c5de39f948dc81ec378e08212c5d123eb985a19bb610461.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) w/o TC"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                78,
+                88,
+                174,
+                231
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/63db842705bfc338bd221dd658678ed4427b23827f8adb6edf8f3499d81ba0f2.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) w/ SF"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                178,
+                88,
+                272,
+                232
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/32b5998d0e7251fc3b66a02c86a389744133d13ac80b7fbfd45cdd9dc126a712.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(c) w/ DCT basis"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                274,
+                88,
+                370,
+                232
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c0d041825da5287aae1f9c96f21e3a40f9e337a745966aa95d2c1309ce69aaf2.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(d) Ours"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Qualitative ablations. From left to right, we show rendered novel views (top) and depths (bottom) from our system (a) without enforcing temporal consistency, (b) aggregating image features with scene flow fields instead of motion trajectories, (c) representing motion trajectory with a fixed DCT basis instead of a learned one, and (d) with full configuration. Simpler configurations significantly degrade rendering quality as indicated by PSNR calculated over the regions of moving objects."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                372,
+                88,
+                467,
+                233
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                390,
+                470,
+                435
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "When combining the two representations, we rewrite the photometric consistency term in Eq. 3 as a loss comparing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bar { \\bf C } _ { j  i } ^ { \\mathrm { f u l l } } ( { \\bf r } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with target pixel "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { C } _ { i } ( \\mathbf { r } )"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                436,
+                470,
+                483
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { p h o } } = \\sum _ { \\mathbf { r } } \\sum _ { j \\in \\mathcal { N } ( i ) } \\hat { \\mathbf { W } } _ { j  i } ( \\mathbf { r } ) \\rho ( \\mathbf { C } _ { i } ( \\mathbf { r } ) , \\hat { \\mathbf { C } } _ { j  i } ^ { \\mathrm { f u l l } } ( \\mathbf { r } ) )\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/5c856061b6936908f6dab13681672f36de498f1f3260aa5b2afb61fef8ad4813.jpg"
+                }
+            },
+            "bbox": [
+                104,
+                492,
+                421,
+                526
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Image-based motion segmentation. In our framework, we observed that without any initialization, scene factorization tends to be dominated by either the time-invariant or the time-varying representation, a phenomena also observed in recent methods [28, 42]. To facilitate factorization, Gao et al. [19] initialize their system using masks from semantic segmentation, relying on the assumption that all moving objects are captured by a set of candidate semantic segmentation labels, and segmentation masks are temporally accurate. However, these assumptions do not hold in many real-world scenarios, as observed by Zhang e al. [79]. Instead, we propose a new motion segmentation module that produces segmentation masks for supervising our main two-component scene representation. Our idea is inspired by the Bayesian learning techniques proposed in recent work [45, 79], but integrated into a volumetric IBR representation for dynamic videos."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                537,
+                472,
+                795
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In particular, before training our main two-component scene representation, we jointly train two lightweight models to obtain a motion segmentation mask "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for each input frame "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { i } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "We model static scene content with an IBR-Net [70] that renders a pixel color "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { B } } ^ { \\mathrm { s t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using volume render ing along each ray via feature aggregation along epipolar lines from nearby source views without considering scene motion; we model dynamic scene content with a 2D convolutional encoder-decoder network "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { \\bullet }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which predicts a 2D opacity map "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", confidence map "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\beta _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and RGB image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { B } } _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from an input frame:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                795,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/dc5d65167080ad8d4c6ba3e577ca51507c3fc5074b26469060ff720569f642ab.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Motion segmentation. We show full rendering "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { \\mathbf { B } } _ { i } ^ { \\mathrm { f u l l } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(top) and motion segmentation overlaid with rendered dynamic content "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { \\alpha } } _ { i } ^ { \\mathrm { d y } } \\odot \\hat { { \\bf B } } _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(bottom). Our approach segments challenging dynamic elements such as the moving shadow, swing, and swaying bushes."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                87,
+                885,
+                172
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                261,
+                892,
+                321
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\hat { \\bf B } _ { i } ^ { \\mathrm { d y } } , { \\alpha } _ { i } ^ { \\mathrm { d y } } , { \\beta } _ { i } ^ { \\mathrm { d y } } = D ( I _ { i } ) . } \\end{array}\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/94771f2310523539a6c114f743463bfeaae3a860ba883c4c5b4447752b760e46.jpg"
+                }
+            },
+            "bbox": [
+                616,
+                323,
+                774,
+                343
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The full reconstructed image is then composited pixelwise from the outputs of the two models:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                345,
+                892,
+                376
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\hat { \\bf B } _ { i } ^ { \\mathrm { f u l l } } ( { \\bf r } ) = \\alpha _ { i } ^ { \\mathrm { d y } } ( { \\bf r } ) \\hat { \\bf B } _ { i } ^ { \\mathrm { d y } } ( { \\bf r } ) + ( 1 - \\alpha _ { i } ^ { \\mathrm { d y } } ( { \\bf r } ) ) \\hat { \\bf B } ^ { \\mathrm { s t } } ( { \\bf r } ) .\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e68e0d156c850ef6eaf8c878271bd267e628e2907909e28481a5727ec8ac5f38.jpg"
+                }
+            },
+            "bbox": [
+                524,
+                378,
+                844,
+                397
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To segment moving objects, we assume the observed pixel color is uncertain in a heteroscedastic aleatoric manner, and model the observations in the video with a Cauchy distribution with time dependent confidence "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\boldsymbol { \\beta } } _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". By taking the negative log-likelihood of the observations, our segmentation loss is written as a weighted reconstruction loss:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                400,
+                893,
+                491
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { s e g } } = \\sum _ { \\bf r } \\log \\left( \\beta _ { i } ^ { \\mathrm { d y } } ( { \\bf r } ) + \\frac { | | \\hat { \\bf B } _ { i } ^ { \\mathrm { f u l l } } ( { \\bf r } ) - { \\bf C } _ { i } ( { \\bf r } ) | | ^ { 2 } } { \\beta _ { i } ^ { \\mathrm { d y } } ( { \\bf r } ) } \\right) .\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/2cc0a4f581433d6fbc0f99c70702b85214e76979f0dedcd4b8889e5a9adf6eb9.jpg"
+                }
+            },
+            "bbox": [
+                514,
+                494,
+                852,
+                534
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "By optimizing the two models using Eq. 7, we obtain a motion segmentation mask "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by thresholding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha _ { i } ^ { \\mathrm { d y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at 0.5. We do not require an alpha regularization loss as in NeRF-W [45] to avoid degeneracies, since we naturally include such an inductive basis by excluding skip connections from network D, which leads "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to converge more slowly than the static IBR model. We show our estimated motion segmentation masks overlaid on input images in Fig. 5."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                536,
+                893,
+                659
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Supervision with segmentation masks. We initialize our main time-varying and time-invariant models with masks "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as in Omnimatte [43], by applying a reconstruction loss to renderings from the time-varying model in dynamic regions, and to renderings from the time-invariant model in static regions:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                664,
+                893,
+                755
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { l } { { \\displaystyle \\mathcal { L } _ { \\mathrm { m a s k } } = \\sum _ { \\mathbf { r } } ( 1 - M _ { i } ) ( \\mathbf { r } ) \\rho ( \\hat { \\mathbf { C } } ^ { \\mathrm { s t } } ( \\mathbf { r } ) , \\mathbf { C } _ { i } ( \\mathbf { r } ) ) } } \\\\ { ~ + \\sum _ { \\mathbf { r } } M _ { i } ( \\mathbf { r } ) \\rho ( \\hat { \\mathbf { C } } _ { i } ^ { \\mathrm { d y } } ( \\mathbf { r } ) , \\mathbf { C } _ { i } ( \\mathbf { r } ) ) } \\end{array}\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0d70151a0467509d4dfd0dbb02b899a62c7a3eafb26061500feb98ac187c367e.jpg"
+                }
+            },
+            "bbox": [
+                557,
+                757,
+                833,
+                821
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We perform morphological erosion and dilation on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to obtain masks of dynamic and static regions respectively in order to turn off the loss near mask boundaries. We supervise the system with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { \\mathrm { m a s k } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and decay the weights by a factor of 5 for dynamic regions every 50K optimization steps."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                824,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4277"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Regularization"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                90,
+                228,
+                107
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As noted in prior work, monocular reconstruction of complex dynamic scenes is highly ill-posed, and using photometric consistency alone is insufficient to avoid bad local minima during optimization [19, 35]. Therefore, we adopt regularization schemes used in prior work "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ 2 , 3 5 , 7 3 , 7 5 ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "which consist of three main parts "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { \\mathrm { r e g } } = \\mathcal { L } _ { \\mathrm { d a t a } } + \\mathcal { L } _ { \\mathrm { M T } } + \\mathcal { L } _ { \\mathrm { c p t } } ."
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { L } } _ { \\mathrm { d a t a } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a data-driven term consisting of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\ell _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "monocular depth and optical flow consistency priors using the estimates from Zhang et al. [80] and RAFT [65]. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { \\mathrm { M T } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a motion trajectory regularization term that encourages estimated trajectory fields to be cycle-consistent and spatial-temporally smooth. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { \\mathrm { c p t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a compactness prior that encourages the scene decomposition to be binary via an entropy loss, and mitigates floaters through distortion losses [2]. We refer readers to the supplement for more details."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                113,
+                473,
+                340
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In summary, the final combined loss used to optimize our main representation for space-time view synthesis is:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                340,
+                470,
+                371
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } = \\mathcal { L } _ { \\mathrm { p h o } } + \\mathcal { L } _ { \\mathrm { m a s k } } + \\mathcal { L } _ { \\mathrm { r e g } } .\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/a009cfed257ffbc7e71c10165f4cdcd49e34cfc7f105366940c346589ec5c64b.jpg"
+                }
+            },
+            "bbox": [
+                184,
+                376,
+                361,
+                393
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Implementation details"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                405,
+                297,
+                421
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Data. We conduct numerical evaluations on the Nvidia Dynamic Scene Dataset [75] and UCSD Dynamic Scenes Dataset [37]. Each dataset consists of eight forward-facing dynamic scenes recorded by synchronized multi-view cameras. We follow prior work [35] to derive a monocular video from each sequence, where each video contains 100∼250 frames. We removed frames that lack large regions of moving objects. We follow the protocol from prior work [35] that uses held-out images per time instance for evaluation. We also tested the methods on in-the-wild monocular videos, which feature more challenging camera and object motions [20]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                429,
+                472,
+                612
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "View selection. For the time-varying, dynamic model we use a frame window radius of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "r = 3"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for all experiments. For the time-invariant model representing static scene content, we use separate strategies for the dynamic scenes benchmarks and for in-the-wild videos. For the benchmarks, where camera viewpoints are located at discrete camera rig locations, we choose all nearby distinct viewpoints whose timestep is within 12 frames of the target time. For in-thewild videos, naively choosing the nearest source views can lead to poor reconstruction due to insufficient camera baseline. Thus, to ensure that for any rendered pixel we have sufficient source views for computing its color, we select source views from distant frames. If we wish to select "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N ^ { \\mathrm { v s } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "source views for the time-invariant model, we sub-sample every "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\frac { 2 r ^ { \\mathrm { m a x } } } { N ^ { \\mathrm { v s } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "frames from the input video to build a candidate pool, where for a given target time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we only search source views within "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ i - r ^ { \\operatorname* { m a x } } , i + r ^ { \\operatorname* { m a x } } ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "frames. We estimate r<sup>max</sup> using the method of Li et al. [34] based on SfM point covisibility and camera relative baseline. We then construct a final set of source views for the model by choosing the top "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N ^ { \\mathrm { v s } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "frames in the candidate pool that are the closest to the target view in terms of camera baseline. We set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N ^ { \\mathrm { v s } } = 1 6"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                613,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/5a54ba575687406bcf989d8aa6a727bc8c6a78fe6d2aa41e3bb6f3cc1aacd9ce.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Quantitative evaluation on the Nvidia dataset [75]."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Methods</td><td colspan=\"3\">Full</td><td colspan=\"3\">Dynamic Only</td></tr><tr><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td></tr><tr><td>Nerfies [49]</td><td>0.609</td><td>20.64</td><td>0.204</td><td>0.455</td><td>17.35</td><td>0.258</td></tr><tr><td>HyperNeRF [50]</td><td>0.654</td><td>20.90</td><td>0.182</td><td>0.446</td><td>17.56</td><td>0.242</td></tr><tr><td>DVS [19]</td><td>0.921</td><td>27.44</td><td>0.070</td><td>0.778</td><td>22.63</td><td>0.144</td></tr><tr><td>NSFF [35]</td><td>0.927</td><td>28.90</td><td>0.062</td><td>0.783</td><td>23.08</td><td>0.159</td></tr><tr><td>Ours</td><td>0.957</td><td>30.91</td><td>0.027</td><td>0.826</td><td>24.31</td><td>0.062</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                503,
+                89,
+                887,
+                184
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                231,
+                892,
+                277
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Global spatial coordinate embedding With local image feature aggregation alone, it is hard to determine density accurately on non-surface or occluded surface points due to inconsistent features from different source views, as described in NeuRay [39]. Therefore, to improve global reasoning for density prediction, we append a global spatial coordinate embedding as an input to the ray transformer, in addition to the time embedding, similar to the ideas from [64]. Please see supplement for more details."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                281,
+                895,
+                419
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Handling degeneracy through virtual views. Prior work [35] observed that optimization can converge to bad local minimal if camera and object motions are close to colin ear, or object motions are too fast to track. Inspired by [36], we synthesize images at eight randomly sampled nearby viewpoints for every input via depths estimated by [80]. During rendering, we randomly sample a virtual view as additional source image. We only apply this technique to in-the-wild videos since it improves optimization stability and rendering quality for such inputs, whereas we don’t observe improvement on the benchmarks due to disentangled camera-object motions as described by [20]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                422,
+                897,
+                604
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Time interpolation. Our approach also allows for time interpolation by performing scene motion–based splatting, as introduced by NSFF [35]. To render at a specified target fractional time, we predict the volumetric density and color at two nearby input times by aggregating local image features from their corresponding set of source views. The predicted color and density are then splatted and linearly blended via the scene flow derived from our motion trajectories, and weighted according to the target fractional time index."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                608,
+                895,
+                746
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Setup. We estimate camera poses using COLMAP [57]. For each ray, we use a coarse-to-fine sampling strategy with 128 per-ray samples as in Wang et al. [70]. A separate model is trained from scratch for each scene using the Adam optimizer [29]. The network architecture for two main representations is a variant of that of IBRNet [70]. We reconstruct the entire scene in Euclidean space without special scene parameterization. Optimizing a full system on a 10 second video takes around two days using 8 Nvidia A100s, and rendering takes roughly 20 seconds for a 768 × 432 frame. We refer readers to the supplemental material for network architectures, hyper-parameters setting, and additional details."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                750,
+                897,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4278"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9f8c6fa35a1ade684147674f8d0c8f0f96608fd18b83a658e071150bfd05a7f6.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 6. Qualitative comparisons on the Nvidia dataset [75]."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                78,
+                87,
+                470,
+                233
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/830edf41ef60fbb218e9a8c6c36ca85168c0a65af0f6442cc2d9eb7e3e0022b9.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Quantitative evaluation on the UCSD dataset [37]."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Methods</td><td colspan=\"3\">Full</td><td colspan=\"3\">Dynamic Only</td></tr><tr><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td></tr><tr><td>Nerfies [49]</td><td>0.823</td><td>24.32</td><td>0.096</td><td>0.595</td><td>18.45</td><td>0.234</td></tr><tr><td>HyperNeRF [50]</td><td>0.859</td><td>25.10</td><td>0.095</td><td>0.618</td><td>19.26</td><td>0.212</td></tr><tr><td>DVS [19]</td><td>0.943</td><td>30.64</td><td>0.075</td><td>0.866</td><td>26.57</td><td>0.096</td></tr><tr><td>NSFF [35]</td><td>0.952</td><td>31.75</td><td>0.034</td><td>0.851</td><td>25.83</td><td>0.115</td></tr><tr><td>Ours</td><td>0.983</td><td>36.47</td><td>0.014</td><td>0.909</td><td>28.01</td><td>0.042</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                270,
+                465,
+                363
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                411,
+                472,
+                443
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Evaluation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                455,
+                194,
+                472
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1. Baselines and error metrics"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                481,
+                325,
+                496
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We compare our approach to state-of-the-art monocular view synthesis methods. Specifically, we compare to three recent canonical space–based methods, Nerfies [49], and HyperNeRF [50], and to two scene flow–based methods, NSFF [35] and Dynamic View Synthesis (DVS) from Gao et al. [19]. For fair comparisons, we use the same depth, optical flow and motion segmentation masks used for our approach as inputs to other methods."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                505,
+                472,
+                625
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Following prior work [35], we report the rendering quality of each method with three standard error metrics: peak signal-to-noise ratio (PSNR), structural similarity (SSIM), and perceptual similarity via LPIPS [77], and calculate errors both over the entire scene (Full) and restricted to moving regions (Dynamic Only)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                626,
+                472,
+                718
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2. Quantitative evaluation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                726,
+                295,
+                742
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Quantitative results on the two benchmark datasets are shown in Table 1 and Table 2. Our approach significantly improves over prior state-of-the-art methods in terms of all error metrics. Notably, our approach improves PSNR over entire scene upon the second best methods by 2dB and 4dB on each of the two datasets. Our approach also reduces LPIPS error, a major indicator of perceptual quality compared with real images [77], by over 50%. These results suggest that our framework is much more effective at recovering highly detailed scene contents."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/2bffca0a10e1f1e6ef1ba8eb86dcd4e54244607c46aaaacb39ef5cf4af5c26d7.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 7. Qualitative comparisons on the UCSD dataset [37]."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                500,
+                87,
+                892,
+                233
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Ablation study. We conduct an ablation study on the Nvidia Dynamic Scene Dataset to validate the effectiveness of our various proposed system components. We show comparisons between our full system and variants in Tab. 3: A) baseline IBRNet [70] with extra time embedding; B) without enforcing temporal consistency via cross-time rendering; C) using scene flow fields to aggregate image features within one time step; D) predicting multiple 3D scene flow vectors pointing to 2r nearby times at each sample; E) without using a time-invariant static scene model; F) without masked reconstruction loss via estimated motion segmentation masks; and G) without regularization loss. For this ablation study, we train each model with 64 samples per ray. Without our motion trajectory representation and temporal consistency, view synthesis quality degrades significantly as shown in the first three rows of Tab. 3. Integrating a global spatial coordinate embedding further improves rendering quality. Combining static and dynamic models improves quality for static elements, as seen in metrics over full scenes. Finally, removing supervision from motion segmentation or regularization reduces overall rendering quality, demonstrating the value of proposed losses for avoiding bad local minimal during optimization."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                284,
+                895,
+                632
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.3. Qualitative evaluation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                642,
+                707,
+                659
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Dynamic scenes dataset. We provide qualitative comparisons between our approach and three prior state-of-the-art methods [19, 35, 50] on the test views from two datasets in Fig. 6 and Fig.7. Prior dynamic-NeRF methods have difficulty rendering details of moving objects, as seen in the excessively blurred dynamic content including the texture of balloons, human faces, and clothing. In contrast, our approach synthesizes photo-realistic novel views of both static and dynamic scene content and which are closest to the ground truth images."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                666,
+                897,
+                819
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In-the-wild videos. We show qualitative comparisons on in-the-wild footage of complex dynamic scenes. We show comparisons with Dynamic-NeRF based methods in Fig. 8, and Fig. 9 shows comparisons with point cloud rendering using depths [80] . Our approach synthesizes photo-realistic novel views, whereas prior dynamic-Nerf methods fail to recover high-quality details of both static and moving scene contents, such as the shirt wrinkles and the dog’s fur in Fig. 8. On the other hand, explicit depth warping produces holes at regions near disocculusions and out of field of view. We refer readers to the supplementary video for full comparisons."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                825,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4279"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/87c0b5eda35af98bf3e996b98551de8ad64eb4d8dec5b5ab91370b2f29518e9b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Input"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                83,
+                90,
+                171,
+                243
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c606c03ed2cd8c477703fb8642866d6615bf4814049943c3d55934fbbc0ac18a.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "DVS"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                171,
+                89,
+                346,
+                243
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9a61a242df7604fcd081be9aa8185e82e628f68bff138e0ec6701b3b7a62b8b4.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "HyperNeRF"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                349,
+                88,
+                527,
+                242
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f16cdace67e9745f131d995bdd73e63e1767f01dbf5da29ab114c8e3482ac4ac.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "NSFF"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                529,
+                88,
+                707,
+                243
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/691ea8b515b5c2368ade9bc06bbb69755284ffe8ab0279fc706edce793036476.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Ours"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                709,
+                88,
+                887,
+                242
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/408e966d39affbf667a6fbd15c0e6a0d4ed390c419fea6822949dc766aa70c8e.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 8. Qualitative comparisons on in-the-wild videos. We show results on 10-second videos of complex dynamic scenes. The leftmost column shows the start and end frames of each video; on the right we show novel views at intermediate times rendered from our approach and prior state-of-the-art methods [19, 35, 50]."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 9. From left to right, We show inputs and corresponding novel views rendered from explicit depth warping with Zhang et al. [80], and from our approach."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                80,
+                330,
+                467,
+                444
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/509aa055e15825519b449c6b5290360b63f7e2a8b34cc8fcd98532a3629cd42e.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Ablation study on the Nvidia Dataset. See Sec. 5.2 for detailed descriptions of each configuration."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Methods</td><td colspan=\"3\">Full</td><td colspan=\"3\">Dynamic Only</td></tr><tr><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td><td>SSIM↑</td><td>PSNR↑</td><td>LPIPS↓</td></tr><tr><td>A) [70]+time</td><td>0.905</td><td>25.33</td><td>0.081</td><td>0.683</td><td>20.09</td><td>0.122</td></tr><tr><td>B) w/o TC</td><td>0.911</td><td>27.57</td><td>0.074</td><td>0.751</td><td>22.16</td><td>0.104</td></tr><tr><td>C) w/ SF</td><td>0.935</td><td>29.42</td><td>0.035</td><td>0.797</td><td>22.41</td><td>0.095</td></tr><tr><td>D) w/ M-SF</td><td>0.947</td><td>29.59</td><td>0.033</td><td>0.814</td><td>22.97</td><td>0.084</td></tr><tr><td>E) w/o static rep.</td><td>0.919</td><td>28.19</td><td>0.047</td><td>0.840</td><td>24.01</td><td>0.071</td></tr><tr><td>F) w/o Lmask</td><td>0.930</td><td>29.95</td><td>0.036</td><td>0.835</td><td>24.30</td><td>0.063</td></tr><tr><td>G) wlo Lreg</td><td>0.921</td><td>29.46</td><td>0.042</td><td>0.795</td><td>22.19</td><td>0.080</td></tr><tr><td>Full</td><td>0.957</td><td>30.77</td><td>0.028</td><td>0.837</td><td>24.27</td><td>0.066</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                506,
+                465,
+                632
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                694,
+                472,
+                786
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Discussion and conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                799,
+                320,
+                815
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Limitations. Our method is limited to relatively small viewpoint changes compared with methods designed for static or quasi-static scene; Our method is not able to handle small fast moving object due to incorrect initial depth and optical flow estimates (left, Fig. 10). In addition, compared to prior dynamic NeRF methods, the synthesized views are not strictly multi-view consistent, and rendering quality of static content depends on which source views are selected (middle, Fig. 10). Our approach is also sensitive to degenerate motion patterns from in-the-wild videos, in which object and camera motion is mostly colinear, but we show heuristics to handle such cases in the supplemental. Moreover, our method is able to synthesize dynamic contents only appearing at distant time (right, Fig. 10)"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                824,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/d13cc0f248ec022bd29a53a275a54fdc598eeadc5474e21d2e44fa22a58a5763.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 10. Limitations. Our method might fail to model moving thin objects such as moving leash (left). Our method can fail to render dynamic contents only visible in distant frames (middle). The rendered static content can be unrealistic or blank if insufficient source views feature are aggregated for a given pixel (right)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                501,
+                330,
+                890,
+                390
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                500,
+                893,
+                637
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Conclusion. We presented a new approach for space-time view synthesis from a monocular video depicting a complex dynamic scene. By representing a dynamic scene within a volumetric IBR framework, our approach overcomes limitations of recent methods that cannot model long videos with complex camera and object motion. We have shown that our method can synthesize photo-realistic novel views from in-the-wild dynamic videos, and can achieve significant improvements over prior state-of-the-art methods on the dynamic scene benchmarks."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                662,
+                895,
+                814
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgements. Thanks to Andrew Liu, Richard Bowen and Lucy Chai for the fruitful discussions, and thanks to Rick Szeliski and Ricardo Martin-Brualla for helpful proofreading."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                839,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4280"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Aayush Bansal, Minh Vo, Yaser Sheikh, Deva Ramanan, and Srinivasa Narasimhan. 4D visualization of dynamic events from unconstrained multi-view videos. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 5366–5375, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Jonathan T Barron, Ben Mildenhall, Dor Verbin, Pratul P Srinivasan, and Peter Hedman. Mip-NeRF 360: Unbounded anti-aliased neural radiance fields. In Proc. Computer Vision and Pattern Recognition (CVPR), 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Mojtaba Bemana, Karol Myszkowski, Hans-Peter Seidel, and Tobias Ritschel. X-fields: Implicit neural view-, light-and time-image interpolation. ACM Trans. Graphics, 39(6), 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Sai Bi, Zexiang Xu, Pratul P. Srinivasan, Ben Mildenhall, Kalyan Sunkavalli, Milovs Havsan, Yannick Hold-Geoffroy, D. Kriegman, and R. Ramamoorthi. Neural reflectance fields for appearance acquisition. ArXiv, abs/2008.03824, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Aljaz Bozic, Michael Zollhofer, Christian Theobalt, and Matthias Niessner. Deepdeform: Learning non-rigid RGB-D reconstruction with semi-supervised data. In Proc. Computer Vision and Pattern Recognition (CVPR), June 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Michael Broxton, John Flynn, Ryan Overbeck, Daniel Erickson, Peter Hedman, Matthew Duvall, Jason Dourgarian, Jay Busch, Matt Whalen, and Paul Debevec. Immersive light field video with a layered mesh representation. ACM Trans. Graph., 39(4), July 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Chris Buehler, Michael Bosse, Leonard McMillan, Steven Gortler, and Michael Cohen. Unstructured lumigraph rendering. In Proceedings of the 28th annual conference on Computer graphics and interactive techniques, pages 425– 432, 2001."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Joel Carranza, Christian Theobalt, Marcus A Magnor, and Hans-Peter Seidel. Free-viewpoint video of human actors. ACM transactions on graphics (TOG), 22(3):569–577, 2003."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Jin-Xiang Chai, Xin Tong, Shing-Chow Chan, and Heung-Yeung Shum. Plenoptic sampling. In Proceedings of the 27th Annual Conference on Computer Graphics and Interactive Techniques, SIGGRAPH ’00, page 307–318, USA, 2000. ACM Press/Addison-Wesley Publishing Co."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Pierre Charbonnier, Laure Blanc-Feraud, Gilles Aubert, and Michel Barlaud. Two deterministic half-quadratic regularization algorithms for computed imaging. In Proceedings of 1st International Conference on Image Processing, volume 2, pages 168–172. IEEE, 1994."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Anpei Chen, Zexiang Xu, Fuqiang Zhao, Xiaoshuai Zhang, Fanbo Xiang, Jingyi Yu, and Hao Su. MVSNeRF: Fast generalizable radiance field reconstruction from multi-view stereo. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 14124–14133, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Inchang Choi, Orazio Gallo, Alejandro Troccoli, Min H Kim, and Jan Kautz. Extreme view synthesis. In Proc. Int. Conf. on Computer Vision (ICCV), pages 7781–7790, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Edilson De Aguiar, Carsten Stoll, Christian Theobalt, Naveed Ahmed, Hans-Peter Seidel, and Sebastian Thrun. Performance capture from sparse multi-view video. In ACM SIG-GRAPH 2008 papers, pages 1–10. 2008."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Paul E Debevec, Camillo J Taylor, and Jitendra Malik. Modeling and rendering architecture from photographs: A hybrid geometry-and image-based approach. In Proceedings of the 23rd annual conference on Computer graphics and interactive techniques, pages 11–20, 1996."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Mingsong Dou, Sameh Khamis, Yury Degtyarev, Philip L. Davidson, Sean Ryan Fanello, Adarsh Kowdle, Sergio Orts, Christoph Rhemann, David Kim, Jonathan Taylor, Pushmeet Kohli, Vladimir Tankovich, and Shahram Izadi. Fusion4D: real-time performance capture of challenging scenes. ACM Trans. Graphics, 35:114:1–114:13, 2016."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Yilun Du, Yinan Zhang, Hong-Xing Yu, Joshua B Tenenbaum, and Jiajun Wu. Neural radiance flow for 4d view synthesis and video processing. In 2021 IEEE/CVF International Conference on Computer Vision (ICCV), pages 14304–14314. IEEE Computer Society, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] John Flynn, Michael Broxton, Paul Debevec, Matthew DuVall, Graham Fyffe, Ryan Overbeck, Noah Snavely, and Richard Tucker. DeepView: View synthesis with learned gradient descent. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 2367–2376, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] John Flynn, Ivan Neulander, James Philbin, and Noah Snavely. DeepStereo: Learning to predict new views from the world’s imagery. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 5515–5524, 2016."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Chen Gao, Ayush Saraf, Johannes Kopf, and Jia-Bin Huang. Dynamic view synthesis from dynamic monocular video. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 5712–5721, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Hang Gao, Ruilong Li, Shubham Tulsiani, Bryan Russell, and Angjoo Kanazawa. Monocular dynamic view synthesis: A reality check. arXiv preprint arXiv:2210.13445, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Steven J Gortler, Radek Grzeszczuk, Richard Szeliski, and Michael F Cohen. The lumigraph. In Proceedings ofthe 23rd annual conference on Computer graphics and interactive techniques, pages 43–54, 1996."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Kaiwen Guo, Peter Lincoln, Philip Davidson, Jay Busch, Xueming Yu, Matt Whalen, Geoff Harvey, Sergio Orts-Escolano, Rohit Pandey, Jason Dourgarian, et al. The relightables: Volumetric performance capture of humans with realistic relighting. ACM Transactions on Graphics (ToG), 38(6):1–19, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Peter Hedman, Julien Philip, True Price, Jan-Michael Frahm, George Drettakis, and Gabriel Brostow. Deep blending for free-viewpoint image-based rendering. ACM Trans. Graphics, 37(6):1–15, 2018."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Peter Hedman, Tobias Ritschel, George Drettakis, and Gabriel Brostow. Scalable inside-out image-based rendering. ACM Transactions on Graphics (TOG), 35(6):1–11, 2016."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Matthias Innmann, Michael Zollhofer, Matthias Niessner,¨ Christian Theobalt, and Marc Stamminger. VolumeDeform: Real-time volumetric non-rigid reconstruction. In Proc. European Conf. on Computer Vision (ECCV), 2016."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Nima Khademi Kalantari, Ting-Chun Wang, and Ravi Ramamoorthi. Learning-based view synthesis for light field cameras. ACM Trans. Graphics, 35(6):1–10, 2016."
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                116,
+                470,
+                183
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4281"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                514,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Takeo Kanade, Peter Rander, and PJ Narayanan. Virtualized reality: Constructing virtual worlds from real scenes. IEEE multimedia, 4(1):34–47, 1997."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Yoni Kasten, Dolev Ofri, Oliver Wang, and Tali Dekel. Layered neural atlases for consistent video editing. ACM Transactions on Graphics (TOG), 40(6):1–12, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. CoRR, abs/1412.6980, 2014."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Johannes Kopf, Michael F Cohen, and Richard Szeliski. Firstperson hyper-lapse videos. ACM Transactions on Graphics (TOG), 33(4):1–10, 2014."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Johannes Kopf, Xuejian Rong, and Jia-Bin Huang. Robust consistent video depth estimation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1611–1621, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Marc Levoy and Pat Hanrahan. Light field rendering. In Proceedings ofthe 23rd annual conference on Computer graphics and interactive techniques, pages 31–42, 1996."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Tianye Li, Mira Slavcheva, Michael Zollhoefer, Simon Green, Christoph Lassner, Changil Kim, Tanner Schmidt, Steven Lovegrove, Michael Goesele, Richard Newcombe, et al. Neural 3D video synthesis from multi-view video. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5521–5531, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Zhengqi Li, Tali Dekel, Forrester Cole, Richard Tucker, Noah Snavely, Ce Liu, and William T Freeman. Learning the depths of moving people by watching frozen people. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 4521– 4530, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Zhengqi Li, Simon Niklaus, Noah Snavely, and Oliver Wang. Neural scene flow fields for space-time view synthesis of dynamic scenes. In Proc. Computer Vision and Pattern Recognition (CVPR), 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Zhengqi Li, Qianqian Wang, Noah Snavely, and Angjoo Kanazawa. Infinitenature-zero: Learning perpetual view generation of natural scenes from single images. In Computer Vision–ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part I, pages 515– 534. Springer, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Kai-En Lin, Lei Xiao, Feng Liu, Guowei Yang, and Ravi Ramamoorthi. Deep 3D mask volume for view synthesis of dynamic scenes. In Proc. Int. Conf. on Computer Vision (ICCV), 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Lingjie Liu, Jiatao Gu, Kyaw Zaw Lin, Tat-Seng Chua, and Christian Theobalt. Neural sparse voxel fields. Advances in Neural Information Processing Systems, 33:15651–15663, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Yuan Liu, Sida Peng, Lingjie Liu, Qianqian Wang, Peng Wang, Christian Theobalt, Xiaowei Zhou, and Wenping Wang. Neural rays for occlusion-aware image-based rendering. In CVPR, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Stephen Lombardi, Tomas Simon, Jason Saragih, Gabriel Schwartz, Andreas Lehrmann, and Yaser Sheikh. Neural volumes: Learning dynamic renderable volumes from images. ACM Trans. Graphics, 38(4):65, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J Black. SMPL: A skinned multi-"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "person linear model. ACM transactions on graphics (TOG), 34(6):1–16, 2015."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Erika Lu, F. Cole, Tali Dekel, Weidi Xie, Andrew Zisserman, D. Salesin, W. Freeman, and M. Rubinstein. Layered neural rendering for retiming people in video. ACM Trans. Graphics (SIGGRAPH Asia), 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Erika Lu, Forrester Cole, Tali Dekel, Andrew Zisserman, William T Freeman, and Michael Rubinstein. Omnimatte: Associating objects and their effects in video. In Proc. Computer Vision and Pattern Recognition (CVPR), 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Xuan Luo, Jia-Bin Huang, Richard Szeliski, Kevin Matzen, and Johannes Kopf. Consistent video depth estimation. ACM Trans. Graph., 39(4), July 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Ricardo Martin-Brualla, N. Radwan, Mehdi S. M. Sajjadi, J. Barron, A. Dosovitskiy, and Daniel Duckworth. NeRF in the wild: Neural radiance fields for unconstrained photo collections. In Proc. Computer Vision and Pattern Recognition (CVPR), 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Ben Mildenhall, Pratul P Srinivasan, Matthew Tancik, Jonathan T Barron, Ravi Ramamoorthi, and Ren Ng. NeRF: Representing scenes as neural radiance fields for view syn thesis. Proc. European Conf. on Computer Vision (ECCV), 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Richard A Newcombe, Dieter Fox, and Steven M Seitz. DynamicFusion: Reconstruction and tracking of non-rigid scenes in real-time. In Proc. Computer Vision and Pattern Recognition (CVPR), 2015."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Michael Niemeyer, Lars Mescheder, Michael Oechsle, and Andreas Geiger. Differentiable volumetric rendering: Learning implicit 3D representations without 3D supervision. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 3504–3515, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Keunhong Park, Utkarsh Sinha, Jonathan T Barron, Sofien Bouaziz, Dan B Goldman, Steven M Seitz, and Ricardo Martin-Brualla. Nerfies: Deformable neural radiance fields. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 5865–5874, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Keunhong Park, Utkarsh Sinha, Peter Hedman, Jonathan T Barron, Sofien Bouaziz, Dan B Goldman, Ricardo Martin-Brualla, and Steven M Seitz. HyperNeRF: A higherdimensional representation for topologically varying neural radiance fields. arXiv preprint arXiv:2106.13228, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Sida Peng, Yuanqing Zhang, Yinghao Xu, Qianqian Wang, Qing Shuai, Hujun Bao, and Xiaowei Zhou. Neural body: Implicit neural representations with structured latent codes for novel view synthesis of dynamic humans. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9054–9063, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Eric Penner and Li Zhang. Soft 3D reconstruction for view synthesis. ACM Trans. Graphics, 36(6):1–11, 2017."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Albert Pumarola, Enric Corona, Gerard Pons-Moll, and Francesc Moreno-Noguer. D-NeRF: Neural radiance fields for dynamic scenes. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 10318–10327, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Gernot Riegler and V. Koltun. Free view synthesis. Proc. European Conf. on Computer Vision (ECCV), 2020."
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                468,
+                133
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4282"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Gernot Riegler and Vladlen Koltun. Stable view synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 12216–12225, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[56] Shunsuke Saito, Zeng Huang, Ryota Natsume, Shigeo Morishima, Angjoo Kanazawa, and Hao Li. PIFu: Pixel-aligned implicit function for high-resolution clothed human digitization. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 2304–2314, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[57] Johannes L Schonberger and Jan-Michael Frahm. Structurefrom-motion revisited. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 4104–4113, 2016."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[58] Harry Shum and Sing Bing Kang. Review of image-based rendering techniques. In Visual Communications and Image Processing 2000, volume 4067, pages 2–13. SPIE, 2000."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[59] Vincent Sitzmann, Julien Martel, Alexander Bergman, David Lindell, and Gordon Wetzstein. Implicit neural representations with periodic activation functions. Advances in Neural Information Processing Systems, 33:7462–7473, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[60] Vincent Sitzmann, Justus Thies, Felix Heide, Matthias Nießner, Gordon Wetzstein, and Michael Zollhofer. Deepvoxels: Learning persistent 3D feature embeddings. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 2437–2446, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[61] Vincent Sitzmann, Michael Zollhofer, and Gordon Wetzstein.¨ Scene representation networks: Continuous 3D-structureaware neural scene representations. In Neural Information Processing Systems, pages 1119–1130, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[62] Pratul P Srinivasan, Richard Tucker, Jonathan T Barron, Ravi Ramamoorthi, Ren Ng, and Noah Snavely. Pushing the boundaries of view extrapolation with multiplane images. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 175–184, 2019."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[63] Timo Stich, Christian Linz, Georgia Albuquerque, and Marcus Magnor. View and time interpolation in image space. In Computer Graphics Forum, volume 27, pages 1781–1787. Wiley Online Library, 2008."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[64] Mohammed Suhail, Carlos Esteves, Leonid Sigal, and Ameesh Makadia. Light field neural rendering. In Proc. Computer Vision and Pattern Recognition (CVPR), 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[65] Zachary Teed and Jia Deng. RAFT: Recurrent all-pairs field transforms for optical flow. In Proc. European Conf. on Computer Vision (ECCV), 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[66] Edgar Tretschk, Ayush Tewari, Vladislav Golyanik, Michael Zollhofer, Christoph Lassner, and Christian Theobalt. Non-¨ rigid neural radiance fields: Reconstruction and novel view synthesis of a dynamic scene from monocular video. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 12959–12970, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[67] Chaoyang Wang, Ben Eckart, Simon Lucey, and Orazio Gallo. Neural trajectory fields for dynamic novel view synthesis. arXiv preprint arXiv:2105.05994, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[68] Chaoyang Wang, Xueqian Li, Jhony Kaesemodel Pontes, and Simon Lucey. Neural prior for trajectory estimation. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6532–6542, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[69] Liao Wang, Jiakai Zhang, Xinhang Liu, Fuqiang Zhao, Yanshun Zhang, Yingliang Zhang, Minye Wu, Jingyi Yu, and Lan"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Xu. Fourier plenoctrees for dynamic radiance field rendering in real-time. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 13524– 13534, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[70] Qianqian Wang, Zhicheng Wang, Kyle Genova, Pratul P Srinivasan, Howard Zhou, Jonathan T Barron, Ricardo Martin-Brualla, Noah Snavely, and Thomas Funkhouser. Ibrnet: Learning multi-view image-based rendering. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 4690– 4699, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[71] Chung-Yi Weng, Brian Curless, Pratul P Srinivasan, Jonathan T Barron, and Ira Kemelmacher-Shlizerman. HumanNeRF: Free-viewpoint rendering of moving people from monocular video. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16210–16220, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[72] Suttisak Wizadwongsa, Pakkapon Phongthawee, Jiraphon Yenphraphai, and Supasorn Suwajanakorn. NeX: Real-time view synthesis with neural basis expansion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8534–8543, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[73] Tianhao Wu, Fangcheng Zhong, Andrea Tagliasacchi, Forrester Cole, and Cengiz Oztireli. D<sup>2</sup>NeRF: Self-supervised decoupling of dynamic and static objects from a monocular video. arXiv preprint arXiv:2205.15838, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[74] Wenqi Xian, Jia-Bin Huang, Johannes Kopf, and Changil Kim. Space-time neural irradiance fields for free-viewpoint video. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9421–9431, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[75] Jae Shin Yoon, Kihwan Kim, Orazio Gallo, Hyun Soo Park, and Jan Kautz. Novel view synthesis of dynamic scenes with globally coherent depths from a monocular camera. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 5336–5345, 2020."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[76] Jiakai Zhang, Xinhang Liu, Xinyi Ye, Fuqiang Zhao, Yanshun Zhang, Minye Wu, Yingliang Zhang, Lan Xu, and Jingyi Yu. Editable free-viewpoint video using a layered neural representation. ACM Transactions on Graphics (TOG), 40(4):1–18, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[77] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. The unreasonable effectiveness of deep features as a perceptual metric. In Proc. Computer Vision and Pattern Recognition (CVPR), pages 586–595, 2018."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[78] Zhoutong Zhang, Forrester Cole, Zhengqi Li, Michael Rubinstein, Noah Snavely, and William T Freeman. Structure and motion from casual videos. In European Conference on Computer Vision, pages 20–37. Springer, 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[79] Zhoutong Zhang, Forrester Cole, Zhengqi Li, Noah Snavely, and William Freeman. Structure and motion from casual videos. In Proc. European Conf. on Computer Vision (ECCV), 2022."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[80] Zhoutong Zhang, Forrester Cole, Richard Tucker, William T Freeman, and Tali Dekel. Consistent depth of moving objects in video. ACM Transactions on Graphics (TOG), 40(4):1–12, 2021."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[81] Tinghui Zhou, Richard Tucker, John Flynn, Graham Fyffe, and Noah Snavely. Stereo magnification: learning view syn-"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                470,
+                133
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4283"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "thesis using multiplane images. ACM Trans. Graphics, 37:1 – 12, 2018."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[82] C Lawrence Zitnick, Sing Bing Kang, Matthew Uyttendaele, Simon Winder, and Richard Szeliski. High-quality video view interpolation using a layered representation. ACM Trans. Graphics, 23(3):600–608, 2004."
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[83] Michael Zollhofer, Matthias Niessner, Shahram Izadi,¨ Christoph Rehmann, Christopher Zach, Matthew Fisher, Chenglei Wu, Andrew Fitzgibbon, Charles Loop, Christian Theobalt, et al. Real-time non-rigid reconstruction using an RGB-D camera. ACM Trans. Graphics, 33(4):156, 2014."
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                111,
+                93,
+                470,
+                118
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4284"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                514,
+                957
+            ]
+        }
+    ]
+]
