@@ -1,0 +1,2768 @@
+[
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Input: Wide-Baseline Stereo Image Pair"
+                    }
+                ]
+            },
+            "bbox": [
+                125,
+                257,
+                318,
+                270
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Learning to Render Novel Views from Wide-Baseline Stereo Pairs"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                151,
+                130,
+                815,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Yilun Du Cameron Smith Ayush Tewari<sup>†</sup> Vincent Sitzmann<sup>†</sup>"
+                    }
+                ]
+            },
+            "bbox": [
+                194,
+                181,
+                781,
+                198
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "MIT CSAIL"
+                    }
+                ]
+            },
+            "bbox": [
+                433,
+                199,
+                537,
+                215
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "{yilundu, camsmith, ayusht, sitzmann}@mit.edu"
+                    }
+                ]
+            },
+            "bbox": [
+                284,
+                219,
+                681,
+                233
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Output: Synthesized Novel Views"
+                    }
+                ]
+            },
+            "bbox": [
+                537,
+                257,
+                700,
+                270
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b0bea990020e8abd082e5a207484d20aa365c5083ed45d787c153f5dba356d8f.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Novel view synthesis from a single wide-baseline stereo image pair. In a single forward pass, our method maps a wide-baseline stereo image pair to features that enable fast rendering of novel views, trained using only posed multi-view images of static scenes without ground-truth or proxy geometry. We outperform all prior art on novel view synthesis from sparse observations, taking a significant step towards matching the quality of overfitting on single scenes in this challenging setting."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                91,
+                265,
+                879,
+                478
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                235,
+                551,
+                313,
+                568
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We introduce a methodfor novel view synthesis given only a single wide-baseline stereo image pair. In this challenging regime, 3D scene points are regularly observed only once, requiring prior-based reconstruction ofscene geometry and appearance. Wefind that existing approaches to novel view synthesisfrom sparse observationsfail due to recovering incorrect 3D geometry and due to the high cost ofdifferentiable rendering that precludes their scaling to large-scale training. We take a step towards resolving these shortcomings by formulating a multi-view transformer encoder, proposing an efficient, image-space epipolar line sampling scheme to assemble image features for a target ray, and a lightweight cross-attention-based renderer. Our contributions enable training ofour method on a large-scale real-world dataset of indoor and outdoor scenes. We demonstrate that our method learns powerful multi-view geometry priors while reducing the rendering time. We conduct extensive comparisons on held-out test scenes across two real-world datasets, signif-"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                582,
+                472,
+                856
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "icantly outperforming prior work on novel view synthesis from sparse image observations and achieving multi-viewconsistent novel view synthesis."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                553,
+                893,
+                598
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                501,
+                631,
+                632,
+                647
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The goal of novel view synthesis is to render images of a scene from unseen camera viewpoints given a set of image observations. In recent years, the emergence of differentiable rendering [26, 28, 44, 45, 50] has led to a leap in quality and applicability of these approaches, enabling near photorealistic results for most real-world 3D scenes. However, methods that approach photorealism require hundreds or even thousands of images carefully exploring every part of the scene, where special care must be taken by the user to densely image all 3D points in the scene from multiple angles."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                657,
+                895,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In contrast, we are interested in the regime of novel view synthesis from a sparse set of context views. Specifically, this paper explores whether it is possible to sythesize novel view images using an extremely sparse set of observations. In the most challenging case, this problem reduces to using input images such that every 3D point in the scene is only ob served from a single camera perspective. Towards this goal, we propose a system that uses only a single wide-baseline stereo image pair of the scene as input. This stereo image pair regularly has little overlap, such that many 3D points are indeed only observed in one of the images, see Fig. 1. Image observations themselves are thus insufficient information to compute 3D geometry and appearance via multi-view stereo, and we must instead learn prior-based 3D reconstruction. Nevertheless, reasoning about multi-view consistency is critical, as prior-based reconstructions must agree across images to ensure multi-view-consistent reconstruction."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                810,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                236,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "† Equal Advising Project website: https : / / yilundu . github . io / wide _ baseline/"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                862,
+                470,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4970"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                258
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This is a novel problem setting: While some existing methods demonstrate novel view synthesis from very sparse observations [45, 51, 58], they are limited to object-level scenes. In contrast, we are interested in large real-world scenes that are composed of multiple objects with complex geometry and occlusions. Previous approaches for novel view synthesis of scenes focus on small baseline renderings using 3 − 10 images as input [7, 8, 18, 25, 47, 53, 58]. In this setting, most 3D points in the scene are observed in multiple input images, and multi-view feature correspondences can be used to regress 3D geometry and appearance. Thus, these methods in practice learn to amortize multi-view stereo. In our setting, we use a wide-baseline stereo image pair as input, where it is not sufficient to rely on multi-view feature correspondences due to many points only being observed in a single view. We show that in this challenging setting, existing approaches do not faithfully recover the 3D geometry of the scene. In addition, most existing methods rely on costly volume rendering for novel view synthesis, where the number of samples per ray required for high-quality rendering makes it difficult to train on complex real-world scenes."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                260,
+                472,
+                579
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this paper, we propose a new method that addresses these limitations, and provides the first solution for highquality novel view synthesis of a scene from a wide-baseline stereo image pair. To better reason about the 3D scene, we introduce a multi-view vision transformer that computes pixel-aligned features for each input image. In contrast to a monocular image encoder commonly used in previous approaches [51, 53, 58], the multi-view transformer uses the camera pose information as input to better reason about the scene geometry. We reduce the memory and computational costs for computing image features by combining this vision transformer at lower resolutions with a CNN at higher resolutions. A multi-view feature matching step further refines the geometry encoded in these feature maps for any 3D point that can be observed in both images."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                580,
+                472,
+                808
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We also introduce an efficient differentiable renderer that enables large-scale training. Existing approaches that use volume rendering sample points along camera rays in 3D and project these points onto the image planes to compute the corresponding features using bilinear interpolation. Since perspective projection is a non-linear operation, uniformly sampled 3D points are not uniformly distributed in 2D, leading to some pixels in the feature maps being sampled multiple times, and other pixels not being sampled at all. Thus, this sampling strategy does not use the information in the pixel-aligned feature maps optimally. We instead take an image-centric sampling approach where we first compute the epipolar lines of a target pixel in the input images, and sample points uniformly on these lines in 2D. This exploits the fact that the number of pixels along the epipolar lines is the maximum effective number of samples. In addition, we use lightweight cross-attention layers that directly aggregate the sampled features and compute the pixel color. In contrast to volume rendering where we need to sample very close to a surface in order to render its color, thus requiring a large number of samples, our learned renderer does not share this limitation and can compute the pixel color even with sparse samples. Our lightweight rendering and feature backbone components enable us to train on large-scale real-world datasets. We demonstrate through extensive experiments on two datasets that our method achieves state-of-the-art results, significantly outperforming existing approaches for novel view synthesis from sparse inputs."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                897,
+                425
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                435,
+                642,
+                453
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Image-based rendering. Image-based rendering (IBR) methods generate images from novel camera viewpoints by blending information from a set of input images. We provide a brief overview of some methods. Please refer to the review by Shum and Kang [41] for details. Some IBR approaches directly model the plenoptic function without using information about the scene geometry [20, 31]. Other approaches use a proxy scene geometry computed using multi-view stereo to guide the blending of information from the input images [3, 9, 16, 23]. While rendering without computing an explicit 3D geometry leads to higher-quality results, it requires a large number of input images. In contrast, methods that rely on 3D geometry can work with sparse image inputs. However, multi-view stereo from a sparse set of input views often leads to inaccurate geometry, especially for scenes with complex geometry, limiting the quality of rendered images. Methods have been proposed for higherquality geometry computation [5, 15], optical flow-based refinement [4, 10, 11], and improved blending [14, 35, 38]. In contrast to these image-based rendering methods, we rely on priors learned from data that enable novel-view synthesis from just a wide-baseline stereo image. We do not create any explicit proxy geometry of the scene and are thus unaffected by inaccurate multi-view stereo."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                463,
+                895,
+                828
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Single-Scene Volumetric Approaches. Recent progress in neural rendering [50] and neural fields [28,42,56] has led to a drastic jump in the quality of novel-view synthesis from several input images of a scene. Here, a 3D scene representation is optimized via differentiable rendering to fit a set of image observations. Early approaches leveraged voxel grids and learned renderers [26, 32, 44]. More recent approaches rely on neural fields [2, 27, 28, 56] to parameterize the 3D scene and volumetric rendering [26,28,49] for image synthesis. This leads to photorealistic view synthesis but requires hundreds of input images that densely sample the 3D scene. Hand-crafted and learned priors may reduce the number of required images to the order of three to ten [33], but 3D points still need to be observed from at least two perspectives. A major challenge of these approaches is the cost of accurate differentiable rendering, regularly requiring hundreds of samples per ray. Recent approaches have achieved impressive speed-ups in 3D reconstruction leveraging highperformance data structures and sparsity [6,13,24,29]. While promising, reconstruction can still take a few minutes per scene, and sparse data structures such as octrees and hash tables cannot easily be used with learned priors."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                839,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4971"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                514,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                363
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our approach tackles a different setting than these methods, using only a single wide-baseline stereo image as input, where 3D points are regularly only observed in a single view. Our approach does not require any per-scene optimization at test time. Instead, it reconstructs the scene in a single for ward pass. Note that while our method does not achieve the quality of per-scene optimization methods that use hundreds of input images, it demonstrates a significant step up in novel view synthesis from very sparse image observations."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                363,
+                472,
+                501
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Prior-based 3D Reconstruction and View Synthesis. Instead of overfitting to a single scene, differentiable rendering can also be used to supervise prior-based inference methods. Some methods generalize image-based rendering techniques by computing feature maps on top of a proxy geometry [1, 19, 38, 55]. Volume rendering using multi-plane images has been used for small baseline novel view synthesis [46, 52, 60, 61]. Early neural fields-based approaches [34, 45] were conditioned on a single global latent code and rendered via sphere tracing. In contrast to a global latent code, several approaches use a feature backbone to compute pixel-aligned features that can be transformed using MLPs [21,51,58] or transformers layers [37,53] to a radiance field. Ideas from multi-view stereo such as the construction of plane-swept cost volumes [7,18,25], or multi-view feature matching [8] have been used for higher-quality results."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                507,
+                472,
+                751
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Alternatively to these radiance field-based approaches, some methods use a light field rendering formulation where an oriented camera ray can directly be transformed to the pixel color as a function of the features computed from the input images [43, 48]. Scene Representation Transformers [39] use transformers with global attention to compute a set-latent representation that can be decoded to pixel colors when queried with a target camera ray. However, global attention layers on high-resolution input images are very compute and memory intensive. Developed concurrently with our work, Suhail et al. [47] proposed to use a transformer to only compute features for image patches along the epipolar rays of the pixel being rendered. This is still very expensive due to global attention layer computations over multiple image patches for every rendered pixel. In addition, this method ignores the context information of the scene, since all computation is performed only for patches that lie on the epipolar lines."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                92,
+                895,
+                212
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "All existing prior-based reconstruction methods either only support object-level scenes or very small baseline renderings, or rely on multiple image observations where most 3D points are observed in multiple input images. This is different from our setting where we only use a wide-baseline stereo image pair of scenes as input."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                212,
+                895,
+                304
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Method"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                315,
+                591,
+                332
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our goal is to render novel views of a 3D scene given a wide-baseline stereo image pair "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { T } _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { T } _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We assume known camera intrinsic "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf K } _ { i } \\in \\mathbb { R } ^ { 3 \\times 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and extrinsic "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { E } _ { i } \\in"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbb { R } ^ { 4 \\times 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "expressed relative to context camera 1. We use a multiview encoder to compute pixel-aligned features, and a crossattention-based renderer to transform the features into novel view renderings, see Figure 2 for an overview."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                340,
+                895,
+                446
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Multiview Feature Encoding"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                454,
+                756,
+                470
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "An essential part of novel view synthesis given context images is an accurate reconstruction of scene geometry. Our method implicitly reconstructs 3D geometry and appearance of the scene in the form of pixel-aligned feature maps for each stereo image. In prior work, pixel-aligned features are obtained by separately encoding each image via a vision transformer or CNN [21, 58]. However, in our early experiments, we found this led to artifacts in renderings observing boundary regions between context images. We hypothesize that separate encoding of images leads to inconsistent geometry reconstruction across context images. We thus introduce our multi-view encoder, which obtains pixel-aligned features by jointly processing the images and the relative pose between them. Encoding the pose information has also been shown to act as an effective inductive bias for 3D tasks [57]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                478,
+                895,
+                704
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We now describe this architecture in detail, which extends the dense vision transformer proposed by Ranftl et al. [36]. Please see Figure 2 for an overview. From each stereo image, we first independently extract convolutional features via a ResNet50 CNN. We then flatten both images, obtaining "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 \\times 1 6 \\times 1 6"
+                    },
+                    {
+                        "type": "text",
+                        "content": "features in total. To each feature, we add (1) a learned per-pixel positional embedding encoding its pixel coordinate and (2) a camera pose embedding, obtained via a linear transform of the relative camera pose between context images 1 and 2. These tokens are processed by a vision transformer, which critically performs self-attention across all tokens across both images. In-between self-attention layers, per-image features are re-assembled into a spatial grid, up-sampled, and processed by a fusion CNN [36] to yield per-image spatial feature map. Directly using these spatial feature maps for novel view synthesis leads to blurry reconstructions, due to the loss of high-frequency texture information. We thus concatenate these features with high-resolution image features obtained from a shallow CNN."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                704,
+                897,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4972"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c75c7e0c79152ad7dc55832091847d3c2646a54a64877c18eb4486a003003d3b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Method Overview. (a) Given context images from different viewpoints, a multi-view encoder extracts pixel-aligned features, leveraging attention across the images and their corresponding camera pose embeddings. (b) Given a target ray, in each context view, we sample primary features along the epipolar line equidistant in pixel space. We then project the corresponding 3D points onto the other views and sample corresponding secondary epipolar line features, where out-of-bounds features are set to zero. (c) We render the target ray by performing cross-attention over the set of all primary and secondary epipolar line features from all views."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                76,
+                87,
+                892,
+                310
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                404,
+                472,
+                496
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Epipolar Line Sampling and Feature Matching"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                501,
+                470,
+                518
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We aim to render an image of the scene encoded in the two pixel-aligned feature maps from a novel camera viewpoint. A common way to achieve this is volume rendering, where we cast a camera ray, compute density and color values at many depths along the ray, and integrate them to compute the color of the pixel. Sampling locations are determined in 3D. Coarse samples are either uniformly spaced in euclidean space or spaced with uniform disparity, and fine samples are distributed closer to the surface as computed by the coarse samples [2, 28, 30]. However, in our regime of generalizable novel view synthesis with pixel-aligned feature maps, this sampling scheme is suboptimal. In this case, sampling along the ray should be determined by the resolution of the context images: the number of pixels along the epipolar line is the maximum effective number of samples available for any method. More samples would not provide any extra information. We propose a sampling strategy to exploit this and demonstrate its effectiveness in an ablation study."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                525,
+                472,
+                797
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Consider a pixel coordinate "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { u } _ { t } ~ = ~ ( u , v )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the target image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { T } _ { t } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", with assumed known intrinsic "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { K } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and extrinsic "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { t } \\ \\stackrel { = } { = } \\ \\left[ \\begin{array} { c c } { \\mathbf { R } _ { t } \\ \\mathbf { t } _ { t } } \\\\ { \\mathbf { 0 } } & { 1 } \\end{array} \\right]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "camera parameters relative to the context camera "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { T } _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Its epipolar lines "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\boldsymbol { \\mathrm { l } } _ { \\{ 1 , 2 \\} }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", in context cameras 1 and 2 are given as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                797,
+                470,
+                873
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { l } _ { i } = \\mathbf { F } _ { i } \\left[ u , v , 1 \\right] ^ { T } = \\mathbf { K } _ { i } ^ { - T } ( \\left[ \\mathbf { t } _ { t } \\right] _ { \\times } \\mathbf { R } _ { t } ) \\mathbf { K } _ { t } ^ { - 1 } \\left[ u , v , 1 \\right] ^ { T }\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9caa6d67e42dac5eec44e3e5e34e0121de167c7138719108150286d169dd19dd.jpg"
+                }
+            },
+            "bbox": [
+                96,
+                877,
+                433,
+                897
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "via the fundamental matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { i } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We now uniformly sample "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N"
+                    },
+                    {
+                        "type": "text",
+                        "content": "pixel coordinates along the line segment of the epipolar line within the image boundaries. To enable the renderer to reason about whether to use a certain pixel-aligned feature or not, a critical piece of information is the depth in the context coordinate frame at which we are sampling this feature. This depth value can be computed via triangulation, using a closed-form expression. Please refer to the supplemental document for details. We now obtain N tuples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ ( d , \\mathbf { f } ) _ { k } \\} _ { k = 1 } ^ { N }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "1 of depth d and image feature f per context image for a total of 2N samples which we call primary samples."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                404,
+                893,
+                571
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We further propose a feature matching module to refine the geometry encoded in the primary epipolar line samples via correspondence matching. Consider a primary epipolar line sample obtained from context image i, a tuple (d, f) cor responding to a pixel coordinate "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { u } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We propose to augment this sample by a corresponding feature in the other context image. Specifically, we first solve for the corresponding 3D point, and then project this 3D point onto the other context image to retrieve a corresponding feature <sup>ˆ</sup>f, which we refer to as a secondary feature. The secondary features are set to zero if the projected point is out of the image bounds. Intuitively, primary and secondary features together allow a final stage of geometry refinement for 3D points that are observed in both images: if the features agree, this sample likely encodes a surface. If the projected point on the other image lies outside the image boundary, we simply set the secondary features to zeros. We obtain the input to the renderer as the final set of features by concatenating each primary epipolar line feature with its corresponding secondary feature in the other context view, yielding a set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ ( d , \\mathbf { f } , \\hat { \\mathbf { f } } ) _ { k } ) _ { k = 1 } ^ { 2 N }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "In practice, we sample N = 64 points on the epipolar lines for both images, leading to a total of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 N = 1 2 8"
+                    },
+                    {
+                        "type": "text",
+                        "content": "tuples."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                583,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4973"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                76,
+                90,
+                441,
+                107
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Differentiable Rendering via Cross-Attention"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                114,
+                460,
+                131
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To render the target ray, it remains to map the set of epipolar line samples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ ( d , \\mathbf { \\bar { f } } , \\mathbf { \\hat { f } } ) _ { k = } ^ { 2 N }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to a color value. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { A } s"
+                    },
+                    {
+                        "type": "text",
+                        "content": "this operation has to be executed once per ray, a key consideration in the design of this function is computational cost. We propose to perform rendering via a lightweight cross-attention decoder."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                138,
+                472,
+                228
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For each point on the epipolar line, we embed the target ray origin "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { o } _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", target ray direction "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "depth with respect to the target ray origin "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and context camera ray direction "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { r } _ { c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for the epipolar point into a ray query token q via a shallow MLP as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Phi ( [ \\mathbf { o } _ { t } , \\mathbf { r } _ { t } , \\mathbf { r } _ { c } , d _ { t } ] )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 N"
+                    },
+                    {
+                        "type": "text",
+                        "content": "ray feature values are independently transformed into key and value tokens using a 2-layer MLP. Our renderer now performs two rounds of cross-attention over this set of features to obtain a final feature embedding, which is then decoded into color via a small MLP."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                229,
+                472,
+                378
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The expectation of the Softmax distribution over the sampled features gives a rough idea of the scene depth as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\textstyle e \\ = \\ \\sum _ { k } d _ { k } \\alpha _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denotes the depth of the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k \\mathrm { - }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "th epipolar ray sample along the target ray and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the corresponding Softmax weight as computed by the crossattention operator. Note that e is not the actual depth but a measure of which epipolar samples the renderer uses to compute the pixel color. Unlike volume rendering, where we need to sample very close to a surface to render its color, our light field-based renderer can reason about the surface without exactly sampling on it. The learned cross-attention layers can use the target camera ray information, along with a sparse set of epipolar samples, to compute the pixel color. Thus, our method does not require explicit computation of accurate scene depth for rendering."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                380,
+                472,
+                607
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Training and Losses"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                614,
+                269,
+                630
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We now have a rendered image from a novel camera viewpoint. Our loss function consists of two terms:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                637,
+                468,
+                669
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\mathcal { L } = \\mathcal { L } _ { \\mathrm { i m g } } + \\lambda _ { \\mathrm { r e g } } \\mathcal { L } _ { \\mathrm { r e g } } . } \\end{array}\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1fd31e14ff5d03ae7e037c5ba83f876e6058670359355a8bef42334bf9156fbf.jpg"
+                }
+            },
+            "bbox": [
+                199,
+                678,
+                346,
+                695
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The first term evaluates the difference between the rendered image from a novel camera viewpoint, R and the ground truth, G as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                704,
+                470,
+                750
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { i m g } } = | | R - G | | _ { 1 } + \\lambda _ { \\mathrm { L P I P S } } \\mathcal { L } _ { \\mathrm { L P I P S } } ( R , G ) ,\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1bca177d42d95d9acc1960feb17ea139804f1df73aa804dfba8922f5d2348a95.jpg"
+                }
+            },
+            "bbox": [
+                130,
+                758,
+                415,
+                776
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { L } } _ { \\mathrm { L P I P S } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the LPIPS perceptual loss [59]. In practice, we render square patches with a length of 32 pixels and evaluate these image losses at the patch level."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                785,
+                470,
+                830
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We also use a regularization loss on the cross-attention weights of the renderer for better multi-view consistency:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                830,
+                468,
+                861
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { r e g } } = \\sum _ { ( u , v ) } \\sum _ { ( u ^ { \\prime } v ^ { \\prime } ) \\in \\mathcal { N } ( u , v ) } \\left( ( e ( u , v ) - e ( u ^ { \\prime } , v ^ { \\prime } ) ) ^ { 2 } . \\right.\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/ad21b28f0e1dc987fc2f62bba28cb7440be63086758e8b32601a2a851921019a.jpg"
+                }
+            },
+            "bbox": [
+                111,
+                868,
+                433,
+                904
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Here, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "e ( u , v )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denotes the expected value of the depth of the epipolar samples at pixel "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( u , v )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { N } ( \\ v u )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "defines the neighborhood around a pixel."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                90,
+                893,
+                137
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For better generalization, we further perform several geometrically-consistent data augmentations during the training procedure. We center crop and scale the input and target images, which leads to transformation in the intrinsics of the camera. We also flip the images which leads to transformation of the extrinsics."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                137,
+                895,
+                228
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                242,
+                633,
+                260
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We quantitatively and qualitatively show that our approach can effectively render novel views from widebaseline stereo pairs. We describe our underlying experimental setup in Section 4.1. Next, we evaluate our approach on challenging indoor scenes with substantial occlusions in Section 4.2. We further evaluate on outdoor scenes in Section 4.3. We analyze and ablate the underlying components in Section 4.4. Finally, we illustrate how our approach can render novel views of unposed images of scenes captured in the wild in Section 4.5."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                268,
+                895,
+                421
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Experimental Setup"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                431,
+                691,
+                448
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Datasets. We train and evaluate our approach on RealEstate10k [61], a large dataset of indoor and outdoor scenes, and ACID [22], a large dataset of outdoor scenes. We use 67477 scenes for training and 7289 scenes for testing for RealEstate10k, and 11075 scenes for training and 1972 scenes for testing for ACID, following default splits. We train our method on images at 256 × 256 resolution and evaluate methods on their ability to reconstruct intermediate views in test scenes (details in the supplement)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                455,
+                895,
+                592
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Baselines. We compare to several existing approaches for novel view synthesis from sparse image observations. We compare to pixelNeRF [58] and IBRNet [53] that use pixelaligned features, which are decoded into 3D volumes rendered using volumetric rendering. We also compare to Generalizable Patch-based Rendering (GPNR) [47], which uses a vision transformer-based backbone to compute epipolar features, and a light field-based renderer to compute pixel colors. These baselines cover a wide range of design choices used in existing methods, such as pixel-aligned feature maps computed using CNNs [53, 58] and transformers [47], volumetric rendering by decoding features using MLPs [58] and transformers [53], and light field-based rendering [47]. We use publicly available codebases for all baselines and train them on the same datasets we use for fair evaluations. Please refer to the supplemental for comparisons to more baselines."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                602,
+                895,
+                845
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Evaluation Metrics. We use LPIPS [59], PSNR, SSIM [54], and MSE metrics to compare the image quality of rendered images with the ground truth."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4974"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/a1b3554af2dae4627b1cb866821dbb8312cbe64ef8ae99720cb9b2981322f619.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Comparative Rendering Results on RealEstate10k. Our approach can render novel views of indoor scenes with substantial occlusions with high fidelity using a wide-baseline input image pair, outperforming all baselines. Note that many points of the 3D scene are only observed in a single image in such inputs. Our method can correctly reason about the 3D structures from such sparse views."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                91,
+                93,
+                877,
+                369
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/640734e3dd4f5bd7f0abd1f8ebd7b65ace2f57185d3baa2609130ac050d81250.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Rendered Novel Views"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Novel view renderings of our approach given a large baseline stereo pair. Our approach can synthesize intermediate views that are substantially different from input images, even with very limited overlap between images."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                89,
+                460,
+                457,
+                703
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Indoor Scene Neural Rendering"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                787,
+                357,
+                804
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We first evaluate the ability of our approach and baselines to render novel views in complex indoor environments with substantial occlusions between objects."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                813,
+                470,
+                858
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Qualitative Results. In Figure 3, we provide qualitative results of novel view renderings of our approach, compared to each of our baselines. We provide additional novel view results of our method in Figure 4. Compared to the baselines, our approach reconstructs the 3D structure of the scene better, and also captures more high-frequency details."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/45385a502fbf90a4669965d9df686751df4b79b82aee8b42600df47466e268c3.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Novel view rendering performance on RealEstate10K. Our method outperforms all baselines on all metrics."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>LPIPS↓</td><td>SSIM ↑</td><td>PSNR ↑</td><td>MSE↓</td></tr><tr><td>pixelNeRF [58]</td><td>0.591</td><td>0.460</td><td>13.91</td><td>0.0440</td></tr><tr><td>IBRNet [53]</td><td>0.532</td><td>0.484</td><td>15.99</td><td>0.0280</td></tr><tr><td>GPNR [47]</td><td>0.459</td><td>0.748</td><td>18.55</td><td>0.0165</td></tr><tr><td>Ours</td><td>0.262</td><td>0.839</td><td>21.38</td><td>0.0110</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                513,
+                457,
+                877,
+                536
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/e5ec8dbfb9e0aada14562d74d5cd4df00fa9a8b6d21852837398d31e765c251f.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Novel view rendering performance on ACID. Our method outperforms all baselines on all metrics."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>LPIPS↓</td><td>SSIM↑</td><td>PSNR ↑</td><td>MSE↓</td></tr><tr><td>pixelNeRF [58]</td><td>0.628</td><td>0.464</td><td>16.48</td><td>0.0275</td></tr><tr><td>IBRNet [53]</td><td>0.385</td><td>0.513</td><td>19.24</td><td>0.0167</td></tr><tr><td>GPNR [47]</td><td>0.558</td><td>0.719</td><td>17.57</td><td>0.0218</td></tr><tr><td>Ours</td><td>0.364</td><td>0.781</td><td>23.63</td><td>0.0074</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                511,
+                599,
+                877,
+                679
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                737,
+                895,
+                799
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Quantitative Results. We quantitatively evaluate our approach and baselines in Table 1. We find that our approach substantially outperforms each compared baseline in terms of all of our metrics."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                839,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4975"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f4fd96af142e2ca49cd8bca4951b20d7af2a8632db8818cccd78e9fb84322e7f.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Comparative Results on ACID. Our approach is able to render novels views with higher quality than all baselines."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                117,
+                88,
+                848,
+                263
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Outdoor Scene Neural Rendering"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                305,
+                372,
+                321
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We further evaluate on outdoor scenes with potentially unbounded depth."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                329,
+                470,
+                361
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Qualitative Results. We illustrate qualitative results in Figure 5. In comparison to the baselines, our approach is able to more accurately reconstruct the geometry, and is able to synthesize multi-view consistent renderings from two large baseline views."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                369,
+                470,
+                446
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Quantitative Results. Similar to indoor scenes, our approach also outperforms all baselines in terms of all metrics on outdoor scenes, see Table 2."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                455,
+                472,
+                501
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.4. Ablations and Analysis"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                511,
+                292,
+                527
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We next analyze and ablate individual components of our approach. We use the RealEstate10k dataset for these experiments."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                535,
+                470,
+                582
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Ablations. We evaluate the importance of different components of our method in Table 3. The “Base Model” corresponds to a vanilla architecture that does not include some of our proposed contributions. It samples points uniformly in 3D, instead of our proposed 2D epipolar line sampling. It uses a monocular encoder instead of our proposed multiview encoder, and does not use correspondence matching across views for refining the geometry. It also does not use the regularization loss for multi-view consistency or any data augmentation during training. We find that all components of our approach are essential for high-quality performance. The results in Table 3 show that sampling in 3D sub-optimally uses the information in the feature maps, that our multi-view encoder and cross-image correspondence matching can compute features that better encode the 3D scene structure compared to monocular encoders, and that data augmentation helps with generalization. While we found that the incorporation of the regularization loss led to a slight decrease in PSNR, we found that it improved multi-view consistency in the rendered video results, and also improved both LPIPS and SSIM perceptual metrics."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                590,
+                473,
+                910
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/0ae2417dedafe0f7856007354eaa53d0b90513d1da86d8c5b9b92eb7c2fa65df.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Ablations. All components of our proposed method are essential for high-quality novel view synthesis."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Models</td><td>LPIPS↓</td><td>SSIM↑</td><td>PSNR↑</td><td>MSE↓</td></tr><tr><td>Base Model</td><td>0.452</td><td>0.735</td><td>18.11</td><td>0.0201</td></tr><tr><td>+ 2D Sampling</td><td>0.428</td><td>0.762</td><td>19.02</td><td>0.0159</td></tr><tr><td>+ Cross Correspondence</td><td>0.415</td><td>0.766</td><td>19.52</td><td>0.0142</td></tr><tr><td>+ Multiview Encoder</td><td>0.361</td><td>0.794</td><td>20.43</td><td>0.0132</td></tr><tr><td>+ Regularization Loss</td><td>0.358</td><td>0.808</td><td>19.84</td><td>0.0139</td></tr><tr><td>+ Data Aug</td><td>0.262</td><td>0.839</td><td>21.38</td><td>0.0110</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                503,
+                304,
+                887,
+                401
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/b58e16a01190fa220c8584d4d1da20c1e4b4c85c900fcb2f90098bf2e903cdd3.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 6. FPS vs PSNR. Our approach strikes the best trade-off between rendering quality and rendering speed. We can further reduce the number of Epipolar samples (“Ours (Faster)”), which makes our method faster than all baselines, while still significantly outperforming them in terms of rendering quality."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                537,
+                445,
+                848,
+                621
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Speed. Next, in Figure 6, we study the relationship between rendering quality and rendering speed for all approaches. Our lightweight approach achieves the best tradeoff, significantly outperforming all methods in terms of rendering quality, while being at-par with the most efficient baseline. By reducing the number of sampled epipolar points from 64 to 48 samples per image, we can further speed up our approach, outperforming all baselines both in terms of rendering speed and image quality."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                707,
+                895,
+                844
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Epipolar Attention. Finally, we visualize the underlying epipolar attention weights learned by our approach in Figure 7. The expected value of the depths of the epipolar samples can be seen as a proxy depth and corresponds roughly to the underlying geometry of the scene. This enables us to analyze the learned computation of our renderer."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4976"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/ffac5218a5700cbcea459a42662c5e553d11f4d6de0271b14701c13fc657a4b1.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 7. Visualization of Epipolar Attention Weights. The expected value of the depths of the epipolar samples under the attention weights can be seen as a depth proxy. As our renderer is not a volume renderer, these attention weights need not exactly correspond to the actual depth for correct renderings."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                107,
+                87,
+                439,
+                273
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                362,
+                470,
+                407
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.5. Novel View Synthesis from Unposed Images"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                415,
+                450,
+                431
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our method uses a wide-baseline stereo image as input with known relative pose between them. We show that our method can perform novel view synthesis even without the knowledge of this relative pose information. In this case, we utilize SuperGlue [40] to compute reliable pixel correspondences between the input images. Since we do not know the camera intrinsics for in-the-wild images, we use the average intrinsics of the RealEstate10k dataset and compute the Essential matrix from the correspondences using RANSAC [12]. We then compute the pose information from the essential matrix [17] and use it as input for our method. Note that the recovered translation is only defined up to a scale. Figure 8 demonstrates results on some in-the-wild scenes using images from the internet. Even in this unposed setting, our method can reason about the geometry of the scene by aggregating information across the sparse input views. This is an extremely challenging setting, and existing approaches for novel view synthesis from sparse views do not demonstrate any results on unposed images."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                439,
+                472,
+                728
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Discussion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                739,
+                192,
+                756
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While we have presented the first approach for novel view synthesis of scenes from very sparse input views, our approach still has several limitations. Our rendering results are not at the same quality as those obtained by methods that optimize on single scenes using more images. Learning priors that enable novel view synthesis from sparse views is a significantly more challenging problem compared to using a large number of input images, where 3D points are regularly observed in many images. Our approach takes a step towards photorealistic renderings of scenes using only sparse views. As our approach relies on learned priors, it does not generalize well to new scenes with very different appearances compared to the training scenes. However, our efficient approach lends itself to large-scale training on diverse datasets, in turn enabling reconstruction of diverse scenes. Finally, while our method, in theory, can be extended to take more than two input views, we have only experimented with two views as a first step towards very sparse multi-view neural rendering."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                765,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/09421f3ac028a11de668b7eb388dfa5c446365c450cb7eec2098bd64829c6fc6.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 8. Novel View Synthesis from Unposed Images. Our approach can also render novel views using two unposed images captured in the wild. Note that parts of the scene only visible in one of the images can be correctly rendered from novel viewpoints."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                508,
+                87,
+                883,
+                277
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                363,
+                895,
+                516
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                544,
+                619,
+                560
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We introduce a method for implicit 3D reconstruction and novel view synthesis from a single, wide-baseline stereo pair, trained using only self-supervision from posed color images. By leveraging a multi-view encoder, an image-space epipolar line feature sampling scheme, and a cross-attention based renderer, our method surpasses the quality of prior art on datasets of challenging scenes. Our method further strikes a compelling trade-off between rendering speed and quality, rendering novel views significantly faster than most prior methods. Meanwhile, leveraging epipolar line geometry strikes a compelling trade-off between structured and gen eralist learning paradigms, enabling us to train our method on real-world datasets such as RealEstate10k. We believe that this work will inspire the community towards further exploring the regime of extreme few-shot and generalizable novel view synthesis."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                574,
+                895,
+                818
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgements. This work was supported by the National Science Foundation under Grant No. 2211259, and by the Singapore DSTA under DST00OECI20300823 (New Representations for Vision). Yilun Du is supported by a NSF Graduate Research Fellowship."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                824,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4977"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Kara-Ali Aliev, Artem Sevastopolsky, Maria Kolos, Dmitry Ulyanov, and Victor Lempitsky. Neural point-based graphics. In European Conference on Computer Vision, pages 696–712. Springer, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Jonathan T. Barron, Ben Mildenhall, Matthew Tancik, Peter Hedman, Ricardo Martin-Brualla, and Pratul P. Srinivasan. Mip-nerf: A multiscale representation for anti-aliasing neural radiance fields, 2021. 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Chris Buehler, Michael Bosse, Leonard McMillan, Steven Gortler, and Michael Cohen. Unstructured lumigraph rendering. In Proceedings of the 28th annual conference on Computer graphics and interactive techniques, pages 425– 432, 2001. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Dan Casas, Christian Richardt, John Collomosse, Christian Theobalt, and Adrian Hilton. 4d model flow: Precomputed appearance alignment for real-time 4d video interpolation. In Computer Graphics Forum, volume 34, pages 173–182. Wiley Online Library, 2015. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Gaurav Chaurasia, Sylvain Duchene, Olga Sorkine-Hornung, and George Drettakis. Depth synthesis and local warps for plausible image-based navigation. ACM Transactions on Graphics (TOG), 32(3):1–12, 2013. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Anpei Chen, Zexiang Xu, Andreas Geiger, Jingyi Yu, and Hao Su. Tensorf: Tensorial radiance fields. arXiv preprint arXiv:2203.09517, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Anpei Chen, Zexiang Xu, Fuqiang Zhao, Xiaoshuai Zhang, Fanbo Xiang, Jingyi Yu, and Hao Su. Mvsnerf: Fast generalizable radiance field reconstruction from multi-view stereo. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 14124–14133, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Julian Chibane, Aayush Bansal, Verica Lazova, and Gerard Pons-Moll. Stereo radiance fields (srf): Learning view synthesis from sparse views of novel scenes. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR). IEEE, jun 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Paul E Debevec, Camillo J Taylor, and Jitendra Malik. Modeling and rendering architecture from photographs: A hybrid geometry-and image-based approach. In Proceedings of the 23rd annual conference on Computer graphics and interactive techniques, pages 11–20, 1996. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Ruofei Du, Ming Chuang, Wayne Chang, Hugues Hoppe, and Amitabh Varshney. Montage4d: Interactive seamless fusion of multiview video textures. 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Martin Eisemann, Bert De Decker, Marcus Magnor, Philippe Bekaert, Edilson De Aguiar, Naveed Ahmed, Christian Theobalt, and Anita Sellent. Floating textures. In Computer graphics forum, volume 27, pages 409–418. Wiley Online Library, 2008. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Martin A Fischler and Robert C Bolles. Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography. Communications ofthe ACM, 24(6):381–395, 1981. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Sara Fridovich-Keil, Alex Yu, Matthew Tancik, Qinhong Chen, Benjamin Recht, and Angjoo Kanazawa. Plenoxels: Radiance fields without neural networks. In Proceedings of"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5501–5510, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Peter Hedman, Julien Philip, True Price, Jan-Michael Frahm, George Drettakis, and Gabriel Brostow. Deep blending for free-viewpoint image-based rendering. ACM Transactions on Graphics (TOG), 37(6):1–15, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Peter Hedman, Tobias Ritschel, George Drettakis, and Gabriel Brostow. Scalable inside-out image-based rendering. ACM Transactions on Graphics (TOG), 35(6):1–11, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Benno Heigl, Reinhard Koch, Marc Pollefeys, Joachim Denzler, and L Van Gool. Plenoptic modeling and rendering from image sequences taken by a hand-held camera. In Mustererkennung 1999, pages 94–101. Springer, 1999. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Berthold KP Horn. Recovering baseline and orientation from essential matrix. J. Opt. Soc. Am, 110, 1990. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Mohammad Mahdi Johari, Yann Lepoittevin, and Franc¸ois Fleuret. Geonerf: Generalizing nerf with geometry priors. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 18365–18375, 2022. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Georgios Kopanas, Julien Philip, Thomas Leimkuhler, and¨ George Drettakis. Point-based neural rendering with perview optimization. In Computer Graphics Forum, volume 40, pages 29–43. Wiley Online Library, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Marc Levoy and Pat Hanrahan. Light field rendering. In Proceedings of the 23rd annual conference on Computer graphics and interactive techniques, pages 31–42, 1996. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Kai-En Lin, Lin Yen-Chen, Wei-Sheng Lai, Tsung-Yi Lin, Yi-Chang Shih, and Ravi Ramamoorthi. Vision transformer for nerf-based view synthesis from a single input image. arXiv preprint arXiv:2207.05736, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Andrew Liu, Richard Tucker, Varun Jampani, Ameesh Makadia, Noah Snavely, and Angjoo Kanazawa. Infinite nature: Perpetual view generation of natural scenes from a single image. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), October 2021. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Feng Liu, Michael Gleicher, Hailin Jin, and Aseem Agarwala. Content-preserving warps for 3d video stabilization. ACM Transactions on Graphics (ToG), 28(3):1–9, 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Lingjie Liu, Jiatao Gu, Kyaw Zaw Lin, Tat-Seng Chua, and Christian Theobalt. Neural sparse voxel fields. NeurIPS, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Yuan Liu, Sida Peng, Lingjie Liu, Qianqian Wang, Peng Wang, Christian Theobalt, Xiaowei Zhou, and Wenping Wang. Neural rays for occlusion-aware image-based rendering. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7824–7833, 2022. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Stephen Lombardi, Tomas Simon, Jason Saragih, Gabriel Schwartz, Andreas Lehrmann, and Yaser Sheikh. Neural volumes: Learning dynamic renderable volumes from images. ACM Trans. Graph., 2019. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Ricardo Martin-Brualla, Noha Radwan, Mehdi SM Sajjadi, Jonathan T Barron, Alexey Dosovitskiy, and Daniel Duckworth. Nerf in the wild: Neural radiance fields for unconstrained photo collections. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7210–7219, 2021. 3"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                116,
+                470,
+                171
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4978"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Ben Mildenhall, Pratul P Srinivasan, Matthew Tancik, Jonathan T Barron, Ravi Ramamoorthi, and Ren Ng. NeRF: Representing scenes as neural radiance fields for view synthesis. In Proceedings ofthe European Conference on Computer Vision (ECCV), pages 405–421, 2020. 1, 2, 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Thomas Muller, Alex Evans, Christoph Schied, and Alexander¨ Keller. Instant neural graphics primitives with a multiresolution hash encoding. ACM Trans. Graph., 41(4):102:1–102:15, July 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Thomas Neff, Pascal Stadlbauer, Mathias Parger, Andreas Kurz, Joerg H. Mueller, Chakravarty R. Alla Chaitanya, Anton S. Kaplanyan, and Markus Steinberger. DONeRF: Towards Real-Time Rendering of Compact Neural Radiance Fields using Depth Oracle Networks. Computer Graphics Forum, 2021. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Ren Ng, Marc Levoy, Mathieu Bredif, Gene Duval, Mark´ Horowitz, and Pat Hanrahan. Light field photography with a hand-held plenoptic camera. PhD thesis, Stanford University, 2005. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Thu H Nguyen-Phuoc, Chuan Li, Stephen Balaban, and Yongliang Yang. Rendernet: A deep convolutional network for differentiable rendering from 3d shapes. Advances in neural information processing systems, 31, 2018. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Michael Niemeyer, Jonathan T Barron, Ben Mildenhall, Mehdi SM Sajjadi, Andreas Geiger, and Noha Radwan. Regnerf: Regularizing neural radiance fields for view synthesis from sparse inputs. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5480–5490, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Michael Niemeyer, Lars Mescheder, Michael Oechsle, and Andreas Geiger. Differentiable volumetric rendering: Learning implicit 3d representations without 3d supervision. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 3504–3515, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Eric Penner and Li Zhang. Soft 3d reconstruction for view synthesis. ACM Transactions on Graphics (TOG), 36(6):1–11, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Rene Ranftl, Alexey Bochkovskiy, and Vladlen Koltun. Vi-´ sion transformers for dense prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 12179–12188, 2021. 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Jeremy Reizenstein, Roman Shapovalov, Philipp Henzler, Luca Sbordone, Patrick Labatut, and David Novotny. Common objects in 3d: Large-scale learning and evaluation of real-life 3d category reconstruction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10901–10911, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Gernot Riegler and Vladlen Koltun. Free view synthesis. In European Conference on Computer Vision, 2020. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Mehdi SM Sajjadi, Henning Meyer, Etienne Pot, Urs Bergmann, Klaus Greff, Noha Radwan, Suhani Vora, Mario Lucic, Daniel Duckworth, Alexey Dosovitskiy, et al. Scene representation transformer: Geometry-free novel view synthesis through set-latent scene representations. arXiv preprint arXiv:2111.13152, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Paul-Edouard Sarlin, Daniel DeTone, Tomasz Malisiewicz, and Andrew Rabinovich. Superglue: Learning feature matching with graph neural networks. In Proceedings of the"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "IEEE/CVF conference on computer vision and pattern recognition, pages 4938–4947, 2020. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Harry Shum and Sing Bing Kang. Review of image-based rendering techniques. In Visual Communications and Image Processing 2000, volume 4067, pages 2–13. SPIE, 2000. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Vincent Sitzmann, Julien N.P. Martel, Alexander W. Bergman, David B. Lindell, and Gordon Wetzstein. Implicit neural representations with periodic activation functions. In Proc. NeurIPS, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Vincent Sitzmann, Semon Rezchikov, Bill Freeman, Josh Tenenbaum, and Fredo Durand. Light field networks: Neural scene representations with single-evaluation rendering. In Advances in Neural Information Processing Systems (NeurIPS), 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Vincent Sitzmann, Justus Thies, Felix Heide, Matthias Nießner, Gordon Wetzstein, and Michael Zollhofer. Deep-¨ voxels: Learning persistent 3d feature embeddings. In Proc. Computer Vision and Pattern Recognition (CVPR), IEEE, 2019. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Vincent Sitzmann, Michael Zollhofer, and Gordon Wetzstein.¨ Scene representation networks: Continuous 3d-structureaware neural scene representations. Advances in Neural Information Processing Systems, 32, 2019. 1, 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Pratul P Srinivasan, Richard Tucker, Jonathan T Barron, Ravi Ramamoorthi, Ren Ng, and Noah Snavely. Pushing the boundaries of view extrapolation with multiplane images. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 175–184, 2019. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Mohammed Suhail, Carlos Esteves, Leonid Sigal, and Ameesh Makadia. Generalizable patch-based neural rendering. In European Conference on Computer Vision. Springer, 2022. 2, 3, 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Mohammed Suhail, Carlos Esteves, Leonid Sigal, and Ameesh Makadia. Light field neural rendering. In Proceed ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8269–8279, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Andrea Tagliasacchi and Ben Mildenhall. Volume rendering digest (for nerf). arXiv preprint arXiv:2209.02417, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Ayush Tewari, Justus Thies, Ben Mildenhall, Pratul Srinivasan, Edgar Tretschk, W Yifan, Christoph Lassner, Vincent Sitzmann, Ricardo Martin-Brualla, Stephen Lombardi, et al. Advances in neural rendering. In Computer Graphics Forum, pages 703–735. Wiley Online Library, 2022. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Alex Trevithick and Bo Yang. Grf: Learning a general radiance field for 3d representation and rendering. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 15182–15192, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Richard Tucker and Noah Snavely. Single-view view synthesis with multiplane images. In Proceedings ofthe IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 551–560, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Qianqian Wang, Zhicheng Wang, Kyle Genova, Pratul Srinivasan, Howard Zhou, Jonathan T. Barron, Ricardo Martin-Brualla, Noah Snavely, and Thomas Funkhouser. Ibrnet: Learning multi-view image-based rendering. In CVPR, 2021. 2, 3, 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Zhou Wang, Alan C Bovik, Hamid R Sheikh, and Eero P Simoncelli. Image quality assessment: From error visibility to"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                470,
+                161
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4979"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "structural similarity. IEEE Transactions on Image Processing, 2004. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Olivia Wiles, Georgia Gkioxari, Richard Szeliski, and Justin Johnson. Synsin: End-to-end view synthesis from a single image. In Proc. CVPR, pages 7467–7477, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[56] Yiheng Xie, Towaki Takikawa, Shunsuke Saito, Or Litany, Shiqin Yan, Numair Khan, Federico Tombari, James Tompkin, Vincent Sitzmann, and Srinath Sridhar. Neural fields in visual computing and beyond. Computer Graphics Forum, 2022. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[57] Wang Yifan, Carl Doersch, Relja Arandjelovic, Jo´ ao Carreira,˜ and Andrew Zisserman. Input-level inductive biases for 3d reconstruction. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6176– 6186, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[58] Alex Yu, Vickie Ye, Matthew Tancik, and Angjoo Kanazawa. pixelNeRF: Neural radiance fields from one or few images. In Proceedings ofthe IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2021. 2, 3, 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[59] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. The unreasonable effectiveness of deep networks as a perceptual metric. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[60] Yunzhi Zhang and Jiajun Wu. Video extrapolation in space and time. arXiv e-prints, pages arXiv–2205, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[61] Tinghui Zhou, Richard Tucker, John Flynn, Graham Fyffe, and Noah Snavely. Stereo magnification: Learning view synthesis using multiplane images. ACM Trans. Graph. (Proc. SIGGRAPH), 37, 2018. 3, 5"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                111,
+                93,
+                468,
+                119
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4980"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ]
+]
