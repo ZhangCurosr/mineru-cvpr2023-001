@@ -1,0 +1,3367 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "MIANet: Aggregating Unbiased Instance and General Information for Few-Shot Semantic Segmentation"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                78,
+                128,
+                890,
+                174
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Yong Yang<sup>1</sup> Qiong Chen<sup>1*</sup> Yuan Feng<sup>1,2</sup> Tianlin Huang<sup>1</sup>"
+                    }
+                ]
+            },
+            "bbox": [
+                267,
+                203,
+                767,
+                222
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>1</sup>School of Computer Science and Engineering, South China University of Technology"
+                    }
+                ]
+            },
+            "bbox": [
+                176,
+                220,
+                862,
+                239
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>2</sup>Guangdong Provincial Key Laboratory of Artificial Intelligence in Medical Image Analysis and Application"
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                238,
+                946,
+                257
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                290,
+                313,
+                308
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Existing few-shot segmentation methods are based on the meta-learning strategy and extract instance knowledge from a support set and then apply the knowledge to segment target objects in a query set. However, the extracted knowledge is insufficient to cope with the variable intraclass differences since the knowledge is obtained from a few samples in the support set. To address the problem, we propose a multi-information aggregation network (MI-ANet) that effectively leverages the general knowledge, i.e., semantic word embeddings, and instance information for accurate segmentation. Specifically, in MIANet, a general information module (GIM) is proposed to extract a general class prototype from word embeddings as a supplement to instance information. To this end, we design a triplet loss that treats the general class prototype as an anchor and samples positive-negative pairs from local features in the support set. The calculated triplet loss can transfer semantic similarities among language identities from a word embedding space to a visual representation space. To alleviate the model biasing towards the seen training classes and to obtain multi-scale information, we then introduce a non-parametric hierarchical prior module (HPM) to generate unbiased instance-level information via calculating the pixel-level similarity between the support and query image features. Finally, an informationfusion module (IFM) combines the general and instance information to make predictions for the query image. Extensive experiments on PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> show that MIANet yields superior performance and set a new state-of-the-art. Code is available at github.com/Aldrich2y/MIANet."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                321,
+                472,
+                777
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                805,
+                209,
+                821
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The challenge of few-shot semantic segmentation (FSS) is how to effectively use one or five labeled samples to segment a novel class. Existing few-shot segmentation methods [28, 30, 33, 37] adopt the metric-based meta-learning strategy [26, 29]. The strategy is typically composed of two stages: meta-training and meta-testing. In the metatraining stage, models are trained by plenty of independent few-shot segmentation tasks. In meta-testing, models can thus quickly adapt and extrapolate to new few-shot tasks of unseen classes and segment the novel categories since each training task involves a different seen class."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                830,
+                470,
+                877
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/082233ed10becba50407e2d73534b12d41493fc05eec25d2c56c8b56c483e549.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Comparison between (a) existing FSS methods and (b) proposed MIANet. (a) Existing methods extract instance-level knowledge from the support images, which is not able to cope with large intra-class variation. (b) our MIANet extracts instance-level knowledge from the support images and obtains general class information from word embeddings. These two types of information benefit the final segmentation."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                291,
+                887,
+                527
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                671,
+                893,
+                792
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As shown in Figure 2, natural images of same categories have semantic differences and perspective distortion, which leads to intra-class differences. Current FSS approaches segment a query image by matching the guidance information from the support set with the query features (Figure 1 (a)). Unfortunately, the correlation between the support image and the query image is not enough to support the matching strategy in some support-query pairs due to the diversity of intra-class differences, which affects the generalization performance of the models. On the other hand, modules with numerous learnable parameters are devised by FSS methods to better use the limited instance information. And lots of few-shot segmentation tasks of seen classes are used to train the models in the meta-training stage. Although current methods freeze the backbone, the rest parameters will inevitably fit the feature distribution of the training data and make the trained models misclassify the seen training class to the unseen testing class."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                795,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                235,
+                0,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "*Corresponding author (csqchen@scut.edu.cn)."
+                    }
+                ]
+            },
+            "bbox": [
+                93,
+                887,
+                349,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7131"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                514,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/5baf3e189209a93a5c8e233f24f6acb3b222bfc7934ef603ede52cbb2ee846eb.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                84,
+                92,
+                173,
+                164
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/1ccc0dc56878e857ecef78b1bad0295e2e8277e853e159e14b69ae51fd20e60e.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Chair"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                84,
+                166,
+                173,
+                238
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/627eee03761150eb9a0cc236f05526d91fb9ad7f5dceae691b71159d0a84e0fd.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Bird"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(a) Semantic differences"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                174,
+                93,
+                264,
+                238
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/aebc79dae3e356d532b5a30fcb2c9d18f5e82d2621e81e62f8c69c79d62a06b4.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Bird"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                282,
+                93,
+                372,
+                239
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/bc4b49ded7ded1b12e05e1aae8b20902eb8ebcf2f7ac140b0fc8c8c10ab7892b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) Perspective distortion"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Aeroplane"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 2. We define two types of intra-class variation. (a) The object in each column has the same semantic label but belongs to different fine-grained categories. (b) The object belonging to the same category differs greatly in appearance due to the existence of perspective distortion."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                374,
+                93,
+                460,
+                238
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                382,
+                470,
+                549
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address the above issues, a multi-information aggregation network is proposed for accurate segmentation. Specifically, we first design a general information module (GIM) to produce a general class prototype by leveraging class-based word embeddings. This prototype represents general information for the class, which is beyond the support information and can supplement some missing class information due to intra-class differences. As shown in Figure 1 (b), the semantic word vectors for each class can be obtained by a pre-trained language model, i.e., word2vec. Then, GIM takes the word vector and a support prototype as input to get the general prototype. Next, a well-designed triplet loss [25] is applied to achieve the alignment between the semantic prototype and the visual features. The triplet loss extracts positive-negative pairs from local features which distinguishes our method from other improved triplets [3, 4, 11]. The semantic similarity between the word embeddings in a word embedding space can therefore be transferred to a visual embedding space. Finally, the projected prototype is supplemented into the main branch as the general information of the category for information fusion to alleviate the intra-class variance problem."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                551,
+                472,
+                883
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Moreover, to capture the instance-level details and alleviate the model biasing towards the seen classes, we propose a non-parametric hierarchical prior module (HPM). HPM works in two aspects. (1) HPM is class-agnostic since it does not require training. (2) HPM can generate hierarchical activation maps for the query image by digging out the relationship between high-level features for accurate segmentation of unseen classes. In addition, we build information channels between different scales to preserve discriminative information in query features. Finally, the unbiased instance-level information and the general information are aggregated by an information fusion module (IFM) to segment the query image. Our main contributions are summarized as follows:"
+                    }
+                ]
+            },
+            "bbox": [
+                96,
+                885,
+                468,
+                900
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                92,
+                893,
+                287
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "(1) We propose a multi-information aggregation network (MIANet) to aggregate general information and unbiased instance-level information for accurate segmentation."
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                290,
+                893,
+                349
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "(2) To the best of our knowledge, this is the first time to use word embeddings in FSS, and we design a general information module (GIM) to obtain the general class information from word embeddings for each class. The module is optimized through a well-designed triplet loss and can provide general class information to alleviate intra-class differences."
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                352,
+                893,
+                457
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "(3) A non-parametric hierarchical prior module (HPM) is proposed to supply MIANet with unbiased instancelevel segmentation knowledge, which provides the prior information of the query image on multi-scales and alleviates the bias problem in testing."
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                458,
+                893,
+                534
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "(4) Our MIANet achieves state-of-the-art results on two few-shot segmentation benchmarks, i.e., PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup>. Extensive experiments validate the effectiveness of each component in our MIANet."
+                    }
+                ]
+            },
+            "bbox": [
+                504,
+                535,
+                893,
+                595
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                616,
+                638,
+                632
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Few-Shot Semantic Segmentation. Few-shot semantic segmentation (FSS) is proposed to address the dependence of semantic segmentation models on a large amount of annotated data. Current FSS methods are based on metricbased meta-learning and can be largely grouped into two types: prototype-based methods [5, 15, 30, 34, 39, 40] and parameter-based methods [14, 18, 31, 32, 36, 38]. The prototype-based methods use a non-parametric metric tool, e.g., cosine similarity or euclidean distance, to calculate segmentation guidance. And non-parametric metric tools alleviate overfitting. The parameter-based FSS methods employ learnable metric tools to explore the relationship between the support and query features. For instance, BAM [14] proposes a base learner to avoid the interference of base classes in testing and achieve the state-of-the-art performance. Current methods can effectively segment the target area of novel classes when samples of the classes are limited. However, these methods only extract instance knowledge from the limited support set, and cannot segment some support-query pairs with large intra-class differences as detailed in Figure 2. For this problem, we propose a multiinformation aggregation network, which extracts instance information and learns general class prototypes from word embeddings to alleviate the intra-class differences."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                643,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7132"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                90,
+                470,
+                198
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Intra-Class Differences. The intra-class differences problem is a key factor affecting the performance of the few-shot segmentation. Previous methods try to mine more support information to alleviate this issue. [21] dynamically transforms a classifier trained on the support set to each query image. [7, 20] produce a pseudo query mask based on the support information to capture more self-attention information of the query image. But the performance gain is restricted since the support set is limited. In zero-shot learning (ZSL), semantic information is used to generate visual features for unseen classes [1, 2, 8, 12, 35], so that the models recognize the unseen classes. The achievement in ZSL demonstrates that word embeddings contain the general semantic information of categories, which inspires us to integrate class-based semantic information [13, 22] to supplement the missing information when the features in the support set and in the query set don’t match."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                200,
+                470,
+                460
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Methodology"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                474,
+                212,
+                492
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Problem Definition"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                501,
+                259,
+                515
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We define two datasets, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t r a i n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", with the category set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "C _ { t r a i n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "C _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "respectively, where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "C _ { t r a i n } \\cap"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "C _ { t e s t } = \\emptyset"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The model trained on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t r a i n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is directly transferred to evaluate on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for testing. Besides, each category "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "c \\in C _ { t r a i n } \\cup C _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is mapped through the word embedding to a vector representation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "W [ c ] \\in R ^ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where d is the dimension of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "W [ c ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "In line with previous works [28], we train the model in an episode manner. Each episode contains a support set S, a query set Q and a word embedding map W. Under the K-shot setting, each support set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal S } ~ = ~ \\{ X _ { s } ^ { i } , M _ { s } ^ { i } \\} _ { i = 1 } ^ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", includes K support images "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and corresponding masks "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and each query set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Q \\ = \\ \\{ X _ { q } , M _ { q } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", includes a query image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and a corresponding mask "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The training set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t r a i n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and test set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are represented by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t r a i n } ~ = ~ \\{ ( S _ { i } , Q _ { i } , W ) \\} _ { i = 1 } ^ { N _ { t r a i n } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "D _ { t e s t } = \\{ ( S _ { i } , Q _ { i } , W ) \\} _ { i = 1 } ^ { N _ { t e s t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N _ { t r a i n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N _ { t e s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the number of episodes for training and test set. During training, the support masks "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and query masks "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are available, and the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is not accessible during testing."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                523,
+                470,
+                820
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Method Overview"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                830,
+                253,
+                845
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As shown in Figure 3, our multi-information aggregation network includes three modules, i.e., hierarchical prior module (HPM), general information module (GIM), and information fusion module (IFM). Specifically, given the support and query images "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { q } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "a common backbone with shared weights is used to extract both middlelevel [37] and high-level features [28]. We then employ HPM whose task is to produce unbiased instance-level information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i n s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "of the query image by using labeled support instances. Meanwhile, GIM is introduced to generate general class information which aims to make up for the insufficiency of instance information. At last, we pass the instance information and general information to an information fusion module to aggregate into the final guidance information and then make predictions for the query image."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                856,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                92,
+                893,
+                273
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Hierarchical Prior Module"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                280,
+                743,
+                296
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Few-shot semantic segmentation models are trained on labeled data of seen classes, which makes it inclined for trained models to misjudge seen training categories as unseen target categories. Moreover, current approaches usually resort to well-designed modules with numerous learnable parameters in order to maximize the use of limited support information. Inspired by [28], we propose a nonparametric hierarchical prior module (HPM) to capture the unbiased instance information from a few labeled samples in an efficient way. HPM leverages the high-level features (e.g., layer 4 of ResNet50) from the support set and query set to generate prior information, which is a rough localization map of the target object in the query image. Moreover, we compute prior information at multiple different scales that provide rich guidance for objects of varying sizes and shapes. In order to avoid the loss of discriminative information when the query features are extended to different scales, we establish information channels between different scales."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                304,
+                893,
+                590
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Specifically, HPM takes as input the high-level support features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { s } ^ { h } ~ \\in ~ R ^ { c \\times h \\times w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the corresponding binary mask "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { s } \\ \\in \\ \\tilde { \\cal R } ^ { H \\times W }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and the high-level query features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q } ^ { h } \\in R ^ { c \\times h \\times w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where c is the channel dimension, h (H), w (W) are the height and width of the features and the mask. Empirically [28], we define the instance-level information as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i n s } \\ = \\ \\left\\{ m _ { i n s } ^ { i } \\right\\} _ { i = 1 } ^ { 4 } , \\ m _ { i n s } ^ { i } \\ \\in \\ { \\cal R } ^ { c \\times h _ { i } \\times w _ { i } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "h _ { i } > h _ { j } , w _ { i } > w _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", when "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i < j , h _ { 1 } = h , w _ { 1 } = w"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                590,
+                893,
+                714
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To obtain the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "m _ { i n s } ^ { 1 } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "we first filter out the background elements in the support features via"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                714,
+                892,
+                744
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f _ { s } ^ { h } = f _ { s } ^ { h } \\otimes { \\cal T } ( M _ { s } , f _ { s } ^ { h } )\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/42226ceb7b04417977b9893486bbdcf8f2b5d34cebf3ae908a7f0e538dba1ba1.jpg"
+                }
+            },
+            "bbox": [
+                619,
+                752,
+                772,
+                770
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { T } ( M _ { s } , f _ { s } ^ { h } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "down- or up-samples the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to a spatial size as the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { s } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by interpolation, ⊗ means the Hadamard product. Next, we reshape the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { s } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to a size of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( c \\times h w )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The pixel-wise cosine similarity "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "between "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { s } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is calculated as"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                779,
+                892,
+                858
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "A _ { q } = \\frac { ( f _ { q } ^ { h } ) ^ { T } f _ { s } ^ { h } } { | | f _ { q } ^ { h } | | \\ | | f _ { s } ^ { h } | | } \\in R ^ { h _ { 1 } w _ { 1 } \\times h _ { 1 } w _ { 1 } }\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/794588077d69208e50fa5ca30153cc87bf6385f8ee2cb0020d90722974e062e4.jpg"
+                }
+            },
+            "bbox": [
+                580,
+                866,
+                810,
+                904
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7133"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/854d91631ef8d337acf7174795abe2bfeca33129972e48fce1ddbac7b9cea848.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. The overall architecture of our proposed multi-information aggregation network."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                106,
+                94,
+                864,
+                337
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We then take the mean similarity in the support (second) dimension as the activation value and pass the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into a min-max normalization "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathcal { F } _ { n o r m } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to get the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "m _ { i n s } ^ { 1 } ."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                392,
+                470,
+                439
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "m _ { i n s } ^ { 1 } = \\mathcal { F } _ { n o r m } ( m e a n ( A _ { q } ) ) \\in R ^ { h _ { 1 } \\times w _ { 1 } }\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d7054cb9b154e6ce7264c58618729ae6982bc896d881433329c3836bb126e907.jpg"
+                }
+            },
+            "bbox": [
+                140,
+                449,
+                403,
+                468
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In order to extend to the next scale, i.e., "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( h _ { 2 } , w _ { 2 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the pooling operation is needed to down-sample the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q } ^ { h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We use the weighted average pooling to add information channels between different scales since discriminative details are prone to be ignored by the average pooling"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                479,
+                470,
+                556
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f _ { q } ^ { h } = \\mathcal { F } _ { p o o l } ( f _ { q } ^ { h } \\otimes m _ { i n s } ^ { 1 } ) \\in R ^ { c \\times h _ { 2 } \\times w _ { 2 } }\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/5dcdc633010172fab3b6ff06cb01ce0161f266bea94f722a776184eda82bc93e.jpg"
+                }
+            },
+            "bbox": [
+                143,
+                565,
+                400,
+                585
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { F } } _ { p o o l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the average pooling. Then the high-level support features in the next stage can be computed by"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                595,
+                468,
+                627
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f _ { s } ^ { h } = \\mathcal { T } ( f _ { s } ^ { h } , f _ { q } ^ { h } ) \\in R ^ { c \\times h _ { 2 } \\times w _ { 2 } }\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/09eeaa7bb410ab9b92fb38d538b27ca721be5808efa54df79f1aaed3aa3fe3ea.jpg"
+                }
+            },
+            "bbox": [
+                171,
+                637,
+                372,
+                656
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Finally, prior information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "m _ { i n s } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be obtained by using equation 1 - 3, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ m _ { i n s } ^ { i } \\right\\} _ { i = 1 } ^ { 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be calculated after four stages."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                667,
+                470,
+                717
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. General Information Module"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                726,
+                338,
+                741
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "One of the main challenges of few-shot semantic segmentation is the intra-class differences as shown in Figure 2. Current methods aim to address this problem by thoroughly excavating the relationship between instance samples and the query image, i.e., digging out the instance-level information. But this can only solve some highly correlated support-query pairs. For instance, in the case of Figure 2 (1st and 2nd columns), objects in the support image and the query image have similar local features despite belonging to different fine-grained categories, such as the legs of the chair, the feathers, and the body of the bird. But in Figure 2 (b), due to the existence of perspective distortion, some local features (the part in the red box) are lost, and it is difficult for the model to segment the query image according to the incomplete support sample."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                392,
+                893,
+                468
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To counter this, a general information module (GIM) is used to extract language information from word embeddings to generate a general class prototype, and a triplet loss is designed to optimize this module. GIM contains two components: general information generator (GIG) and local feature generator (LFG). GIG takes the foreground prototype obtained from the support set and the category semantic vector obtained from the semantic label as input, and generates a general class prototype. LFG takes the mid-level support features as input and generates regionrelated local features to collect positive-negative pairs to form triplets."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                468,
+                893,
+                648
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Specifically, we input the category word (e.g., aeroplane) to the pre-trained word2vec to obtain a vector representation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "w \\in R ^ { 1 \\times d }"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                650,
+                892,
+                695
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "w = \\mathcal { F } _ { w o r d 2 v e c } ( w o r d )\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d135063c04b5d1fd734a7e8fe5ca4df2a48dc86cf7d55024198af599a4e284b4.jpg"
+                }
+            },
+            "bbox": [
+                617,
+                703,
+                774,
+                718
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { w o r d 2 v e c } ( . )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represents generating vector representation from the word embeddings according to word."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                726,
+                892,
+                756
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Next, masked average pooling is applied on the support features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { s } \\in R ^ { c \\times h \\times w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to get a foreground class prototype "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p \\in R ^ { 1 \\times c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                757,
+                892,
+                801
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "p = \\mathcal { F } _ { p o o l } ( f _ { s } \\otimes \\mathcal { T } ( M _ { s } , f _ { s } ) )\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9bf79034d17d41f2b1aabb62ab8ed088efd361a7bf68e05526df5a3590760bcc.jpg"
+                }
+            },
+            "bbox": [
+                599,
+                808,
+                789,
+                825
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Then, we input the foreground class prototype p and the word vector w into GIG to produce a general class prototype "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n } \\in R ^ { 1 \\times c }"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                833,
+                892,
+                878
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "p _ { g e n } = \\mathcal { F } _ { G I G } ( w \\oplus p )\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/7a99b615b7c48615d3538b93728eb2cebf1a87c447a05bae058dbcceadedab1a.jpg"
+                }
+            },
+            "bbox": [
+                619,
+                885,
+                771,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7134"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where ⊕ is the concatenation operation in channel dimension, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { G I G } ( . )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "means producing the general information, GIG consists of two fully connected layers."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                92,
+                468,
+                136
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The obtained prototype "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represents the general and complete information for a specific category, which is expected to distinguish whether a local feature belongs to the category. To achieve this, we set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the anchor, and then sample pairs of positive and negative from local features to calculate the triplet loss. Different from pixellevel features, local features are region-related and represent part of the semantic information of categories, such as the tail, head, torso, and other features. We design a local feature generator (LFG) which consists of three convolutional blocks and reduces the size of the support features by a factor of 4 to obtain regional features. A regional vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "v \\in R ^ { 1 \\times c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the regional features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { r e g }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can represent an area in the original image, i.e., a local feature representation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                136,
+                470,
+                348
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f _ { r e g } = \\mathcal { F } _ { r e s h a p e } ^ { h w \\times c } ( \\mathcal { F } _ { L F G } ( f _ { s } ) ) \\in R ^ { h w \\times c }\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/61e78c9c2396650f969b465d6349586b347dc5ab57ac1c0e7a8f90a873732931.jpg"
+                }
+            },
+            "bbox": [
+                142,
+                356,
+                405,
+                376
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { L F G } ( . )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "indicates generating the local information, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { r e s h a p e } ^ { h w \\times c } ( . )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "means reshaping the input to a spatial size of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( h w \\times c )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We then use support mask "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { s } \\in R ^ { H \\times W }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for feature selection, which separates the foreground and background regional vectors into two different sets, i.e., "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V _ { f g } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ v _ { f g } ^ { i } \\right\\} _ { i = 1 } ^ { n _ { 1 } } , V _ { b g } = \\left\\{ v _ { b g } ^ { i } \\right\\} _ { i = 1 } ^ { n _ { 2 } } , v _ { b g } , v _ { f g } \\in R ^ { 1 \\times c }"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "n 1 + n 2 ="
+                    },
+                    {
+                        "type": "text",
+                        "content": "hw."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                382,
+                468,
+                498
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\hat { M } _ { s } = \\mathcal { F } _ { r e s h a p e } ^ { h w \\times 1 } ( \\mathbb { Z } ( M _ { s } , f _ { r e g } ) ) \\in R ^ { h w \\times 1 }\\tag{10}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/fc5c6b167a9a4b4fc7ca9a0fcf0c94d5788f17482fb784bc1e3c6c80dafe02bb.jpg"
+                }
+            },
+            "bbox": [
+                138,
+                511,
+                408,
+                531
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "V _ { f g } = \\mathcal { F } _ { i n d e x } \\big ( \\hat { M } _ { s } ^ { k } = = 1 , f _ { r e g } ^ { k } \\big ) \\ k \\in \\{ 1 , 2 , . . . , h w \\}\\tag{11}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/a848ed805a8a16e3320ec6a1a12ed462ad2b30798f23aae4d3f76b2736997246.jpg"
+                }
+            },
+            "bbox": [
+                89,
+                537,
+                428,
+                556
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "V _ { b g } = \\mathcal { F } _ { i n d e x } ( \\hat { M } _ { s } ^ { k } = = 0 , f _ { r e g } ^ { k } ) \\ k \\in \\{ 1 , 2 , . . . , h w \\}\\tag{12}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/90adf6cdac91f739c25fcbbc2c2b02f97e20e42a5feb98edbca56247e4f7f49d.jpg"
+                }
+            },
+            "bbox": [
+                91,
+                568,
+                428,
+                587
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { i n d e x } ( \\hat { M } _ { s } ^ { k } , f _ { r e g } ^ { k } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "indicates that when "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { M } _ { s } ^ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is 1, add the corresponding vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { r e g } ^ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V _ { f g } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "otherwise, add it to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V _ { b g }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Next, we average the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V _ { b g }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to get negative sample since the elements in the background of the support images are very complex and are hard to use [30]."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                595,
+                470,
+                676
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "n e g a t i v e = \\frac { \\sum _ { i } ^ { n _ { 2 } } ( v _ { b g } ^ { i } ) } { n _ { 2 } } , v _ { b g } ^ { i } \\in V _ { b g }\\tag{13}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/3849f149d286f9730b264a4eabbb4319f904ad907837b46c182d6ca0959b913a.jpg"
+                }
+            },
+            "bbox": [
+                153,
+                683,
+                392,
+                718
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The positive samples are the foreground regional vectors in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V _ { f g } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Similar to [11], we calculate the hardest sample, which has the farthest distance from the anchor, to obtain the positive vector for better optimization."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                724,
+                470,
+                785
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "p o s i t i v e = \\underset { v _ { f g } ^ { i } } { \\arg \\operatorname* { m a x } } ( \\mathcal { F } _ { d } ( p _ { g e n } , v _ { f g } ^ { i } ) ) , v _ { f g } ^ { i } \\in V _ { f g }\\tag{14}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/810df6835de6bce3a8f000287ba642a073c8399bb227c2afdfec77db6e72b2c2.jpg"
+                }
+            },
+            "bbox": [
+                93,
+                792,
+                423,
+                823
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "l _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "distance function. The triplet loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { t r i p l e t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                832,
+                467,
+                859
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\mathcal { L } _ { t r i p l e t } = \\operatorname* { m a x } ( \\mathcal { F } _ { d } ( p _ { g e n } , p o s i t i v e ) + m a r g i n } \\\\ { - \\mathcal { F } _ { d } ( p _ { g e n } , n e g a t i v e ) , 0 ) } \\end{array}\\tag{15}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0173e580a2e7c065adb98e12d1e957571c4ab2607cfa49a9ea9df25b4357e165.jpg"
+                }
+            },
+            "bbox": [
+                101,
+                867,
+                416,
+                904
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where margin is a fixed value (0.5) to keep negative samples far apart."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                92,
+                892,
+                121
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "By calculating the distance among triplets (anchor, foreground local features, background local features), the semantic information of the anchor and the visual information of local features are aligned, and the relationship among different word vectors can also be converted to visual embedding space to provide additional general information to alleviate the intra-class differences even some features are lost due to perspective distortion in Figure 2 (b). In addition, the triplet loss encourages the GIG to learn better general prototypes (anchor) to distinguish fine-grained local features (positive) of the same category from background features (negative)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                122,
+                893,
+                303
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.5. Prediction and Training Loss"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                310,
+                761,
+                325
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The instance-level information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i n s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and general information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are aggregated as guidance information through the information fusion module (IFM) to supervise the segmentation of query images. In order to seek more contextual cues, we utilize the FEM [28] structure as our information fusion module. As shown in Figure 3, the midlevel query feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "instance information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i n s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and general class information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are input to IFM. The "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are first expanded to four scales "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ p _ { g e n } ^ { i } \\right\\} _ { i = 1 } ^ { 4 } , \\left\\{ f _ { q } ^ { i } \\right\\} _ { i = 1 } ^ { 4 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "according to the size of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M _ { i n s }"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                333,
+                893,
+                488
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f _ { q } ^ { i } = \\mathcal { I } ( f _ { q } , m _ { i n s } ^ { i } ) \\in R ^ { c \\times h _ { i } \\times w _ { i } } , i = \\{ 1 , 2 , 3 , 4 \\}\\tag{16}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e7c7bb892b13c3794b830ec2d82598be7465fab6b01974ea382b5ee497c42406.jpg"
+                }
+            },
+            "bbox": [
+                524,
+                494,
+                838,
+                513
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "p _ { g e n } ^ { i } = \\mathcal { F } _ { e x p a n d } ( \\mathbb { Z } ( p _ { g e n } , m _ { i n s } ^ { i } ) ) \\in R ^ { c \\times h _ { i } \\times w _ { i } }\\tag{17}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/02c43545ea99192d79754a2951da6f2bf74ce54d05bdf372297b0aaec963736b.jpg"
+                }
+            },
+            "bbox": [
+                527,
+                525,
+                833,
+                542
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { e x p a n d } ( . )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "means expanding the input in channel dimension. We then input the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\left\\{ m _ { i n s } ^ { i } \\right\\} } _ { i = 1 } ^ { 4 } , { \\left\\{ p _ { g e n } ^ { i } \\right\\} } _ { i = 1 } ^ { 4 } , { \\left\\{ f _ { q } ^ { i } \\right\\} } _ { i = 1 } ^ { 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to FEM to compute the binary intermediate predictions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Y _ { i n t e r }  =  \\{ y ^ { i } \\} _ { i = 1 } ^ { 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and final prediction Y , where Y, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "y ^ { i } \\in R ^ { H \\times W }"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                549,
+                892,
+                633
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The training loss has two parts, namely the segmentation loss and the triplet loss. The segmentation loss is calculated using multiple cross-entropy functions, with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { s e g 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on the intermediate predictions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Y _ { i n t e r }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { s e g 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on the final prediction Y . The triplet loss is computed from the hardest triplet, as shown in equation 15. The final loss is"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                635,
+                893,
+                726
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } = \\mathcal { L } _ { s e g 1 } + \\mathcal { L } _ { s e g 2 } + \\mathcal { L } _ { t r i p l e t }\\tag{18}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/69b089a1c501ad797ba6b6d174f1bb00b133f0b5d2ba803f0e73c42d4de8dc46.jpg"
+                }
+            },
+            "bbox": [
+                593,
+                732,
+                797,
+                750
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.6. Extending to K-Shot Setting"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                756,
+                753,
+                772
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The above discussions focus on the 1-shot setting. For the K-shot setting, K support samples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ X _ { s } ^ { i } , M _ { s } ^ { i } \\right\\} _ { i = 1 } ^ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are available. Our method can be easily extended to the K-shot setting. First, K sets of instance information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left\\{ M _ { i n s } ^ { i } \\right\\} _ { i = 1 } ^ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are computed respectively using the K samples. We then average the instance information separately at different scales to get "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { M } _ { i n s } = \\left\\{ \\hat { m } _ { i n s } ^ { j } \\right\\} _ { j = 1 } ^ { 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for the subsequent process."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                780,
+                893,
+                904
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7135"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\hat { m } _ { i n s } ^ { j } = \\frac { 1 } { K } \\sum _ { i = 1 } ^ { K } m _ { i n s } ^ { j ; i }\\tag{19}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9e56ccc26ebee3827290282125ade610f3bb518dd5ba722d055279b0de0e3afe.jpg"
+                }
+            },
+            "bbox": [
+                200,
+                103,
+                344,
+                147
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In addition, the K prototypes obtained by Equation 7 are also averaged. Finally, the local feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { r e g }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "will be obtained from the union of K support features through equation 9."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                154,
+                470,
+                214
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                229,
+                210,
+                247
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Experimental Settings"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                255,
+                290,
+                272
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Datasets. Experiments are conducted on two commonly used few-shot segmentation datasets, PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup>, to evaluate our method. PASCAL-5<sup>i</sup> is created from PASCAL VOC 2012 [6] with additional annotations from SBD [9]. The total 20 classes in the dataset are evenly divided into 4 folds i ∈ {0, 1, 2, 3} and each fold contains 5 classes. The COCO-20<sup>i</sup> is proposed by [24], which is conducted from MSCOCO [16]. Similar to PASCAL-5<sup>i</sup>, 80 classes in COCO-20<sup>i</sup> are partitioned into 4 folds and each fold contains 20 classes."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                280,
+                470,
+                430
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Metric and Evaluation. We follow the previous methods and adopt the mean intersection-over-union (mIoU) and foreground-background IoU (FB-IoU) as the evaluation metrics. The FB-IoU results are listed in the supplementary material. During testing, we follow the settings of PFENet to make the experimental results more accurate. Specifically, five different random seeds are set for five tests in each experiment. In each test, 1000 and 5000 support-query pairs are sampled for PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> respectively. We then average the results of five tests for each experiment."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                431,
+                470,
+                598
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Implementation Details. Following [14, 21], we first train the PSPNet [40] to obtain a feature extractor (backbone) based on the seen training classes for each fold, i.e., 16/61 training classes (including background) for PASCAL-5<sup>i</sup>/COCO-20<sup>i</sup>. Next, we fix the parameters of the trained feature extractor and use a meta-learning strategy to train the remaining structures. These structures are optimized using the SGD optimizer, trained for 200 epochs on PASCAL-5<sup>i</sup> and 50 on COCO-20<sup>i</sup>. The learning rate and batch size are 5e-3 and 4, respectively. And we use the word2vec model learned on google news to obtain d (300) dimensional word vector representations. The word embeddings of categories that contain multiple words are obtained by averaging the embeddings of each individual word."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                597,
+                472,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Baseline. As shown in Figure 3, we first remove the HPM and GIM from the MIANet. Then we replace the general class information "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the information fusion module with the instance prototype p to establish the baseline. The rest of the experimental settings are consistent with MI-ANet."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                470,
+                900
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Comparison with State-of-the-Arts"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                90,
+                805,
+                107
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "PASCAL-5<sup>i</sup>. Table 1 shows the mIoU performance comparison on PASCAL-5<sup>i</sup> between our method and several representative models. It can be seen that (1) MIANet achieves state-of-the-art performance under the 1-shot and 5-shot settings. Especially for the VGG16 [27] backbone, we surpass BAM [14], which holds the previous state-ofthe-art results, by 2.69% and 3.23%. (2) MIANet outperforms the baseline with a large margin. For example, when VGG16 is the backbone, MIANet and the baseline model achieve 67.10% and 61.11% respectively. Compared with ResNet50 [10], VGG16 provides less information that is useful for segmentation, so the extra information is more valuable. After adding the detailed general and instance information generated by the GIM and HPM to the baseline model, better performance improvement occurs than ResNet50."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                113,
+                893,
+                354
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "COCO-20<sup>i</sup>. COCO-20<sup>i</sup> is a more challenging dataset that contains multiple objects and shows greater variance. Table 2 shows the mIoU performance comparison. Overall, MIANet surpasses all the previous methods under 1- shot and 5-shot settings. Under the 1-shot setting, MI-ANet leads BAM by 2.19% and 1.43% on VGG16 and ResNet50. Meanwhile, our method outperforms the baseline by 9.45%, and 7.76%, which demonstrate the superiority of our method, despite the challenging scenarios."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                354,
+                893,
+                492
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Qualitative Results. We report some qualitative results generated from our MIANet and baseline model on the PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> benchmarks. Compared with the baseline, MIANet exhibits the following advantages as shown in Figure 4. (1) MIANet can more accurately segment the target class, while the baseline incorrectly segments the seen classes as the target classes (1st to 3rd columns). (2) MIANet can mine similar local features for different fine-grained categories to address the intra-class variance problem caused by semantic differences, i.e., sailboat/small boat, chair/sofa chair, and eagle/owl in the 4th, 5th and 6th columns respectively. (3) MIANet can provide general information that is missing in the support image (7th to 9th columns), i.e., the intra-class variance caused by perspective distortion."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                492,
+                895,
+                719
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Ablation study"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                498,
+                726,
+                651,
+                742
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We conduct extensive ablation studies on PASCAL-5<sup>i</sup> under the 1-shot setting to validate the effectiveness of our proposed key modules, i.e., HPM, and GIM. Note that the experiments in this section are performed on PASCAL-5<sup>i</sup> dataset using VGG16 backbone. Moreover, we provide experiment details and extra experiments in Supplementary Materials."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                750,
+                893,
+                854
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Components Analysis. Table 3 shows the impact of each component on the model performance. Overall, using the two components proposed in this paper improves the baseline by 5.99%. In the second row, HPM mines the multiscale instance-level information and improves the baseline by 3.44%. Meanwhile, replacing the support prototype p with the general prototype "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "p _ { g e n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the baseline yields a 1.35% performance gain. This is because GIM produces general information, while HPM can discover pixel-level information of instances, which is more helpful for the improvement of segmentation performance. After the combination of GIM and HPM, the instance information and general information are aggregated by IFM so that the model can alleviate the problem of intra-class differences, and effectively improve the performance by 2.55% compared to the second row."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7136"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/42f1d27a1380f8be8e63c32fe5ae291011322c997d3badb566a715dcd13260ca.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Performance comparison on PASCAL-5<sup>i</sup> in terms of mIoU. The best and second best results are highlighted with bold and underline, respectively."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Backbone</td><td rowspan=\"2\">Methods</td><td colspan=\"4\">1-shot</td><td colspan=\"5\">5-shot</td></tr><tr><td>Fold-0 Fold-1</td><td>Fold-2</td><td>Fold-3</td><td>Mean</td><td>Fold-0</td><td>Fold-1</td><td>Fold-2</td><td>Fold-3</td><td>Mean</td></tr><tr><td rowspan=\"7\">VGG16</td><td>PFENet(TPAMI&#x27;20) [28]</td><td>56.90</td><td>68.20</td><td>54.40</td><td>52.40</td><td>58.00</td><td>59.00</td><td>69.10</td><td>54.80</td><td>52.90</td><td>59.00</td></tr><tr><td>HSNet(ICCV’21) [23]</td><td>59.60</td><td>65.70</td><td>59.60</td><td>54.00</td><td>59.70</td><td>64.90</td><td>69.00</td><td>64.10</td><td>58.60</td><td>64.10</td></tr><tr><td>DPCN(CVPR’22) [17]</td><td>58.90</td><td>69.10</td><td>63.20</td><td>55.70</td><td>61.70</td><td>63.40</td><td>70.70</td><td>68.10</td><td>59.00</td><td>65.30</td></tr><tr><td>BAM(CVPR’22) [14]</td><td>63.18</td><td>70.77</td><td>66.14</td><td>57.53</td><td>64.41</td><td>67.36</td><td>73.05</td><td>70.61</td><td>64.00</td><td>68.76</td></tr><tr><td>NTRENet(CVPR’22) [19]</td><td>57.70</td><td>67.60</td><td>57.10</td><td>53.70</td><td>59.00</td><td>60.30</td><td>68.00</td><td>55.20</td><td>57.10</td><td>60.20</td></tr><tr><td>Baseline</td><td>56.12</td><td>70.86</td><td>63.10</td><td>54.36</td><td>61.11</td><td>59.92</td><td>72.03</td><td>64.69</td><td>57.16</td><td>63.45</td></tr><tr><td>MIANet</td><td>65.42</td><td>73.58</td><td>67.76</td><td>61.65</td><td>67.10</td><td>69.01</td><td>76.14</td><td>73.24</td><td>69.55</td><td>71.99</td></tr><tr><td rowspan=\"8\">ResNet50</td><td>PFENet(TPAMI&#x27;20) [28]</td><td>61.70</td><td>69.50</td><td>55.40</td><td>56.30</td><td>60.80</td><td>63.10</td><td>70.70</td><td>55.80</td><td>57.90</td><td>61.90</td></tr><tr><td>HSNet(ICCV’21) [23]</td><td>64.30</td><td>70.70</td><td>60.30</td><td>60.50</td><td>64.00</td><td>70.30</td><td>73.20</td><td>67.40</td><td>67.10</td><td>69.50</td></tr><tr><td>DPCN(CVPR’22) [17]</td><td>65.70</td><td>71.60</td><td>69.10</td><td>60.60</td><td>66.70</td><td>70.00</td><td>73.20</td><td>70.90</td><td>65.50</td><td>69.90</td></tr><tr><td>BAM(CVPR’22) [14]</td><td>68.97</td><td>73.59</td><td>67.55</td><td>61.13</td><td>67.81</td><td>70.59</td><td>75.05</td><td>70.79</td><td>67.20</td><td>70.91</td></tr><tr><td>NTRENet(CVPR’22) [19]</td><td>65.40</td><td>72.30</td><td>59.40</td><td>59.80</td><td>64.20</td><td>66.20</td><td>72.80</td><td>61.70</td><td>62.20</td><td>65.70</td></tr><tr><td>SSP(ECCV’22) [7]</td><td>60.50</td><td>67.80</td><td>66.40</td><td>51.00</td><td>61.40</td><td>67.50</td><td>72.30</td><td>75.20</td><td>62.10</td><td>69.30</td></tr><tr><td>Baseline</td><td>61.87</td><td>72.78</td><td>64.10</td><td>55.17</td><td>63.48</td><td>63.36</td><td>73.87</td><td>66.50</td><td>59.34</td><td>65.77</td></tr><tr><td>MIANet</td><td>68.51</td><td>75.76</td><td>67.46</td><td>63.15</td><td>68.72</td><td>70.20</td><td>77.38</td><td>70.02</td><td>68.77</td><td>71.59</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                78,
+                128,
+                887,
+                392
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/55fa32a4bbae511976a3f15b94b18a3516fe437ac17077dc0fc8e7be59b60893.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Performance comparison on COCO-20<sup>i</sup> in terms of mIoU.The best and second best results are highlighted with bold and underline, respectively."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Table 3. Ablation studies of main model components."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Backbone</td><td rowspan=\"2\">Methods</td><td colspan=\"5\">1-shot</td><td colspan=\"5\">5-shot</td></tr><tr><td>Fold-0</td><td>Fold-1</td><td>Fold-2</td><td>Fold-3</td><td>Mean</td><td>Fold-0</td><td>Fold-1</td><td>Fold-2</td><td>Fold-3</td><td>Mean</td></tr><tr><td rowspan=\"5\">VGG16</td><td>PFENet(TPAMI&#x27;20) [28]</td><td>35.40</td><td>38.10</td><td>36.80</td><td>34.70</td><td>36.30</td><td>38.20</td><td>42.50</td><td>41.80</td><td>38.90</td><td>40.40</td></tr><tr><td>DPCN(CVPR’22) [17]</td><td>38.50</td><td>43.70</td><td>38.20</td><td>37.70</td><td>39.50</td><td>42.70</td><td>51.60</td><td>45.70</td><td>44.60</td><td>46.20</td></tr><tr><td>BAM(CVPR’22) [14]</td><td>38.96</td><td>47.04</td><td>46.41</td><td>41.57</td><td>43.50</td><td>47.02</td><td>52.62</td><td>48.59</td><td>49.11</td><td>49.34</td></tr><tr><td>Baseline</td><td>33.55</td><td>41.45</td><td>35.49</td><td>34.46</td><td>36.24</td><td>38.11</td><td>49.57</td><td>41.94</td><td>41.53</td><td>42.79</td></tr><tr><td>MIANet</td><td>40.56</td><td>50.53</td><td>46.50</td><td>45.18</td><td>45.69</td><td>46.18</td><td>56.09</td><td>52.33</td><td>49.54</td><td>51.03</td></tr><tr><td rowspan=\"6\">ResNet50</td><td>HSNet(ICCV&#x27;21) [23]</td><td>36.30</td><td>43.10</td><td>38.70</td><td>38.70</td><td>39.20</td><td>43.30</td><td>51.30</td><td>48.20</td><td>45.00</td><td>46.90</td></tr><tr><td>DPCN(CVPR’22) [17]</td><td>42.00</td><td>47.00</td><td>43.20</td><td>39.70</td><td>43.00</td><td>46.00</td><td>54.90</td><td>50.80</td><td>47.40</td><td>49.80</td></tr><tr><td>BAM(CVPR’22) [14]</td><td>43.41</td><td>50.59</td><td>47.49</td><td>43.42</td><td>46.23</td><td>49.26</td><td>54.20</td><td>51.63</td><td>49.55</td><td>51.16</td></tr><tr><td>NTRENet(CVPR&#x27;22) [19]</td><td>36.80</td><td>42.60</td><td>39.90</td><td>37.90</td><td>39.30</td><td>38.20</td><td>44.10</td><td>40.40</td><td>38.40</td><td>40.30</td></tr><tr><td>SSP(ECCV’22) [7]</td><td>35.50</td><td>39.60</td><td>37.90</td><td>36.70</td><td>37.40</td><td>40.60</td><td>47.00</td><td>45.10</td><td>43.90</td><td>44.10</td></tr><tr><td>Baseline</td><td>36.07</td><td>43.97</td><td>40.23</td><td>39.34</td><td>39.90</td><td>42.79</td><td>49.42</td><td>47.41</td><td>46.08</td><td>46.43</td></tr><tr><td></td><td>MIANet</td><td>42.49</td><td>52.95</td><td>47.77</td><td>47.42</td><td>47.66</td><td>45.84</td><td>58.18</td><td>51.29</td><td>51.90</td><td>51.65</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                78,
+                444,
+                887,
+                664
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                690,
+                472,
+                887
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/1d9c86fa9bd0ab87e9f7aab5212da2fcd10769d530baa64a13d2cf3507e7f698.jpg"
+                },
+                "table_caption": [],
+                "table_footnote": [],
+                "html": "<table><tr><td>HPM GIM</td><td>Fold-0 Fold-1 Fold-2</td><td>Fold-3</td><td>mIoU</td></tr><tr><td rowspan=\"2\">√</td><td>56.12 70.86</td><td>63.10 54.36</td><td>61.11</td></tr><tr><td>61.58 71.80 61.02 72.11</td><td>67.06 57.75 63.77 52.95</td><td> $6 4 . 5 5 _ { \\uparrow 3 . 4 4 }$   $6 2 . 4 6 _ { \\uparrow 1 . 3 5 }$ </td></tr><tr><td></td><td>√ √</td><td>65.42 73.58 67.76 61.65</td><td> $6 7 . 1 0 _ { \\uparrow 5 . 9 9 }$ </td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                511,
+                713,
+                875,
+                795
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Hierarchical Prior Module. HPM uses multi-scale prior information and establishes information channels with weighted average pooling between different scales, which provides instance-level prior information for MIANet. Table 4 shows the impact of each element in HPM on the model performance. We can see that using the proposed multi-scale prior outperforms the one-scale method by 1.69%. This is because multi-scale instance information can adapt to input objects of different sizes. In addition, by establishing information paths between different scales, the proposed weighted pooling method can also avoid losing discriminative features and achieve a performance improvement of 0.48%."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                824,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7137"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/737a13202b5ce70d9263341541cd2e82a266065500159edc0b91bf60580fbc6b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Qualitative results of our method MIANet and baseline on PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> benchmarks. Zoom in for details."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                89,
+                94,
+                882,
+                334
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/f80ea649129f6ca4cac4b88a3d4b50ffe1d2967921eea96739c8e592accda0cd.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Ablation studies of the main elements in HPM. The baseline is equipped with GIM. ”OS” means the HPM employs the one-scale prior information, ”MS” means the multi-scale method, and ”IC” denotes the information channels."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=1 colspan=1>OS MS IC</td><td rowspan=1 colspan=1>Fold-0 Fold-1 Fold-2 Fold-3</td><td rowspan=1 colspan=1>mIoU</td></tr><tr><td rowspan=1 colspan=1>L √√  √</td><td rowspan=1 colspan=1>61.0272.11 63.7752.9564.0872.4065.2757.9764.5273.07 67.7561.1365.42 73.5867.7661.65</td><td rowspan=1 colspan=1>62.46 $6 4 . 9 3 _ { \\uparrow 2 . 4 7 }$  $6 6 . 6 2 _ { \\uparrow 4 . 1 6 }$  $6 7 . 1 0 _ { \\uparrow 4 . 6 4 }$ </td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                89,
+                458,
+                452,
+                539
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                608,
+                470,
+                729
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "General Information Module. Table 5 shows the impact of main components in GIM, namely triplet loss, and word embeddings. After removing the triplet loss, the performance drops by 0.61%. This is because the triplet loss pulls together similar local features and pushes away dissimilar ones in l<sub>2</sub> metric space, and learns better general information representations for MIANet. Second, when we directly remove the word embedding in Figure 3 and only use the instance class prototype as the input of the general information generator, the performance drops by 1.34%."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/1bd5fb2145de8261dc9ed8e77dad7a7fb624336b6f7a50f5df51f96dc6fd6bae.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Ablation studies of main components in GIM. The baseline is equipped with HPM. ”TL” and ”WE” denotes the triplet loss and word embeddings respectively."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>TL WE</td><td>Fold-0</td><td>Fold-1 Fold-2</td><td>Fold-3</td><td>mIoU</td></tr><tr><td></td><td>L √</td><td>65.42 73.58 67.76 63.99 73.09 67.65</td><td>61.65 61.22</td><td>67.10  $6 6 . 4 9 _ { \\downarrow 0 . 6 1 }$ </td></tr><tr><td></td><td></td><td>63.64 71.47 67.72 61.58 71.80 67.06</td><td>60.20 57.75</td><td> $6 5 . 7 6 _ { \\downarrow 1 . 3 4 }$   $6 4 . 5 5 _ { \\downarrow 2 . 5 5 }$ </td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                514,
+                444,
+                872,
+                525
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                571,
+                619,
+                589
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We propose a multi-information aggregation network (MIANet) with three major parts (i.e., HPM, GIM and IFM) for the few-shot semantic segmentation. The nonparametric HPM generates unbiased multi-scale instance information at the pixel level while alleviating the prediction bias problem of the model. The GIM obtains additional general class prototypes from word embeddings, as a supplement to the instance information. A triplet loss is designed to optimize the GIM to make the prototypes better alleviate the intra-class variance problem. The instance-level information and general information are aggregated in IFM, which is beneficial to more accurate segmentation results. Comprehensive experiments show that MIANet achieves state-of-the-art performance under all settings."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                608,
+                893,
+                821
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgement. This work is supported by the National Natural Science Foundation of China (No. 62176095), and the Guangdong Provincial Key Laboratory of Artificial Intelligence in Medical Image Analysis and Application (No. 2022B1212010011)."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                829,
+                893,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7138"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Maxime Bucher, Tuan-Hung Vu, Matthieu Cord, and Patrick Perez. Zero-shot semantic segmentation.´ Advances in Neural Information Processing Systems, 32, 2019. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Shiming Chen, Wenjie Wang, Beihao Xia, Qinmu Peng, Xinge You, Feng Zheng, and Ling Shao. Free: Feature refinement for generalized zero-shot learning. In Proceedings of the IEEE/CVF international conference on computer vision, pages 122–131, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Weihua Chen, Xiaotang Chen, Jianguo Zhang, and Kaiqi Huang. Beyond triplet loss: a deep quadruplet network for person re-identification. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 403–412, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] De Cheng, Yihong Gong, Sanping Zhou, Jinjun Wang, and Nanning Zheng. Person re-identification by multi-channel parts-based cnn with improved triplet loss function. In Proceedings of the iEEE conference on computer vision and pattern recognition, pages 1335–1344, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Nanqing Dong and Eric P Xing. Few-shot semantic segmentation with prototype learning. In BMVC, volume 3, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Mark Everingham, Luc Van Gool, Christopher KI Williams, John Winn, and Andrew Zisserman. The pascal visual object classes (voc) challenge. International journal of computer vision, 88(2):303–338, 2010. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Qi Fan, Wenjie Pei, Yu-Wing Tai, and Chi-Keung Tang. Self-support few-shot semantic segmentation. arXiv preprin arXiv:2207.11549, 2022. 3, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Zhangxuan Gu, Siyuan Zhou, Li Niu, Zihan Zhao, and Liqing Zhang. Context-aware feature generation for zeroshot semantic segmentation. In Proceedings ofthe 28th ACM International Conference on Multimedia, pages 1921–1929, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Bharath Hariharan, Pablo Arbelaez, Ross Girshick, and Ji-´ tendra Malik. Simultaneous detection and segmentation. In European Conference on Computer Vision, pages 297–312. Springer, 2014. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Alexander Hermans, Lucas Beyer, and Bastian Leibe. In defense of the triplet loss for person re-identification. arXiv preprint arXiv:1703.07737, 2017. 2, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] He Huang, Changhu Wang, Philip S Yu, and Chang-Dong Wang. Generative dual adversarial network for generalized zero-shot learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 801–810, 2019. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Armand Joulin, Edouard Grave, Piotr Bojanowski, Matthijs Douze, Herve J ´ egou, and Tomas Mikolov. Fasttext. zip:´ Compressing text classification models. arXiv preprint arXiv:1612.03651, 2016. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Chunbo Lang, Gong Cheng, Binfei Tu, and Junwei Han. Learning what not to segment: A new perspective on fewshot segmentation. In Proceedings of the IEEE/CVF Con-"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "ference on Computer Vision and Pattern Recognition, pages 8057–8067, 2022. 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Gen Li, Varun Jampani, Laura Sevilla-Lara, Deqing Sun, Jonghyun Kim, and Joongkyu Kim. Adaptive prototype learning and allocation for few-shot segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8334–8343, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollar, and C Lawrence´ Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Jie Liu, Yanqi Bao, Guo-Sen Xie, Huan Xiong, Jan-Jakob Sonke, and Efstratios Gavves. Dynamic prototype convolution network for few-shot semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11553–11562, 2022. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Weide Liu, Chi Zhang, Guosheng Lin, and Fayao Liu. Crnet: Cross-reference networks for few-shot segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 4165–4173, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Yuanwei Liu, Nian Liu, Qinglong Cao, Xiwen Yao, Junwei Han, and Ling Shao. Learning non-target knowledge for few-shot semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11573–11582, 2022. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Yuanwei Liu, Nian Liu, Xiwen Yao, and Junwei Han. Intermediate prototype mining transformer for few-shot semantic segmentation. arXiv preprint arXiv:2210.06780, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Zhihe Lu, Sen He, Xiatian Zhu, Li Zhang, Yi-Zhe Song, and Tao Xiang. Simpler is better: Few-shot semantic segmentation with classifier weight transformer. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 8741–8750, 2021. 3, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg S Corrado, and Jeff Dean. Distributed representations of words and phrases and their compositionality. Advances in neural information processing systems, 26, 2013. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Juhong Min, Dahyun Kang, and Minsu Cho. Hypercorrelation squeeze for few-shot segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 6941–6952, 2021. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Khoi Nguyen and Sinisa Todorovic. Feature weighting and boosting for few-shot segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 622–631, 2019. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face recognition and clustering. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 815–823, 2015. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Amirreza Shaban, Shray Bansal, Zhen Liu, Irfan Essa, and Byron Boots. One-shot learning for semantic segmentation. arXiv preprint arXiv:1709.03410, 2017. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. arXiv preprint arXiv:1409.1556, 2014. 6"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                468,
+                156
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7139"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Zhuotao Tian, Hengshuang Zhao, Michelle Shu, Zhicheng Yang, Ruiyu Li, and Jiaya Jia. Prior guided feature enrichment network for few-shot segmentation. IEEE Annals ofthe History of Computing, (01):1–1, 2020. 1, 3, 5, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Oriol Vinyals, Charles Blundell, Timothy Lillicrap, Koray Kavukcuoglu, and Daan Wierstra. Matching networks for one shot learning. arXiv preprint arXiv:1606.04080, 2016. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Kaixin Wang, Jun Hao Liew, Yingtian Zou, Daquan Zhou, and Jiashi Feng. Panet: Few-shot image semantic segmentation with prototype alignment. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9197–9206, 2019. 1, 2, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Zhonghua Wu, Xiangxi Shi, Guosheng Lin, and Jianfei Cai. Learning meta-class memory for few-shot semantic segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 517–526, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Guo-Sen Xie, Jie Liu, Huan Xiong, and Ling Shao. Scaleaware graph neural network for few-shot semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5475–5484, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Guo-Sen Xie, Huan Xiong, Jie Liu, Yazhou Yao, and Ling Shao. Few-shot semantic segmentation with cyclic memory network. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 7293–7302, 2021. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Lihe Yang, Wei Zhuo, Lei Qi, Yinghuan Shi, and Yang Gao. Mining latent classes for few-shot segmentation. arXiv preprint arXiv:2103.15402, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Yunlong Yu, Zhong Ji, Jungong Han, and Zhongfei Zhang. Episode-based prototype generating network for zero-shot learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 14035– 14044, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Bingfeng Zhang, Jimin Xiao, and Terry Qin. Self-guided and cross-guided learning for few-shot segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8312–8321, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Chi Zhang, Guosheng Lin, Fayao Liu, Rui Yao, and Chunhua Shen. Canet: Class-agnostic segmentation networks with iterative refinement and attentive few-shot learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5217–5226, 2019. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Gengwei Zhang, Guoliang Kang, Yi Yang, and Yunchao Wei. Few-shot segmentation via cycle-consistent transformer. Advances in Neural Information Processing Systems, 34:21984–21996, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Xiaolin Zhang, Yunchao Wei, Yi Yang, and Thomas S Huang. Sg-one: Similarity guidance network for one-shot semantic segmentation. IEEE transactions on cybernetics, 50(9):3855–3865, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia. Pyramid scene parsing network. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 2881–2890, 2017. 2, 6"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                468,
+                147
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7140"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ]
+]

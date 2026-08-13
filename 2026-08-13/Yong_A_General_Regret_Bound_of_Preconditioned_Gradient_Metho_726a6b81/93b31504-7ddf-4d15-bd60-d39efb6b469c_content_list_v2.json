@@ -1,0 +1,4442 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "A General Regret Bound of Preconditioned Gradient Method for DNN Training"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                83,
+                130,
+                887,
+                152
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Hongwei Yong Ying Sun Lei Zhang"
+                    }
+                ]
+            },
+            "bbox": [
+                320,
+                181,
+                650,
+                199
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The Hong Kong Polytechnic University"
+                    }
+                ]
+            },
+            "bbox": [
+                325,
+                199,
+                643,
+                217
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "hongwei.yong@polyu.edu.hk, {csysun, cslzhang}@comp.polyu.edu.hk"
+                    }
+                ]
+            },
+            "bbox": [
+                205,
+                219,
+                764,
+                234
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                267,
+                313,
+                285
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While adaptive learning rate methods, such as Adam, have achieved remarkable improvement in optimizing Deep Neural Networks (DNNs), they consider only the diagonal elements of the full preconditioned matrix. Though the full-matrix preconditioned gradient methods theoretically have a lower regret bound, they are impractical for use to train DNNs because of the high complexity. In this paper, we present a general regret bound with a constrained fullmatrix preconditioned gradient, and show that the updatingformula ofthe preconditioner can be derived by solving a cone-constrained optimization problem. With the blockdiagonal and Kronecker-factorized constraints, a specific guide function can be obtained. By minimizing the upper bound of the guide function, we develop a new DNN optimizer, termed AdaBK. A series of techniques, including statistics updating, dampening, efficient matrix inverse root computation, and gradient amplitude preservation, are developed to make AdaBK effective and efficient to implement. The proposed AdaBK can be readily embedded into many existing DNN optimizers, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "e . g . ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", SGDM and AdamW, and the corresponding SGDM BK and AdamW BK algorithms demonstrate significant improvements over existing DNN optimizers on benchmark vision tasks, including image classification, object detection and segmentation. The code is publicly available at https://github.com/ Yonghongwei/AdaBK."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                299,
+                470,
+                694
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                723,
+                209,
+                739
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Stochastic gradient descent (SGD) [26] and its variants [21, 23], which update the parameters along the opposite of their gradient directions, have achieved great success in optimizing deep neural networks (DNNs) [14, 24]. Instead of using a uniform learning rate for different parameters, Duchi et al. [5] proposed the AdaGrad method, which adopts an adaptive learning rate for each parameter, and proved that AdaGrad can achieve lower regret bound than SGD. Following AdaGrad, a class of adaptive learning rate gradient descent methods has been proposed. For example,"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "RMSProp [30] and AdaDelta [35] introduce the exponential moving average to replace the sum of second-order statistics of the gradient for computing the adaptive learning rate. Adam [15] further adopts the momentum into the gradient, and AdamW [22] employs a weight-decoupled strategy to improve the generalization performance. RAdam [18], Adabelief [38] and Ranger [19,32,37] are proposed to accelerate training and improve the generalization capability over Adam. The adaptive learning rate methods have become the mainstream DNN optimizers."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                270,
+                893,
+                421
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In addition to AdaGrad, Duchi et al. [5] provided a fullmatrix preconditioned gradient descent (PGD) method that adopts the matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\pmb { H } _ { T } = ( \\sum _ { t = 1 } ^ { T } \\pmb { g } _ { t } \\pmb { g } _ { t } ^ { \\top } ) ^ { \\frac { 1 } { 2 } } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to adjust the gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\pmb { g } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where t denotes the iteration number and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the number of the current iteration. It has been proved [5] that the preconditioned gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ H _ { T } ^ { - 1 } } g _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "has a lower regret bound than the adaptive learning rate methods that only consider the diagonal elements of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "However, the full-matrix preconditioned gradient is impractical to use due to its high dimension, which limits its application to DNN optimization. Various works have been reported to solve this problem in parameter space by adding some structural constraints on the full-matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". For instances, GGT [1] stores only the gradients of recent iterations so that the matrix inverse root can be computed efficiently by fast low-rank computation tricks. Yun et al. [34] proposed a mini-block diagonal matrix framework to reduce the cost through coordinate partitioning and grouping strategies. Gupta et al. [9] proposed to extend AdaGrad with Kronecker products of full-matrix preconditioners to make it more efficient in DNN training. Besides, natural gradient approaches [6, 7], which adopt the approximations of the Fisher matrix to correct the descent direction, can also be regarded as full-matrix preconditioners."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                426,
+                893,
+                790
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The existing constrained PGD (CPGD) methods, however, are heuristic since manually designed approximations to the full matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are employed in them, while their influence on the regret bound is unknown. By far, they lack a general regret-bound theory that can guide us to design the full-matrix preconditioned gradient methods. On the other hand, the practicality and effectiveness of these preconditioner methods are also an issue, which prevents them from being widely used in training DNNs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                795,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                235,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7866"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                468,
+                122
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address the above-mentioned issues, in this paper we present a theorem to connect the regret bound of the constrained full-matrix preconditioner with a guide function. By minimizing the guide function under the constraints, an updating formula of the preconditioned gradient can be derived. That is, optimizing the guide function of the preconditioner will minimize its regret bound at the same time, while different constraints can yield different updating formulas. With the commonly-used constraints on DNN preconditioners, such as the block-diagonal and Kroneckerfactorized constraints [7, 9], specific guide functions can be obtained. By minimizing the upper bound of the guide function, a new optimizer, namely AdaBK, is derived."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                125,
+                470,
+                320
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We further propose a series of techniques, including statistics updating, dampening, efficient matrix inverse root computation and gradient norm recovery, to make AdaBK more practical to use for DNN optimization. By embedding AdaBK into SGDM and AdamW (or Adam), we develop two new DNN optimizers, SGDM BK and AdamW BK. With acceptable extra computation and memory cost, they achieve significant performance gain in convergence speed and generalization capability over state-of-the-art DNN optimizers, as demonstrated in our experiments in image classification, object detection and segmentation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                321,
+                470,
+                488
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For a better understanding of our proposed regret bound and the developed DNN optimizer, in Fig. 1, we illustrate the existing major DNN optimizers and their relationships. SGD and its momentum version (SGDM) apply the same learning rate to all parameters based on their gradient descent directions. The adaptive learning rate methods assign different learning rates to different parameters by using second-order information of the gradients, achieving better convergence performance. The adaptive learning rate methods can be viewed as special cases of PGD methods by considering only the diagonal elements of the full preconditioned matrix of gradients. Our method belongs to the class of PGD methods, while our proposed general regret bound of constrained PGD methods can be applied to the PGD optimizers under different constraints, including Ada-Grad, Full-Matrix AdaGrad and our AdaBK."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                491,
+                470,
+                733
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Notation system. We denote by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb w } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\nabla } _ { \\mathbf { \\boldsymbol { g } } _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the weight vector and its gradient of a DNN model in the t-th iteration. Denote by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\Psi } _ { \\mathbf { \\theta } } \\mathbf { \\vec { g } } _ { t , i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the gradient of the i-th sample in a batch in the t-th iteration, we have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\pmb { g } _ { t } = \\frac { 1 } { n } \\sum _ { i = 1 } ^ { n } \\pmb { g } _ { t , i } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where n is the batch size. The notations "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A \\succeq 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A \\succ 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for a matrix A denote that A is symmetric positive semidefinite (PSD) and symmetric positive definite, respectively. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A \\succeq B"
+                    },
+                    {
+                        "type": "text",
+                        "content": "or "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { A } - B \\succeq \\mathbf { 0 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "means that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A - B"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is PSD. Tr(A) represents the trace of the matrix A. For a PSD matrix A, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { A } ^ { \\alpha } = \\pmb { U } \\pmb { \\Sigma } ^ { \\alpha } \\pmb { U } ^ { \\top }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "U \\pmb { \\Sigma } \\pmb { U } ^ { \\top }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the Singular Value Decomposition (SVD) of A. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "| | \\pmb { x } | | _ { \\pmb { A } } = \\sqrt { \\pmb { x } ^ { \\top } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Ax is the Mahalanobis norm of x induced by PSD matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and its dual norm is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "| | \\pmb { x } | | _ { \\pmb { A } } ^ { * } = \\sqrt { \\pmb { x } ^ { \\top } \\pmb { A } ^ { - 1 } \\pmb { x } }"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb A } \\otimes { \\pmb B }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "means the Kronecker product of A and B, while "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { A } } \\odot { \\pmb { B } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A ^ { \\odot \\alpha }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are the element-wise matrix product and element-wise power operation, respectively. Diag(x) is a diagonal matrix with diagonal vector x, and vec(·) denotes the vectorization function."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                734,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/423540ed3bbd0547a8040efa80ce3004fd131680688d35623676d8f8549d986c.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Illustration of the main DNN optimizers."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                501,
+                92,
+                890,
+                342
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                401,
+                893,
+                492
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Background"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                511,
+                629,
+                527
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2.1. Online Convex Optimization"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                534,
+                758,
+                550
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The online convex optimization framework [10, 28] remains the most powerful and popular tool to analyze DNN optimization algorithms, including AdaGrad [5], Adam [15], Shampoo [9], etc. Given an arbitrary, unknown sequence of convex loss functions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ f _ { 1 } ( { \\pmb w } ) , . . . , f _ { t } ( { \\pmb w } )"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { T } ( w ) ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "}, we aim to optimize the weight "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb w } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the t-th iteration, and evaluate it on the loss function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { t } ( w )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The goal of our optimization process is to minimize the regret, which is defined as follows [10, 28]:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                556,
+                893,
+                691
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "R ( T ) = { \\sum } _ { t = 1 } ^ { T } \\left( f _ { t } ( \\pmb { w } _ { t } ) - f _ { t } ( \\pmb { \\hat { w } } ) \\right) ,\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/225a30d36bad92b35089a6be64986fdca01bcd12cb2cbbab7aaf330a51c63758.jpg"
+                }
+            },
+            "bbox": [
+                576,
+                691,
+                813,
+                717
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\hat { \\pmb { w } } = \\arg \\operatorname* { m i n } _ { \\pmb { w } } \\sum _ { t = 1 } ^ { T } f _ { t } ( \\pmb { w } ) } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Generally speaking, a lower regret bound means a more effective learning process."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                717,
+                892,
+                748
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2.2. Regret Bound of Preconditioned Gradient"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                758,
+                859,
+                775
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As in previous works [5, 9], an online mirror descent with an adaptive time-dependent regularization is adopted for online convex learning. In the t-th iteration, suppose we have obtained the gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\sigma } _ { g _ { t } } = \\nabla f _ { t } ( \\mathbf { \\sigma } \\mathbf { w } _ { t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", then given a PSD matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal H } _ { t } \\succeq 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the parameters are updated by optimizing the following objective function:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                780,
+                893,
+                871
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\pmb { w } _ { t + 1 } = \\arg \\operatorname* { m i n } _ { \\pmb { w } } \\eta \\pmb { g } _ { t } ^ { \\top } \\pmb { w } + \\frac { 1 } { 2 } | | \\pmb { w } - \\pmb { w } _ { t } | | _ { \\pmb { H } _ { t } } ^ { 2 } .\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0193eb2011dab5ebb65d5b5012daeb7227e1e0b3d072e7424d2d6e7222479db6.jpg"
+                }
+            },
+            "bbox": [
+                550,
+                871,
+                839,
+                898
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7867"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The solution of Eq. (2) is exactly a preconditioned gradient descent step, which is"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                92,
+                468,
+                121
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { \\boldsymbol { w } } _ { t + 1 } = \\mathbf { \\boldsymbol { w } } _ { t } - \\eta \\mathbf { \\boldsymbol { H } } _ { t } ^ { - 1 } \\mathbf { \\boldsymbol { g } } _ { t } .\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0ec6f8e92d7362f2cea6c8e4742c2615f5e2da79a80b6ef7b944eb7b058bc56f.jpg"
+                }
+            },
+            "bbox": [
+                189,
+                121,
+                354,
+                137
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Duchi et al. [5] have provided a regret bound for online mirror descent, as shown in Lemma 1:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                136,
+                468,
+                166
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Lemma 1 [5, 9] For any sequence of matrices "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "H _ { T } \\succeq"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\ldots \\succeq H _ { 1 } \\succeq 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the regret of online mirror descent holds that"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                167,
+                468,
+                199
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } & { \\displaystyle R ( T ) \\leq \\frac { 1 } { 2 \\eta } { \\sum _ { t = 1 } ^ { T } \\left( | | \\pmb { w } _ { t } - \\hat { \\pmb { w } } | | _ { { \\pmb { H } } _ { t } } ^ { 2 } - | | \\pmb { w } _ { t + 1 } - \\hat { \\pmb { w } } | | _ { { \\pmb { H } } _ { t } } ^ { 2 } \\right) } } \\\\ & { \\quad \\quad \\quad + \\displaystyle \\frac { \\eta } { 2 } { \\sum _ { t = 1 } ^ { T } \\left( | | \\pmb { g } _ { t } | | _ { { \\pmb { H } } _ { t } } ^ { * } \\right) ^ { 2 } } . } \\end{array}\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/85c336a9b8005182299d21e81f34b97aaba5a5ccbf678e46b5ff634801e26ca2.jpg"
+                }
+            },
+            "bbox": [
+                93,
+                210,
+                450,
+                271
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "If we further assume "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { D = \\operatorname* { m a x } _ { t \\leq T } | | \\pmb { w } _ { t } - \\hat { \\pmb { w } } | | _ { 2 } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", then we have"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                284,
+                468,
+                299
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "R ( T ) \\leq \\frac { D ^ { 2 } } { 2 \\eta } T r ( H _ { T } ) + \\frac { \\eta } { 2 } { \\sum } _ { t = 1 } ^ { T } \\left( \\vert \\vert g _ { t } \\vert \\vert _ { H _ { t } } ^ { \\ast } \\right) ^ { 2 } .\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9e09e5cc656cc3b78c8400e84bd7765bd83dfac151754cb3a8cb16bfffc10556.jpg"
+                }
+            },
+            "bbox": [
+                130,
+                299,
+                413,
+                325
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our goal is to find a proper sequence of PSD matrices "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ H _ { 1 } , H _ { 2 } , . . . , H _ { T } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to minimize the regret bound in Eq (4) or (5). Duchi et al. [5] suggested to adopt "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r l } { \\pmb { H } _ { T } } & { { } = } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\textstyle \\sum _ { t = 1 } ^ { T } { \\pmb { g } } _ { t } { \\pmb { g } } _ { t } ^ { \\top } ) ^ { \\frac { 1 } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the full matrix regularization matrix. However, it is hard to directly use it for DNN optimization due to the high dimension of parameter space. Therefore, Duchi et al. simplified this full-matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with its diagonal elements, resulting in the AdaGrad algorithm [5]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                325,
+                470,
+                448
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. A General Regret Bound for Constrained Preconditioned Gradient"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                462,
+                468,
+                496
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. The General Regret Bound"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                506,
+                321,
+                521
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Directly adopting a full-matrix H<sub>t</sub> is absurd for optimizing a DNN because it is hard or even prohibitive to compute and store such a high-dimensional matrix. Hence, we need to reduce the dimension of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { H } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with a constraint set Ψ, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "e . g ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "the set of the block-diagonal matrices [5]. In this section, we aim to construct a general and practical full-matrix regularization term in Eq. (2) to achieve the low regret bound in Eq. (4). For a general constraint set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Psi \\subseteq \\mathbb { R } ^ { d \\times d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", if it is a cone "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( i . e . , \\forall x \\in \\Psi , \\theta > 0 , \\theta x \\in \\Psi"
+                    },
+                    {
+                        "type": "text",
+                        "content": "holds), we have the following Theorem 1 and Lemma 2, whose proofs can be found in the supplementary materials."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                530,
+                470,
+                695
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Theorem 1 For any cone constraint "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Psi \\subseteq \\mathbb { R } ^ { d \\times d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we define a guide function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on Ψ as"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                696,
+                468,
+                727
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "F _ { T } ( \\pmb { S } ) = et { } { ' } \\sum _ { t = 1 } ( | | \\pmb { g } _ { t } | | _ { \\pmb { S } } ^ { * } ) ^ { 2 } ,\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/eb4870c8512ea9e29f49c21fa2991e8e9f7372a01a3ad703f0773929fa03c606.jpg"
+                }
+            },
+            "bbox": [
+                179,
+                728,
+                364,
+                751
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "and then define the matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                751,
+                303,
+                763
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "H _ { T } = C _ { T } S _ { T } , \\quad S _ { T } = \\arg \\operatorname* { m i n } _ { S \\in \\Psi , S \\succeq 0 , T r ( S ) \\le 1 } F _ { T } ( S ) ,\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/73a327a8998ac4be8e984cc443a3fce0373819c9308c751f7148b4896e7cb443.jpg"
+                }
+            },
+            "bbox": [
+                88,
+                763,
+                437,
+                786
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "C _ { T } = \\sqrt { F _ { T } ( S _ { T } ) }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The regret of online mirror descent holds that"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                789,
+                467,
+                819
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { l } { \\displaystyle R ( T ) \\leq ( \\frac { D ^ { 2 } } { 2 \\eta } + \\eta ) C _ { T } } \\\\ { \\displaystyle = ( \\frac { D ^ { 2 } } { 2 \\eta } + \\eta ) \\sqrt { \\underset { S \\in \\Psi , S = 0 , T r ( S ) \\leq 1 } { \\operatorname* { m i n } } F _ { T } ( S ) } . } \\end{array}\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e0d970571ada6fcf4492b014b11137ec6b5736003b741b1244717b242d385a2f.jpg"
+                }
+            },
+            "bbox": [
+                117,
+                816,
+                426,
+                885
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The above theorem reveals that minimizing the guide function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on cone Ψ will minimize the regret bound of the preconditioned gradient descent algorithm simultaneously. More importantly, given a cone constraint Ψ, the optimal "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb H } _ { T } ~ = ~ C _ { T } { \\pmb S } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "that achieves the lowest regret bound can be obtained by optimizing Eq. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 7 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "From Theorem 1, we can know that the regret "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "R ( T ) \\leq O ( \\sqrt { \\operatorname* { m i n } _ { S \\in \\Psi , S \\succeq \\mathbf { 0 } , \\mathrm { T r } ( S ) \\leq 1 } F _ { T } ( S ) } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". If two cones satisfy "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Psi _ { 1 } \\subseteq \\Psi _ { 2 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\sqrt { \\operatorname* { m i n } _ { \\pmb { S } \\in \\Psi _ { 2 } , \\pmb { S } \\geq \\mathbf { 0 } , \\operatorname { T r } ( \\pmb { S } ) \\leq 1 } F _ { T } ( \\pmb { S } ) } \\leq } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\sqrt { \\operatorname* { m i n } _ { \\pmb { S } \\in \\Psi _ { 1 } , \\pmb { S } \\succeq \\mathbf { 0 } , \\mathrm { T r } ( \\pmb { S } ) } } \\leq 1 \\ : F _ { T } ( \\pmb { S } ) } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". This also explains why fullmatrix regularization can achieve the lowest regret bound. In addition, we have the following lemma:"
+                    }
+                ]
+            },
+            "bbox": [
+                96,
+                885,
+                468,
+                900
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                257
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Lemma 2 Suppose that Ψ is the set of either diagonal matrices orfull-matrices, according to the definition of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in Eq. (7), we have"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                257,
+                893,
+                303
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "{ \\bf H } _ { T } = D i a g \\big ( \\big ( \\sum _ { t = 1 } ^ { T } g _ { t } \\odot g _ { t } \\big ) ^ { \\odot \\frac { 1 } { 2 } } \\big ) , \\quad { \\bf H } _ { T } = \\big ( \\sum _ { t = 1 } ^ { T } g _ { t } g _ { t } ^ { \\top } \\big ) ^ { \\frac { 1 } { 2 } } .\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1c1d503e7e32df1ada0b84de7b7651e99d221f6535c4012a5ddb74c7e0fcdc5e.jpg"
+                }
+            },
+            "bbox": [
+                504,
+                303,
+                885,
+                343
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "From Lemma 2, we can easily see that the diagonal and full matrices used in AdaGrad [5] are two special cases of the results in Theorem 1."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                356,
+                893,
+                401
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Layer-wise Block-diagonal Constraint"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                411,
+                828,
+                428
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In practice, we need to choose a proper constraint set Ψ to regularize the structure of matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The diagonal constraint is the simplest constraint. However, it results in a very low effective dimension of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "so that the regret bound is high. We aim to find a more effective and practical constraint set over "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for DNN optimization."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                435,
+                893,
+                526
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Instead of considering the full-matrix regularization of all parameters, one can consider the full-matrix regularization of parameters within one DNN layer. Similar ideas have been adopted in KFAC [7] and Shampoo [9], which assume that the matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "has a block diagonal structure and each sub-block matrix is used for one layer of a DNN. Suppose matrices "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { H } _ { l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are for the l-th layer, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf {  { g } } _ { \\mathbf { \\mathit { l } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the gradient of weight in the l-th layer, in order to obtain the updating formula with block-diagonal constraint, we could minimize the guide function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". There is"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                526,
+                893,
+                676
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "F _ { T } ( \\pmb { S } ) = \\sum _ { t = 1 } ^ { T } ( \\lvert \\lvert \\pmb { g } _ { t } \\rvert \\rvert _ { \\pmb { S } } ^ { \\ast } ) ^ { 2 } = \\sum _ { l = 1 } ^ { L } \\sum _ { t = 1 } ^ { T } ( \\lvert \\lvert \\pmb { g } _ { l , t } \\rvert \\rvert _ { \\pmb { S } _ { l } } ^ { \\ast } ) ^ { 2 } .\\tag{10}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d119f89e0f6a75dd05770dcfb8dd409a123b370e0a9c4f8afc61ae0f002fe078.jpg"
+                }
+            },
+            "bbox": [
+                526,
+                676,
+                838,
+                717
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The above equation shows that the original optimization problem can be divided into a number of L sub-problems, and we can solve these sub-problems independently. For the convenience of expression, we omit the subscript l and analyze the sub-problem within one layer of a DNN in the following development."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                715,
+                893,
+                806
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Kronecker-factorized Constraint"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                816,
+                789,
+                832
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Because the dimension of the parameter space of one DNN layer can still be very high, we need to further constrain the structure of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The Kronecker-factorized constraint can be used to significantly reduce the parameter dimension within one layer [7, 9]. To be specific, for a fullyconnected layer with weight "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "W \\in \\mathbb { R } ^ { \\bar { C } _ { o u t } \\times C _ { i n } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\textbf { \\em w } ="
+                    },
+                    {
+                        "type": "text",
+                        "content": "vec(W), its corresponding gradient is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G \\in \\mathbb { R } ^ { C _ { o u t } \\times C _ { i n } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g = \\operatorname { v e c } ( G )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S = S _ { 1 } \\otimes S _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { 1 } \\in \\mathbb { R } ^ { C _ { o u t } \\times C _ { o u t } }"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { 2 } \\in \\mathbb { R } ^ { C _ { i n } \\times C _ { i n } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S \\in \\mathbb { R } ^ { C _ { i n } C _ { o u t } \\times C _ { i n } C _ { o u t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and ⊗ is Kronecker product. Since "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( { \\pmb S } _ { 1 } \\otimes { \\pmb S } _ { 2 } ) ^ { - 1 } = { \\pmb S } _ { 1 } ^ { - 1 } \\otimes { \\pmb S } _ { 2 } ^ { - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", what we need to minimize becomes"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                840,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7868"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                90,
+                470,
+                195
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { l } { { \\displaystyle F _ { T } ( \\pmb { S } ) = \\sum _ { t = 1 } ^ { T } ( \\vert \\vert \\pmb { g } _ { t } \\vert \\vert _ { \\pmb { S } _ { 1 } \\otimes \\pmb { S } _ { 2 } } ^ { \\ast } ) ^ { 2 } = \\sum _ { t = 1 } ^ { T } \\pmb { g } _ { t } ^ { \\top } ( \\pmb { S } _ { 1 } ^ { - 1 } \\otimes \\pmb { S } _ { 2 } ^ { - 1 } ) \\pmb { g } _ { t } } } \\\\ { { \\displaystyle \\quad \\quad = \\operatorname { T r } \\left( ( \\pmb { S } _ { 1 } ^ { - 1 } \\otimes \\pmb { S } _ { 2 } ^ { - 1 } ) \\sum _ { t = 1 } ^ { T } \\pmb { g } _ { t } \\pmb { g } _ { t } ^ { \\top } \\right) } } \\end{array}\\tag{11}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e06d1f8d19fb77f88915e2bd5d4f9952e433da8f489005d34f678abb4f30bff2.jpg"
+                }
+            },
+            "bbox": [
+                76,
+                194,
+                482,
+                252
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "under the constraints "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ S _ { 1 } , S _ { 2 } \\succeq \\mathbf { 0 } , \\mathrm { T r } ( S _ { 1 } ) \\leq 1 , \\mathrm { T r } ( S _ { 2 } ) \\leq 1 \\}"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                266,
+                462,
+                282
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Nevertheless, directly minimizing the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in Eq. (11) is still difficult, and we construct an upper bound of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to minimize. Since "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\pmb { g } = \\frac { 1 } { n } \\sum _ { i = 1 } ^ { n } \\pmb { g } _ { i } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\vec { \\mathbf { g } } } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the gradient of sample i and n is the batch size, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf g } _ { i } = \\mathrm { v e c } ( \\delta _ { i } { \\bf x } _ { i } ^ { T } ) ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\delta _ { i } \\otimes x _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\Delta } _ { \\mathbf { \\mathcal { X } } _ { i } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the input feature and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\delta _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the output feature gradient of sample "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we have the following lemma."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                284,
+                470,
+                375
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Lemma 3 Denote by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\pmb { L } _ { T } = \\sum _ { t = 1 } ^ { T } \\sum _ { i = 1 } ^ { n } \\delta _ { t i } \\pmb { \\delta } _ { t i } ^ { \\top } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\delta } _ { R _ { T } } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\sum _ { t = 1 } ^ { T } \\sum _ { i = 1 } ^ { n } \\pmb { x } _ { t i } \\pmb { x } _ { t i } ^ { \\top } , } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", there is"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                375,
+                467,
+                407
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { l } { { \\displaystyle F _ { T } ( { \\pmb S } ) \\leq T r \\bigg ( ( { \\pmb S } _ { 1 } ^ { - 1 } \\otimes { \\pmb S } _ { 2 } ^ { - 1 } ) \\frac { 1 } { n } \\sum _ { t = 1 } ^ { T } \\sum _ { i = 1 } ^ { n } { \\pmb g } _ { t i } { \\pmb g } _ { t i } ^ { \\top } \\bigg ) } } \\\\ { { \\displaystyle \\qquad \\leq \\frac { 1 } { n } T r ( { \\pmb S } _ { 1 } ^ { - 1 } { \\pmb L } _ { T } ) T r ( { \\pmb S } _ { 2 } ^ { - 1 } { \\pmb R } _ { T } ) } . } \\end{array}\\tag{12}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8185ddd672872aa397a04bf5936335a3cfcccf03494b4a9181c7793a054c2432.jpg"
+                }
+            },
+            "bbox": [
+                104,
+                406,
+                413,
+                477
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We minimize the upper bound of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "F _ { T } ( S )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "defined in Lemma 3. One can see that the upper bound can be divided into two independent problems w.r.t. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "S _ { 2 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "respectively, which are"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                478,
+                468,
+                537
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\operatorname* { m i n } _ { S _ { 1 } \\succeq 0 , \\mathrm { T r } ( S _ { 1 } ) { \\leq } 1 } \\mathrm { T r } ( S _ { 1 } ^ { - 1 } L _ { T } ) \\ \\mathrm { a n d } \\ \\operatorname* { m i n } _ { S _ { 2 } \\succeq 0 , \\mathrm { T r } ( S _ { 2 } ) { \\leq } 1 } \\mathrm { T r } ( S _ { 2 } ^ { - 1 } R _ { T } ) .\\tag{13}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/5f616be1b1794859954e91c7d9fded42906050ff6f08e633b68f6c40abcf04ab.jpg"
+                }
+            },
+            "bbox": [
+                76,
+                536,
+                467,
+                563
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To solve the above problem, we have the following lemma: Lemma 4 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "H A \\succ \\mathbf { 0 } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we have:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                575,
+                468,
+                604
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\arg \\operatorname* { m i n } _ { S \\succeq 0 , T r ( S ) \\leq 1 } T r ( S ^ { - 1 } A ) = A ^ { \\frac { 1 } { 2 } } / T r ( A ^ { \\frac { 1 } { 2 } } ) .\\tag{14}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/2e8ca87760c22a8bc629b22d7fd313d4738a9420ddc1a350adb53f1e3862309d.jpg"
+                }
+            },
+            "bbox": [
+                111,
+                604,
+                405,
+                630
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The proofs of Lemma 3 and Lemma 4 can be found in the supplementary materials. According to Lemma "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "^ { 4 , }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we know that the solution of Eq. (13) is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal S } _ { 1 , T } = { \\cal L } _ { T } ^ { \\frac 1 2 } / \\mathrm { T r } ( { \\cal L } _ { T } ^ { \\frac 1 2 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf S } _ { 2 , T } = R _ { T } ^ { \\frac { 1 } { 2 } } / \\mathrm { T r } ( R _ { T } ^ { \\frac { 1 } { 2 } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In practice, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\delta } _ { L _ { T } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { T } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "will be added with a dampening term ϵI to ensure that they are symmetric and positive definite. Without considering the magnitude of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\cal { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we can set"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                631,
+                470,
+                744
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "{ \\pmb { H } } _ { T } = { \\pmb { H } } _ { 1 , T } \\otimes { \\pmb { H } } _ { 2 , T } , { \\pmb { H } } _ { 1 , T } = { \\pmb { L } } _ { T } ^ { \\frac { 1 } { 2 } } , { \\pmb { H } } _ { 2 , T } = { \\pmb { R } } _ { T } ^ { \\frac { 1 } { 2 } } .\\tag{15}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8105e4b010e4f70abf98a181ce2a3cff61096903ad92dbfb5067c505ec8f0a67.jpg"
+                }
+            },
+            "bbox": [
+                93,
+                744,
+                421,
+                763
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Then according to the property of Kronecker product, the online mirror descent updating formula in Eq. (3) becomes"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                762,
+                468,
+                792
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "W _ { t + 1 } = \\mathbf { \\bar { W } } _ { t } - \\mathbf { \\bar { \\eta } } H _ { 1 , t } ^ { - 1 } G _ { t } H _ { 2 , t } ^ { - 1 } \\mathbf { \\Phi }\\tag{16}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/24077510aa416966f42406eb157832f32b9de9a1984835042e13c47c27e17708.jpg"
+                }
+            },
+            "bbox": [
+                166,
+                791,
+                375,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We ignore the magnitude of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { H } } _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "here because it will have no impact on the result after we introduce a gradient norm recovery operation in the algorithm, which will be described in the next section."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                470,
+                868
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Finally, the proposed vanilla optimizer, termed AdaBK, is summarized in Algorithm 1."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                468,
+                900
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Detailed Implementation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                89,
+                733,
+                107
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The proposed AdaBK in Algorithm 1 involves the calculation of matrix inverse root, which may be unstable and inefficient. For an efficient and effective implementation of AdaBK in training DNNs, we propose a series of techniques."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                116,
+                893,
+                191
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Efficient Matrix Inverse Root. As shown in Algorithm 1, we need to calculate the matrix inverse root of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Traditional approaches usually use SVD to calculate it. Notwithstanding, SVD is inefficient and the existing deep learning frameworks "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( e . g ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "., PyTorch) do not implement SVD on GPU well, making the training unstable or even not converging. Instead of using SVD, we adopt the Schur-Newton algorithm [8] to compute the matrix inverse root. For matrix A, let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Y _ { 0 } = A / \\mathrm { T r } ( A )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "Z _ { 0 } = I ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The Schur-Newton algorithm adopts the following iterations:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                193,
+                893,
+                344
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\left\\{ \\begin{array} { l l } { \\displaystyle T _ { k } = \\frac { 1 } { 2 } ( 3 I - Z _ { k - 1 } Y _ { k - 1 } ) ~ ; } \\\\ { \\displaystyle Y _ { k } = Y _ { k - 1 } T _ { k } , ~ Z _ { k } = T _ { k } Z _ { k - 1 } , ~ k = 1 , 2 , . . . , K . } \\end{array} \\right.\\tag{17}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1d4b5f38198582125edb26aa9d033ad0b76f496b098076529c7881de4409548b.jpg"
+                }
+            },
+            "bbox": [
+                514,
+                344,
+                848,
+                390
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Then we have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "A ^ { \\frac { 1 } { 2 } } \\approx Y _ { K } { \\sqrt { \\operatorname { T r } ( A ) } } , A ^ { - { \\frac { 1 } { 2 } } } \\approx Z _ { K } / { \\sqrt { \\operatorname { T r } ( A ) } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "In practice, we find that setting "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "K = 1 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can achieve good enough precision for our problem."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                391,
+                892,
+                438
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Statistics Updating. In Algorithm 1, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "accumulate the statistics of output feature gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and input feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "respectively. Hence the amplitude of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "will increase during training. After certain iterations, the effective learning rate will become small, making the learning process inefficient. To solve this issue, we use the exponential moving average of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { R } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Meanwhile, it is unnecessary to compute "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { } L _ { t } , \\mathbf { } R _ { t } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and their inverse root in each iteration. Two hyper-parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { i r }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are introduced to control the frequency of updating "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and their inverse root, respectively. This infrequent statistics updating strategy can significantly improve efficiency with a little performance drop. We use two additional statistics "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\pmb { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { R } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to restore the matrix inverse root of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { L _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(please refer to Algorithm 2)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                438,
+                893,
+                666
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Dampening Strategy. When the dimensions of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "X _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are high, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { L _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "tend to be singular matrices with large condition numbers. A dampening term ϵI should be added into "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\mathbf { L } } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { R } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to improve their condition number and enhance the stability of computing inverse root. As in [33], we adopt an adaptive dampening parameter "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\epsilon \\lambda _ { m a x } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { m a x }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the max singular value of the matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { L _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "or "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { R _ { t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "With this setting, the condition number will be "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\frac { \\lambda _ { m a x } + \\epsilon \\lambda _ { m a x } } { \\lambda _ { m i n } + \\epsilon \\lambda _ { m a x } } \\leq \\frac { 1 + \\epsilon } { \\epsilon } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", bounded by a value determined by ϵ. Meanwhile, the maximum singular value of the symmetric matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\pmb { L } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "or "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\delta } _ { R _ { t } ) }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be efficiently obtained by the power iteration method [2] as follows:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                666,
+                893,
+                848
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\left\\{ \\begin{array} { l l } { \\pmb { v } _ { k } = \\pmb { A } \\pmb { u } _ { k - 1 } , } \\\\ { \\pmb { u } _ { k } = \\pmb { v } _ { k } / | | \\pmb { v } _ { k } | | _ { 2 } , k = 1 , 2 , . . . , K . } \\end{array} \\right.\\tag{18}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1ed740aede9f3c0ac1b76e18de246143eab88070f562b415220263e4d4bcf234.jpg"
+                }
+            },
+            "bbox": [
+                583,
+                861,
+                808,
+                897
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7869"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                514,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 1: AdaBK (Adaptive Regularization with Block-diagonal and Kronecker-factorized Constraints) Input: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "W _ { 0 } , L _ { 0 } = \\epsilon I _ { C _ { o u t } } , R _ { 0 } = \\epsilon I _ { C _ { i n } } , \\eta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Output: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "W _ { T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "1 for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t { = } I { : } T"
+                    },
+                    {
+                        "type": "text",
+                        "content": "do 2 Receive "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { X } _ { t } = [ \\pmb { x } _ { t i } ] _ { i = 1 } ^ { n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by forward propagation; 3 Receive "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta _ { t } = [ \\delta _ { t i } ] _ { i = 1 } ^ { n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by backward propagation; 4 Compute gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G _ { t } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "5 Update preconditioners: 6 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { L } _ { t } = \\pmb { L } _ { t - 1 } + \\Delta _ { t } \\Delta _ { t } ^ { \\top } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "7 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { R } _ { t } = \\pmb { R } _ { t - 1 } + \\pmb { X } _ { t } \\pmb { X } _ { t } ^ { \\top }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "8 Update weight: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\boldsymbol { W } _ { t + 1 } = \\boldsymbol { W } _ { t } - \\eta \\boldsymbol { L } _ { t } ^ { - \\frac { 1 } { 2 } } \\boldsymbol { G } _ { t } \\boldsymbol { R } _ { t } ^ { - \\frac { 1 } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "9 end"
+                    }
+                ],
+                "algorithm_footnote": []
+            },
+            "bbox": [
+                78,
+                92,
+                462,
+                320
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We use "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { m a x } \\approx | | \\pmb { v } _ { K } | | _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for our proposed adaptive dampening and set K to 10 in our implementation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                356,
+                468,
+                386
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Gradient Norm Recovery. Since the amplitude of the preconditioned gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { L } _ { t } ^ { - \\frac 1 2 } \\pmb { G } _ { t } \\pmb { R } _ { t } ^ { - \\frac 1 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "may significantly differ from the amplitude of original "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G _ { t } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", the optimal learning rate and weight decay will also differ from the original optimizer. It is expected that the well-tuned hyperparameters in current optimizers "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( e . g ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "., SGDM, AdamW) can be directly used in our proposed AdaBK optimizer without further hyper-parameter tuning. To this end, we follow the strategy in [33] to re-scale the amplitude of the preconditioned gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { G } _ { t } = L _ { t } ^ { - \\frac { 1 } { 2 } } G _ { t } R _ { t } ^ { - \\frac { 1 } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to the original gradient "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by multiplying it with a scaling factor, i.e.,"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                386,
+                470,
+                561
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\tilde { G } _ { t } = \\widehat { G } _ { t } \\frac { | | G _ { t } | | _ { 2 } } { | | \\widehat { G } _ { t } | | _ { 2 } } .\\tag{19}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e80dc78d95d924182f0e18af6d84e50e3c4b78fa0695d897b277186768adac54.jpg"
+                }
+            },
+            "bbox": [
+                210,
+                560,
+                333,
+                595
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "It is easy to know that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { G } _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "G _ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "have the same "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "norm. With gradient norm recovery, the proposed AdaBK method can be easily embedded into existing optimizers without much extra hyperparameter tuning."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                598,
+                470,
+                659
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Convolutional Layer. We have discussed the optimization of FC layers in Section 3. For the Conv layer, the derivation process is similar. The convolution operation can be formulated as matrix multiplication with the im2col operation [31, 36], and then the Conv layer can be viewed as an FC layer with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathfrak { A } } = \\mathcal { U } _ { 1 } ( W ) { \\mathfrak { X } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where A and X are the output and input features after im2col operation, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { U } _ { 1 } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the mode 1 unfold operation of a tensor. For example, for a convolution weight "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { W } \\in \\mathbb { R } ^ { C _ { o u t } \\times C _ { i n } \\times k _ { 1 } \\times k _ { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { U } _ { 1 } ( \\mathbf { W } ) \\in \\mathbb { R } ^ { C _ { o u t } \\times C _ { i n } k _ { 1 } k _ { 2 } }"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { U } _ { 1 } ( \\mathbf { W } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be considered as the weight of the FC layer, and the remaining computation is the same as the FC layer."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                659,
+                470,
+                839
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Embedding AdaBK into SGDM and AdamW. With the above-introduced techniques, a more efficient and practical implementation of AdaBK can be obtained. The onestep preconditioned gradient of AdaBK is summarized in"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                839,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 2: One Step Preconditioned Gradient of AdaBK Input: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { T _ { s } , T _ { i r } , \\alpha , \\epsilon , \\beta , \\underline { { L } } _ { t - 1 } , \\underline { { R } } _ { t - 1 } , \\widehat { L } _ { t - 1 } , \\widehat { R } _ { t - 1 } , { X } _ { t } = [ \\alpha _ { t i } ] _ { i = 1 } ^ { n } , } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Delta _ { t } = [ \\pmb { \\delta } _ { t i } ] _ { i = 1 } ^ { n } , \\pmb { G } _ { t } = \\nabla _ { W _ { t } } \\mathcal { L }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Output: G<sup>˜</sup><sub>t</sub> 1 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { i f } \\ t \\% T _ { s } = 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "then 2 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bar { \\mathbf { L } _ { t } } = \\alpha \\mathbf { L } _ { t - 1 } + ( 1 - \\alpha ) \\Delta _ { t } \\Delta _ { t } ^ { \\top } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "3 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\pmb { R } _ { t } = \\alpha \\pmb { R } _ { t - 1 } + ( 1 - \\alpha ) \\pmb { X } _ { t } \\pmb { X } _ { t } ^ { \\top }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "4 else 5 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\pmb { L } } _ { t } = { \\pmb { L } } _ { t - 1 } , { \\pmb { R } } _ { t } = { \\pmb { R } } _ { t - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "6 end 7 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { i f } \\ t \\% T _ { i r } = 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "then 8 Compute "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { m a x } ^ { L }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { m a x } ^ { R }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by Power Iteration; 9 Compute "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\pmb { L } } _ { t } = ( \\pmb { L } _ { t } + \\lambda _ { m a x } ^ { L } \\epsilon \\pmb { I } ) ^ { - \\frac { 1 } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\pmb { R } } _ { t } = ( \\pmb { R } _ { t } + \\lambda _ { m a x } ^ { R } \\epsilon \\pmb { I } ) ^ { - \\frac { 1 } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by Schur-Newton Iteration Eq. (17); 10 else 11 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\pmb { L } } _ { t } = \\widehat { \\pmb { L } } _ { t - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { R } _ { t } = \\widehat { L } _ { t - 1 } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "12 end 13 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { G } _ { t } = \\widehat { L } _ { t } G _ { t } \\widehat { R } _ { t } ;"
+                    },
+                    {
+                        "type": "text",
+                        "content": "14 "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\tilde { G } _ { t } = \\widehat { G } _ { t } \\frac { | | G _ { t } | | _ { 2 } } { | | \\widehat { G } _ { t } | | _ { 2 } } ; } \\end{array}"
+                    }
+                ],
+                "algorithm_footnote": []
+            },
+            "bbox": [
+                496,
+                92,
+                882,
+                343
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 2. For a FC layer, the complexity of AdaBK is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r l } { T ( O ( \\frac { C _ { i n } ^ { 3 } + C _ { o u t } ^ { 3 } } { T _ { i r } } ) + O ( \\frac { ( C _ { i n } ^ { 2 } + C _ { o u t } ^ { 2 } ) N } { T _ { s } } ) } & { { } \\stackrel { } { + } O ( C _ { i n } C _ { o u t } ( C _ { i n } + } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\left( { { C _ { o u t } } } \\right) ) ) )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where T is the total number of iterations. For a Conv layer, its complexity is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { T ( O ( \\frac { C _ { i n } ^ { 3 } k _ { 1 } ^ { 3 } k _ { 2 } ^ { 3 } + C _ { o u t } ^ { 3 } } { T _ { i r } } ) \\ + } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { O ( \\frac { ( C _ { i n } ^ { 2 } k _ { 1 } ^ { 2 } k _ { 2 } ^ { 2 } + C _ { o u t } ^ { 2 } ) N } { T _ { * } } ) + O ( C _ { i n } k _ { 1 } k _ { 2 } C _ { o u t } ( C _ { i n } k _ { 1 } k _ { 2 } + C _ { o u t } ) ) ) } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In our implementation, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { i r }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are set to 200 and 2000, respectively, and the complexity is acceptable. In practice, it only costs "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 \\% \\sim 2 5 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "additional training time."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                356,
+                892,
+                487
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "AdaBK can be embedded into many existing optimizers. In this paper, we embed it into the two commonly used DNN optimizers, i.e., SGDM and AdamW (or Adam), and name the obtained new optimizers as SGDM BK and AdamW BK accordingly. The detailed algorithms of SGDM BK and AdamW BK are summarized in the supplementary materials."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                488,
+                893,
+                597
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                616,
+                633,
+                633
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We evaluate the proposed SGDM BK and AdamW BK optimizers on typical vision tasks, including image classification (on CIFAR100/CIFAR10 [16] and ImageNet [27]), object detection and segmentation (on COCO [17]). For the hyper-parameters of SGDM BK and AdamW BK, we set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha = 0 . 9 , T _ { s } = 2 0 0 , T _ { i r } = 2 0 0 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\epsilon = 0 . 0 0 0 0 1"
+                    },
+                    {
+                        "type": "text",
+                        "content": "throughout the experiments if not specified. Ablation studies on hyper-parameter selection can be found in the supplementary material. All experiments are conducted under the Pytorch 1.11 framework with NVIDIA GeForce RTX 2080Ti and 3090 Ti GPUs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                645,
+                893,
+                813
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1. Image Classification"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                828,
+                692,
+                845
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the image classification task, we compare SGDM BK and AdamW BK with the representative and state-of-theart DNN optimizers, including SGDM, AdamW [22], Adagrad [5], RAdam [19]<sup>1</sup>, and Adabelief [38]<sup>2</sup>, Shampoo [9]<sup>3</sup>, KFAC [7] [9]<sup>4</sup>, WSGDM [33]<sup>5</sup>. We tune learning rate and weight decay for each optimizer with grid search and the detailed settings for different optimizers can be found in the supplementary material."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7870"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/69357937040188523886fbe172c1f3bcbde2d6477f4f26a99f8d6760bcc00684.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Testing accuracies (%) on CIFAR100/CIFAR10. The best and second best results are highlighted in bold and italic fonts, respectively. The numbers in red color indicate the improvement of SGDM BK/AdamW BK over SGDM/AdamW, respectively."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td colspan=\"11\"></td></tr><tr><td>Optimizer</td><td>SGDM</td><td>AdamW</td><td>Adagrad  $\\overline { { 7 1 . 5 5 \\pm . 2 5 } }$ </td><td>RAdam</td><td>Adabelief  $7 7 . 4 3 \\pm . 3 6$ </td><td>Shampoo</td><td>KFAC</td><td>WSGDM</td><td>SGDM_BK</td><td>AdamW_BK</td></tr><tr><td>ResNet18</td><td>77.20 ± .30</td><td> $\\overline { { 7 7 . 2 3 \\pm . 1 0 } }$ </td><td></td><td> $\\overline { { 7 7 . 0 5 \\pm . 1 5 } }$ </td><td></td><td> $\\overline { { 7 1 . 8 1 \\pm . 4 0 } }$ </td><td> $\\overline { { 7 8 . 2 5 \\pm . 2 3 } }$ </td><td> $\\overline { { 7 9 . 2 8 \\pm . 2 7 } }$ </td><td>79.30 ± .07 (↑2.10)</td><td> $\\overline { { 7 8 . 6 6 \\pm . 3 4 ( \\uparrow 1 . 4 3 ) } }$ </td></tr><tr><td>ResNet50</td><td>77.78 ±.43</td><td> $7 8 . 1 0 \\pm . 1 7$ </td><td> $7 2 . 2 0 \\pm . 1 5$ </td><td> $7 8 . 2 0 \\pm . 1 5$ </td><td> $7 9 . 0 8 \\pm . 2 3$ </td><td>71.31 ± .53</td><td> $7 9 . 2 5 \\pm . 2 6$ </td><td> $8 0 . 9 0 \\pm . 2 3 $ </td><td> $\\mathbf { 8 1 . 2 6 \\pm . 2 0 ( \\uparrow 3 . 4 8 ) }$ </td><td> $8 0 . 1 5 \\pm . 1 9 ( \\uparrow 2 . 0 5 )$ </td></tr><tr><td>VGG11</td><td>70.80 ± .29</td><td> $7 1 . 2 0 \\pm . 2 9$ </td><td> $6 7 . 7 0 \\pm . 1 8$ </td><td> $7 1 . 0 8 \\pm . 2 4$ </td><td> $7 2 . 4 5 \\pm . 1 6$ </td><td> $6 3 . 5 6 \\pm . 4 4$ </td><td> $7 2 . 7 5 \\pm . 3 1$ </td><td> $7 3 . 4 2 \\pm . 2 8$ </td><td> $\\mathbf { 7 3 . 8 9 } \\pm . 1 3 ( \\uparrow 3 . 0 9 )$ </td><td> $7 3 . 0 9 \\pm . 2 9 ( \\uparrow 1 . 8 9 )$ </td></tr><tr><td>VGG19</td><td>70.94 ±.32</td><td> $7 0 . 2 6 \\pm . 2 3$ </td><td> $6 3 . 3 0 \\pm . 5 8$ </td><td> $7 3 . 0 1 \\pm . 2 0$ </td><td> $7 2 . 3 9 \\pm . 2 7$ </td><td>65.62 ± .56</td><td> $7 3 . 8 7 \\pm . 4 3$ </td><td> $7 4 . 8 2 \\pm . 2 3$ </td><td> $\\mathbf { 7 5 . 1 0 \\pm . 1 3 ( \\uparrow 4 . 1 6 ) }$ </td><td> $7 4 . 2 7 \\pm . 2 5 ( \\uparrow 4 . 0 1 )$ </td></tr><tr><td>DenseNet121</td><td> $7 9 . 5 3 \\pm . 1 9$ </td><td> $7 8 . 0 5 \\pm . 2 6$ </td><td> $7 1 . 2 7 \\pm . 7 9$ </td><td> $7 8 . 6 5 \\pm . 0 5$ </td><td> $7 9 . 8 8 \\pm . 0 8$ </td><td> $7 4 . 9 5 \\pm . 4 2$ </td><td> $7 9 . 8 4 \\pm . 3 3$ </td><td> ${ \\bf 8 1 . 2 3 \\pm . 1 0 }$ </td><td> ${ 8 I . I 8 \\pm . 2 7 ( \\uparrow 1 . 6 5 ) }$ </td><td> $7 9 . 9 3 \\pm . 2 3 ( \\uparrow 1 . 8 8 )$ </td></tr><tr><td colspan=\"11\">CIFAR10</td></tr><tr><td>ResNet18</td><td> $\\overline { { 9 5 . 1 0 \\pm . 0 7 } }$ </td><td> $\\overline { { 9 4 . 8 0 \\pm . 1 0 } }$ </td><td> $\\overline { { 9 2 . 8 3 \\pm . 1 2 } }$ </td><td> $\\overline { { 9 4 . 7 0 \\pm . 1 8 } }$ </td><td>95.12 ± .14</td><td>92.94 ± .27</td><td> $\\overline { { 9 5 . 0 1 \\pm . 1 2 } }$ </td><td> $9 5 . 4 3 \\pm . 0 8$ </td><td> $\\overline { { 9 5 . 4 4 \\pm . 1 2 ( \\uparrow 0 . 3 4 ) } }$ </td><td> $\\overline { { 9 5 . 2 2 \\pm . 1 3 ( \\uparrow 0 . 4 2 ) } }$ </td></tr><tr><td>ResNet50</td><td>94.75 ± .30</td><td> $9 4 . 7 2 \\pm . 1 0 $ </td><td>92.55 ± .39</td><td>94.72 ± .10</td><td>95.35 ± .05</td><td> $9 2 . 6 1 \\pm . 2 7 $ </td><td> $9 5 . 4 3 \\pm . 1 6$ </td><td> $9 5 . 8 0 \\pm . 1 5$ </td><td> $\\mathbf { 9 5 . 8 6 \\pm . 0 5 ( \\uparrow 1 . 1 1 ) }$ </td><td> $9 5 . 4 0 \\pm . 0 7 ( \\uparrow 0 . 6 8 )$ </td></tr><tr><td>VGG11</td><td> $9 2 . 1 7 \\pm . 1 9$ </td><td> $9 2 . 0 2 \\pm . 0 8$ </td><td> $9 0 . 2 5 \\pm . 2 5$ </td><td>92.00 ± .18</td><td> $9 2 . 4 5 \\pm . 1 8$ </td><td> $8 9 . 0 1 \\pm . 2 9$ </td><td> $9 2 . 8 2 \\pm . 1 1$ </td><td> $9 2 . 9 5 \\pm . 2 0 $ </td><td> $\\mathbf { 9 3 . 1 4 \\pm . 2 6 ( \\uparrow 0 . 9 7 ) }$ </td><td> $9 2 . 9 6 \\pm . 0 7 ( \\uparrow 0 . 9 4 )$ </td></tr><tr><td>VGG19 DenseNet121</td><td>93.61 ± .06</td><td> $9 3 . 4 0 \\pm . 0 4$ </td><td> $9 1 . 2 8 \\pm . 1 4$ </td><td> $9 3 . 5 7 \\pm . 1 1$ </td><td>93.58 ± .12</td><td>90.62 ± .32</td><td> $9 3 . 4 7 \\pm . 0 9$ </td><td> $9 3 . 9 1 \\pm . 1 9$ </td><td> $\\mathbf { 9 4 . 0 3 \\pm . 1 5 \\ ( \\uparrow 0 . 4 2 ) }$ </td><td> $9 3 . 9 4 \\pm . 1 0 ( \\uparrow 0 . 5 4 )$  </td></tr><tr><td></td><td>95.37 ± .17</td><td> $9 4 . 8 0 \\pm . 0 7$ </td><td> $9 2 . 9 5 \\pm . 2 3 $ </td><td> $9 5 . 0 2 \\pm . 0 8$ </td><td>95.37 ± .04</td><td> $9 4 . 3 7 \\pm . 3 6 $ </td><td> $9 5 . 1 8 \\pm . 2 2$ </td><td> $\\mathbf { 9 5 . 7 2 \\pm . 1 4 }$ </td><td> $9 5 . 7 0 \\pm . 1 3 ( \\uparrow 0 . 3 3 )$ </td><td> $9 5 . 4 0 \\pm . 0 4 ( \\uparrow 0 . 6 0 )$ </td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                81,
+                131,
+                890,
+                260
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/16081df46b7e8173a6f9369625e53f5c5c7d9fb51703d522a31d0254c1e40a38.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                284,
+                273,
+                485,
+                428
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/6571b8f473fa36d781cad381d0689ca36deb433e8a96a6635db7059d545ac1fb.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                486,
+                273,
+                687,
+                428
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/eb142ce65e76a01b35a2915de8a36d2d1b53234186ab55dba8d4b9731dcb91da.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                80,
+                273,
+                281,
+                428
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/0890fdfd744bcadfec3e993dadd83b957d4a5d63431760275fa628c68ee014ef.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Training loss curves (loss vs. epoch and loss vs. time) of SGDM, SGDM BK, AdamW and AdamW BK on CIFAR100 with ResNet18 and ResNet50 before 60 epochs."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                689,
+                273,
+                888,
+                428
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                491,
+                470,
+                569
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results on CIFAR100/10: We first testify the effectiveness of SGDM BK and AdamW BK with different DNN models on CIFAR100/CIFAR10 [16], including ResNet18, ResNet50 [12], VGG11 VGG19 [29] and DenseNet-121 [13] <sup>6</sup>. All the DNN models are trained for 200 epochs with batch size 128 on one GPU. The learning rate is multiplied by 0.1 for every 60 epochs. The experiments are repeated 4 times and the results are reported in a “mean±std” format in Table 1. We can see that SGDM BK and AdamW BK achieve significant improvements over SGDM and AdamW, which are 1.44% ∼ 4.16% and 1.43% ∼ 4.01% on CIFAR100, and 0.28% ∼ 1.11% and 0.42% ∼ 0.94% on CIFAR10, respectively. They also surpass other compared optimizers for most of the used backbone networks."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                569,
+                472,
+                796
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2 shows the curves of training loss vs. epoch and training loss vs. time for SGDM, SGDM BK, AdamW and AdamW BK on CIFAR100 with ResNet18 and ResNet50 backbones before 60 epochs. One can see that SGDM BK and AdamW BK can significantly speed up the training process of SGDM and AdamW, respectively. Since SGDM BK and AdamW BK cost additional time in each iteration, for a fair comparison, we also show the curves of training loss vs. time. One can see that they still have great advantages over the original SGDM and AdamW."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                492,
+                895,
+                643
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Results on ImageNet-1k: To testify that SGDM BK and AdamW BK can also work well on large-scale datasets, we evaluate them on ImageNet-1k [27], which contains 1000 categories with 1.28 million images for training and 50K images for validation. ResNet18 and ResNet50 are selected as the backbone models with training batch size 256 on 4 GPUs, and the training settings follow the work in [3, 38]. The learning rate is multiplied by 0.1 for every 30 epochs. SGDM BK and AdamW BK adopt the same learning rate and weight decay as SGDM and AdamW, respectively. The top 1 accuracies on the validation set are reported in Table 2. One can see that SGDM BK and AdamW BK perform better than others. Meanwhile, we plot the training and validation accuracy curves in Figure 3, from which we see that the proposed AdaBK technique can largely speed up the training process. ."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                643,
+                895,
+                886
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We also evaluate the proposed optimizer on Swintransformer [20] backbone. We compare AdamW BK with their default optimizer AdamW. The configurations follow the settings of the official MMClassification toolbox<sup>7</sup>. The results are shown in Table 3. We can see AdamW BK can also achieves certain performance gain over AdamW."
+                    }
+                ]
+            },
+            "bbox": [
+                517,
+                885,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>1</sup>https://github.com/LiyuanLucasLiu/RAdam"
+                    }
+                ]
+            },
+            "bbox": [
+                94,
+                808,
+                377,
+                821
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>2</sup>https : / / github . com / juntang - zhuang / Adabelief - Optimizer"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                819,
+                468,
+                843
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>3</sup>https://github.com/moskomule/shampoo.pytorch"
+                    }
+                ]
+            },
+            "bbox": [
+                93,
+                843,
+                410,
+                856
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>4</sup>https://github.com/alecwangcq/KFAC-Pytorch"
+                    }
+                ]
+            },
+            "bbox": [
+                93,
+                854,
+                398,
+                867
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>5</sup>https://github.com/Yonghongwei/W-SGDM-and-W-Adam"
+                    }
+                ]
+            },
+            "bbox": [
+                93,
+                866,
+                442,
+                878
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>6</sup>The model can be downloaded at https://github.com/weiaicunzai/ pytorch-cifar100."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                878,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7871"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/4b3be1136928fbbf0b976c7dd30d194f9a0d8b1b2a08d34f7ba07705c5400c85.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Top 1 accuracy (%) on the validation set of ImageNet-1k. The numbers in red color indicate the improvement of SGDM BK/AdamW BK over SGDM/AdamW, respectively."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Optimizer</td><td>SGDM</td><td>AdamW</td><td>Adagrad</td><td>RAdam</td><td>Adabelief</td><td>Shampoo</td><td>KFAC</td><td>WSGDM</td><td>SGDM_BK</td><td>AdamW_BK</td></tr><tr><td>ResNet18</td><td>70.49</td><td>70.01</td><td>62.22</td><td>69.92</td><td>70.08</td><td>64.45</td><td>69.62</td><td>71.43</td><td> $\\overline { { 7 I . 5 9 \\left( \\uparrow 1 . 1 0 \\right) } }$ </td><td>71.63 (↑1.62)</td></tr><tr><td>ResNet50</td><td>76.31</td><td>76.02</td><td>69.38</td><td>76.12</td><td>76.22</td><td>70.11</td><td>76.36</td><td>77.48</td><td>77.62 (↑1.31)</td><td>77.22 (↑1.10)</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                81,
+                121,
+                887,
+                165
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/003e848a0f6ab5c3fa842b1f3d904cf5762bd1540d1ba6d5acdada1f8e20efb6.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                83,
+                181,
+                287,
+                338
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/e01e71265a7654585dcb581d1eb7cdfe51f0c8b27648b01baa319d2ab61069e8.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                284,
+                181,
+                486,
+                340
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/a8626b70cbee011f7a7d27660e0f19bb7ffe76656c10e21be2a6740dc2faf42d.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                483,
+                181,
+                686,
+                338
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/d0fa6c6e6a5104878700420aeb1b21d096af51efdce470193b7f33418bc92049.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Training and validation accuracy curves of SGDM, SGDM BK, AdamW and AdamW BK on ImageNet-1k with ResNet18 and ResNet50 backbones."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                686,
+                181,
+                890,
+                338
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/7483c1374641a0b2b04004687d674ec3b0fdf4f30baf9a1a6db2662d606dc19c.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Top 1 accuracy (%) on the validation set of ImageNet-1k."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Optimizer</td><td>AdamW</td><td>AdamW_BK</td></tr><tr><td>Swin-T</td><td>81.18</td><td>81.79 (↑0.61)</td></tr><tr><td>Swin-B</td><td>83.02</td><td>83.14 (↑0.12)</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                155,
+                409,
+                387,
+                453
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                468,
+                470,
+                546
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2. Detection and Segmentation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                555,
+                331,
+                571
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We then evaluate SGDM BK and AdamW BK on COCO [17] detection and segmentation tasks to show that they can work well beyond classification tasks and can be used to fine-tune pre-trained models. The models are pre-trained on ImageNet1k and fine-tuned on COCO train2017 (118K images), and then evaluated on COCO val2017 (40K images). The latest version of MMDetection toolbox [4] is used as to train our models. We test SGDM BK and AdamW BK by Faster-RCNN [25] and Mask-RCNN [11] with various backbones, including ResNet50 (R50), ResNet101 (R101) and Swin transformer [20]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                578,
+                472,
+                760
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As mentioned in Section 4, with the gradient norm recovery operation, we can directly adopt the same hyperparameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( i . e . ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "learning rate and weight decay) of SGDM and AdamW into SGDM BK and AdamW BK, respectively. To be specific, for R50 and R101 backbones, we compare the proposed optimizer with SGDM, WSGDM and AdamW. The learning rate and weight decay are set to"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                761,
+                472,
+                867
+            ]
+        },
+        {
+            "type": "index",
+            "content": {
+                "list_type": "text_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "0.02 and 0.0001 for SGDM, WSGDM and SGDM BK, and"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "0.0001 and 0.2 for AdamW and AdamW BK, respectively."
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                392,
+                893,
+                424
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For the Swin transformer backbone, the learning rate and weight decay are set to 0.0001 and 0.02 for AdamW and AdamW BK, respectively. The learning rate schedule is 1X for Faster-RCNN. Other configurations follow the settings of the official MMDetection toolbox<sup>8</sup>. For the default optimizers, we use their official results<sup>9</sup>. This experiment is conducted on NVIDIA GeForce RTX 3090 Ti GPUs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                425,
+                893,
+                531
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Table 4 lists the Average Precision (AP) of object detection by Faster-RCNN. It can be seen that the models trained by SGDM BK and AdamW BK achieve clear performance gains of 1.6% ∼ 2.2% AP for R50 and R101 backbones. Fig. 4 shows the training loss curves of Faster-RCNN with ResNet50 backbone. One can see that SGDM BK and AdamW BK accelerate the training process over SGDM and AdamW. Table 5 shows the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathsf { A P } ^ { \\bar { b } ^ { \\bar { \\mathbf { \\Lambda } } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "of detection and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathsf { A P } ^ { m }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "of segmentation by Mask-RCNN. We can see that SGDM BK and AdamW BK gain 1.5% ∼ 2.2% "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathsf { A P } ^ { b }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and 1.2% ∼ 2.2% AP<sup>m</sup> for R50 and R101 backbones over SGDM and AdamW, respectively. For Swin transformer backbone, AdamW BK also improves 0.7% ∼ 0.9% "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathsf { A P } ^ { b }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and 0.3% ∼ 0.9% "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { A P } ^ { m }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "over AdamW. Meanwhile, compared with WSGDM, the proposed SGDM BK also outperforms it with 0.2% ∼ 0.6% AP gain. Moreover, Fig. 5 plots the training loss curves of Faster-RCNN with ResNet50, Swin-T (1X) and Swin-S (3X). The proposed SGDM BK and AdamW BK accelerate the training process clearly. The results on COCO demonstrate that the proposed SGDM BK and AdamW BK can be easily adopted into the downstream tasks without additional hyper-parameter tuning."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                531,
+                895,
+                820
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>8</sup>https://github.com/open-mmlab/mmdetection"
+                    }
+                ]
+            },
+            "bbox": [
+                516,
+                835,
+                813,
+                848
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>7</sup>https://github.com/open-mmlab/mmclassification/tree/ master/configs/swin_transformer"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                877,
+                470,
+                900
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>9</sup>Please refer to https://github.com/open-mmlab/mmdetection/ tree / master / configs / faster _ rcnn, https : / / github . com / open-mmlab/mmdetection/tree/master/configs/mask_rcnn, and https://github.com/open- mmlab/mmdetection/tree/master/ configs/swin."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                847,
+                893,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7872"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/5f4671db98c738373b9c928639f252f82b9c74c0464fa640e8f49534bb1b4a5a.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Detection results of Faster-RCNN on COCO. ∆ means the gain of SGDM BK over SGDM or AdamW BK over AdamW. * indicates the default optimizer."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Backbone</td><td>Algorithm</td><td>AP</td><td>AP.5</td><td>AP.75</td><td>APs</td><td>APm</td><td>AP_l</td></tr><tr><td rowspan=\"6\">R50</td><td>SGDM*</td><td>37.4</td><td>58.1</td><td>40.4</td><td>21.2</td><td>41.0</td><td>48.1</td></tr><tr><td>WSGDM</td><td>39.4</td><td>60.6</td><td>43.1</td><td>23.1</td><td>42.9</td><td>50.7</td></tr><tr><td>SGDM.BK</td><td>39.6</td><td>60.7</td><td>42.8</td><td>22.6</td><td>42.9</td><td>52.2</td></tr><tr><td>∆</td><td>↑2.2</td><td>↑2.6</td><td>↑2.4</td><td>↑1.4</td><td>↑1.9</td><td>↑4.1</td></tr><tr><td>AdamW</td><td>37.8</td><td>58.7</td><td>41.0</td><td>22.1</td><td>41.2</td><td>49.2</td></tr><tr><td>AdamW_BK</td><td>39.4</td><td>60.3</td><td>42.9</td><td>22.5</td><td>42.8</td><td>52.3</td></tr><tr><td rowspan=\"6\"></td><td>△</td><td>↑1.6</td><td>↑1.6</td><td>↑1.9</td><td>↑0.4</td><td>↑1.6</td><td>↑3.1</td></tr><tr><td>SGDM*</td><td>39.4</td><td>60.1</td><td>43.1</td><td>22.4</td><td>43.7</td><td>51.1</td></tr><tr><td>WSGDM</td><td>41.1</td><td>61.6</td><td>45.1</td><td>24.0</td><td>45.2</td><td>54.3</td></tr><tr><td>SGDM.BK</td><td>41.6</td><td>62.3</td><td>45.3</td><td>24.9</td><td>45.6</td><td>55.2</td></tr><tr><td>△</td><td>↑2.2</td><td>↑2.2</td><td>↑2.2</td><td>↑2.5</td><td>↑1.9</td><td>↑4.1</td></tr><tr><td>AdamW</td><td>40.1</td><td>60.6</td><td>43.8</td><td>22.9</td><td>44.1</td><td>52.8</td></tr><tr><td></td><td>AdamW_BK</td><td>41.7</td><td>62.1</td><td>45.5</td><td>24.4</td><td>45.4</td><td>56.2</td></tr><tr><td></td><td>△</td><td>↑1.6</td><td>↑1.5</td><td>↑1.7</td><td>↑1.5</td><td>↑1.3</td><td>↑3.4</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                145,
+                486,
+                280
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/65fc2abda2c95d16056b211919e4af430d0cdc7345ebc4e511977c48b4bb4250.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Detection and segmentation results of Mask-RCNN on COCO. ∆ means the gain of SGDM BK over SGDM or AdamW BK over AdamW. * indicates the default optimizer."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Backbone</td><td>Lr schedule</td><td>Algorithm</td><td>Apb</td><td>AP_5</td><td>AP675</td><td>Apm</td><td>Ap m</td><td>AP 775</td></tr><tr><td rowspan=\"6\">R50</td><td rowspan=\"6\">1X</td><td>SGDM*</td><td>38.2</td><td>58.8</td><td>41.4</td><td>34.7</td><td>55.7</td><td>37.2</td></tr><tr><td>W-SGDM</td><td>39.8</td><td>60.8</td><td>43.4</td><td>36.4</td><td>57.6</td><td>38.9</td></tr><tr><td>SGDM.BK</td><td>40.4</td><td>61.3</td><td>43.9</td><td>36.9</td><td>58.3</td><td>39.6</td></tr><tr><td>∆</td><td>↑2.2</td><td>↑2.5</td><td>↑2.5</td><td>↑2.2</td><td>↑2.6</td><td>↑2.4</td></tr><tr><td>AdamW</td><td>37.8</td><td>58.7</td><td>41.0</td><td>35.4</td><td>56.2</td><td>38.0</td></tr><tr><td>AdamW_BK</td><td>40.0</td><td>60.6</td><td>43.5</td><td>36.7</td><td>58.0</td><td>39.3</td></tr><tr><td rowspan=\"7\">R100</td><td rowspan=\"7\">1X</td><td>∆</td><td>↑2.2</td><td>↑1.9</td><td>↑2.5</td><td>↑1.3</td><td>↑1.8</td><td>↑1.3</td></tr><tr><td>SGDM*</td><td>40.0</td><td>60.5</td><td>44.0</td><td>36.1</td><td>57.5</td><td>38.6</td></tr><tr><td>W-SGDM</td><td>41.7</td><td>62.5</td><td>45.5</td><td>37.9</td><td>59.4</td><td>40.8</td></tr><tr><td>SGDM_BK</td><td>42.2</td><td>62.9</td><td>46.1</td><td>38.1</td><td>60.0</td><td>40.7</td></tr><tr><td>∆</td><td>↑2.2</td><td>↑2.4</td><td>↑2.1</td><td>↑2.0</td><td>↑2.5</td><td>↑2.1</td></tr><tr><td>AdamW</td><td>40.7</td><td>61.1</td><td>44.6</td><td>37.2</td><td>58.4</td><td>40.1</td></tr><tr><td>AdamW_BK</td><td>42.2</td><td>62.5</td><td>46.0</td><td>38.4</td><td>59.9</td><td>41.2</td></tr><tr><td rowspan=\"3\">Swin-T</td><td rowspan=\"3\">1X</td><td>∆ AdamW*</td><td>↑1.5 42.7</td><td>↑1.4 65.2</td><td>↑1.4 46.8</td><td>↑1.2 39.3</td><td>↑1.5 62.2</td><td>↑1.1 42.2</td></tr><tr><td>AdamW_BK</td><td>43.6</td><td>65.9</td><td>47.8</td><td>40.2</td><td>63.1</td><td>43.1</td></tr><tr><td>Δ</td><td>↑0.9</td><td>↑0.7</td><td>↑1.0</td><td>↑0.9</td><td>↑0.9</td><td>↑0.9</td></tr><tr><td rowspan=\"3\">Swin-T</td><td rowspan=\"3\">3X</td><td>AdamW*</td><td>46.0</td><td>68.2</td><td>50.3</td><td>41.6</td><td>65.3</td><td>44.7</td></tr><tr><td>AdamW_BK</td><td>46.8</td><td>68.8</td><td>51.4</td><td>42.4</td><td>66.1</td><td>45.6</td></tr><tr><td>∆</td><td>↑0.8</td><td>↑0.6</td><td></td><td>↑0.8</td><td></td><td>↑0.9</td></tr><tr><td rowspan=\"3\">Swin-S</td><td rowspan=\"3\">3X</td><td>AdamW*</td><td>48.2</td><td>69.8</td><td>↑1.1 52.8</td><td>43.2</td><td>↑0.8 67.0</td><td>46.1</td></tr><tr><td>AdamW_BK</td><td>48.9</td><td>70.4</td><td>53.8</td><td>43.5</td><td>67.4</td><td>46.8</td></tr><tr><td>∆</td><td>↑0.7</td><td>↑0.6</td><td>↑1.0</td><td>↑0.3</td><td>↑0.4</td><td>↑0.7</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                349,
+                486,
+                530
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                575,
+                470,
+                637
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.3. Memory Usage and Training Time"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                643,
+                379,
+                660
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For full-matrix adaptive optimizers, one important concern is the training cost, including memory usage and training time. Here we compare the memory and time cost of our optimizers with SGDM [23], AdamW [22] and Adagrad [5] on CIFAR100. ResNet50 is used as the backbone and one GeForce RTX 2080Ti GPU is used. The results are reported in Table 6. One can see that the embedding of AdaBK slightly increases the memory usage and training time (10% ∼ 25% extra training time and memory usage). Compared to the improvement of performance, the extra cost is affordable and worthwhile."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                667,
+                472,
+                834
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                844,
+                197,
+                861
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This work presented a general regret bound for the constrained full-matrix preconditioned gradient methods for"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/77e4b741b97fe30ea5ecaad750bbebe84d76816e953ace9e9539a2addceb0077.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                495,
+                92,
+                691,
+                252
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/55fbbc3100ce83af61c61663c7128ea80be67b93765fef989f6b5c55d0118f79.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Training loss curves of ResNet50."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                692,
+                93,
+                887,
+                252
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/0592863c4bd5ae086e89816f4395f822e30389cdba3856a967db87c070d27f60.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Training loss curves of Mask-RCNN."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                491,
+                286,
+                861,
+                540
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/e88e9e691dcf945f5a3637e79dc492adbbd351b9df05c62f476bcb0e5d4cd952.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 6. Memory cost (MiB) and training time (h) of different optimizers with ResNet50."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Optimizer</td><td>SGDM</td><td>AdamW</td><td>Adagrad</td><td>SGDM_BK</td><td>AdamW_BK</td></tr><tr><td>Memory</td><td>5867</td><td>5883</td><td>5865</td><td>6525</td><td>6535</td></tr><tr><td>Time</td><td>3.42</td><td>3.48</td><td>3.46</td><td>4.14</td><td>4.20</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                504,
+                604,
+                887,
+                642
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "DNN optimization. Different from previous full-matrix preconditioned methods, where the parameter update formulas are designed heuristically, we proved that given a cone constraint on the full-matrix preconditioner, the corresponding parameter update formula can be obtained by optimizing a guide function. Based on our theoretical analysis, we derived a specific guide function with the layer-wise blockdiagonal constraint and Kronecker-factorized constraint. Through optimizing an upper bound of the guide function, a new preconditioned optimization algorithm, namely AdaBK, was obtained. We embedded AdaBK into two widely used optimizers, i.e., SGDM and AdamW, and the experimental results on image classification, object detection and segmentation tasks demonstrated that AdaBK can significantly improve the DNN optimization performance with only 10% ∼ 25% extra computation cost."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                659,
+                893,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7873"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Naman Agarwal, Brian Bullins, Xinyi Chen, Elad Hazan, Karan Singh, Cyril Zhang, and Yi Zhang. Efficient fullmatrix adaptive regularization. In International Conference on Machine Learning, pages 102–110. PMLR, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Richard L Burden, J Douglas Faires, and Annette M Burden. Numerical analysis. Cengage learning, 2015. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Jinghui Chen, Dongruo Zhou, Yiqi Tang, Ziyan Yang, Yuan Cao, and Quanquan Gu. Closing the generalization gap of adaptive gradient methods in training deep neural networks. arXiv preprint arXiv:1806.06763, 2018. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Kai Chen, Jiaqi Wang, Jiangmiao Pang, Yuhang Cao, Yu Xiong, Xiaoxiao Li, Shuyang Sun, Wansen Feng, Ziwei Liu, Jiarui Xu, et al. Mmdetection: Open mmlab detection toolbox and benchmark. arXivpreprint arXiv:1906.07155, 2019. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] John Duchi, Elad Hazan, and Yoram Singer. Adaptive subgradient methods for online learning and stochastic optimization. Journal ofmachine learning research, 12(7), 2011. 1, 2, 3, 6, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Thomas George, Cesar Laurent, Xavier Bouthillier, Nico-´ las Ballas, and Pascal Vincent. Fast approximate natural gradient descent in a kronecker-factored eigenbasis. arXiv preprint arXiv:1806.03884, 2018. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Roger Grosse and James Martens. A kronecker-factored approximate fisher matrix for convolution layers. In International Conference on Machine Learning, pages 573–582. PMLR, 2016. 1, 2, 3, 4, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Chun-Hua Guo and Nicholas J Higham. A schur–newton method for the matrix\\boldmath p th root and its inverse. SIAM Journal on Matrix Analysis and Applications, 28(3):788–804, 2006. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Vineet Gupta, Tomer Koren, and Yoram Singer. Shampoo: Preconditioned stochastic tensor optimization. In International Conference on Machine Learning, pages 1842–1850. PMLR, 2018. 1, 2, 3, 4, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Elad Hazan et al. Introduction to online convex optimization. Foundations and Trends® in Optimization, 2(3-4):157–325, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Kaiming He, Georgia Gkioxari, Piotr Dollar, and Ross Gir-´ shick. Mask r-cnn. In Proceedings ofthe IEEE international conference on computer vision, pages 2961–2969, 2017. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Gao Huang, Zhuang Liu, Laurens Van Der Maaten, and Kilian Q Weinberger. Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4700–4708, 2017. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Ahmet Iscen, Giorgos Tolias, Yannis Avrithis, and Ondrej Chum. Label propagation for deep semi-supervised learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5070–5079, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Alex Krizhevsky, Geoffrey Hinton, et al. Learning multiple layers of features from tiny images. 2009. 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollar, and C Lawrence´ Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014. 5, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao, and Jiawei Han. On the variance of the adaptive learning rate and beyond. arXiv preprint arXiv:1908.03265, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao, and Jiawei Han. On the variance of the adaptive learning rate and beyond. arXiv preprint arXiv:1908.03265, 2019. 1, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10012–10022, 2021. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Ilya Loshchilov and Frank Hutter. Sgdr: Stochastic gradient descent with warm restarts. arXiv preprint arXiv:1608.03983, 2016. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101, 2017. 1, 5, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Ning Qian. On the momentum term in gradient descent learning algorithms. Neural networks, 12(1):145–151, 1999. 1, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: Towards real-time object detection with region proposal networks. Advances in neural information processing systems, 28, 2015. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: Towards real-time object detection with region proposal networks. In Advances in neural information processing systems, pages 91–99, 2015. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Herbert Robbins and Sutton Monro. A stochastic approximation method. The annals of mathematical statistics, pages 400–407, 1951. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al. Imagenet large scale visual recognition challenge. International journal of computer vision, 115(3):211–252, 2015. 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Shai Shalev-Shwartz et al. Online learning and online convex optimization. Foundations and Trends® in Machine Learning, 4(2):107–194, 2012. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Karen Simonyan and Andrew Zisserman. Very deep convolutional networks for large-scale image recognition. arXiv preprint arXiv:1409.1556, 2014. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Tijmen Tieleman and Geoffrey Hinton. Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude. COURSERA: Neural Networksfor Machine Learning, 4:26–31, 2012. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Chengxi Ye, Matthew Evanusa, Hua He, Anton Mitrokhin, Tom Goldstein, James A Yorke, Cornelia Fermuller, and¨"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                468,
+                170
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7874"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Yiannis Aloimonos. Network deconvolution. arXiv preprint arXiv:1905.11926, 2019. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Hongwei Yong, Jianqiang Huang, Xiansheng Hua, and Lei Zhang. Gradient centralization: A new optimization technique for deep neural networks. In European Conference on Computer Vision, pages 635–652. Springer, 2020. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Hongwei Yong and Lei Zhang. An embedded feature whitening approach to deep neural network optimization. In the European Conference on Conputer Vision, 2022. 4, 5, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Jihun Yun, Aurelie C Lozano, and Eunho Yang. Stochastic gradient methods with block diagonal matrix adaptation. arXiv preprint arXiv:1905.10757, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Matthew D Zeiler. Adadelta: an adaptive learning rate method. arXiv preprint arXiv:1212.5701, 2012. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Huishuai Zhang, Wei Chen, and Tie-Yan Liu. Train feedfoward neural network with layer-wise adaptive rate via approximating back-matching propagation. arXiv preprint arXiv:1802.09750, 2018. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Michael R Zhang, James Lucas, Geoffrey Hinton, and Jimmy Ba. Lookahead optimizer: k steps forward, 1 step back. arXiv preprint arXiv:1907.08610, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Juntang Zhuang, Tommy Tang, Yifan Ding, Sekhar C Tatikonda, Nicha Dvornek, Xenophon Papademetris, and James Duncan. Adabelief optimizer: Adapting stepsizes by the belief in observed gradients. Advances in neural information processing systems, 33:18795–18806, 2020. 1, 6"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                111,
+                93,
+                468,
+                119
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7875"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ]
+]

@@ -1,0 +1,3527 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "PromptCAL: Contrastive Affinity Learning via Auxiliary Prompts for Generalized Novel Category Discovery"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                132,
+                128,
+                838,
+                175
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Sheng Zhang<sup>†\u0000</sup> Salman Khan<sup>†⋄</sup> Zhiqiang Shen<sup>†⋆</sup> Muzammal Naseer<sup>†</sup> Guangyi Chen<sup>†‡</sup> Fahad Shahbaz Khan<sup>†∗</sup>"
+                    }
+                ]
+            },
+            "bbox": [
+                181,
+                202,
+                787,
+                238
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>†</sup>Mohamed bin Zayed University of AI <sup>⋆</sup>Hong Kong University of Science and Technology <sup>⋄</sup>Australian National University <sup>∗</sup>Linkoping University¨ <sup>‡</sup>Carnegie Mellon University {firstname.lastname}@mbzuai.ac.ae"
+                    }
+                ]
+            },
+            "bbox": [
+                117,
+                238,
+                852,
+                292
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                325,
+                313,
+                343
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Although existing semi-supervised learning models achieve remarkable success in learning with unannotated in-distribution data, they mostly fail to learn on unlabeled data sampled from novel semantic classes due to their closed-set assumption. In this work, we target a pragmatic but under-explored Generalized Novel Category Discovery (GNCD) setting. The GNCD setting aims to categorize unlabeled training data coming from known and novel classes by leveraging the information ofpartially labeled known classes. We propose a two-stage Contrastive Affinity Learning method with auxiliary visual Prompts, dubbed PromptCAL, to address this challenging problem. Our approach discovers reliable pairwise sample affinities to learn better semantic clustering of both known and novel classes for the class token and visual prompts. First, we propose a discriminative prompt regularization loss to reinforce semantic discriminativeness of prompt-adapted pre-trained vision transformer for refined affinity relationships. Besides, we propose contrastive affinity learning to calibrate semantic representations based on our iterative semi-supervised affinity graph generation method for semantically-enhanced supervision. Extensive experimental evaluation demonstrates that our PromptCAL method is more effective in discovering novel classes even with limited annotations and surpasses the current state-of-the-art on generic and fine-grained benchmarks (e.g., with nearly 11% gain on CUB-200, and 9% on ImageNet-100) on overall accuracy. Our code is available at https://github. com/sheng-eatamath/PromptCAL."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                358,
+                472,
+                797
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                814,
+                209,
+                830
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The deep neural networks have demonstrated favorable performance in the Semi-Supervised Learning (SSL) setting [15,29,40,46,49]. Some recent works can even achieve comparable performance to their fully-supervised counterparts using few annotations for image recognition [3,38,46]. However, these approaches heavily rely on the closed-world assumption that unlabeled data share the same underlying class label space as the labeled data [10, 47]. In many realistic scenarios, this assumption does not hold true because of the inherent dynamism of real-world tasks where novel classes can emerge in addition to known classes."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                839,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/de98cd20b8c0397055991177db83a2fcb6caf124b3f52b8908790114dc9f8e88.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. PromptCAL Overview. In contrast to previous method based on semi-supervised contrastive learning, PromptCAL constructs affinity graph on-the-fly to guide representation learning of the class token and prompts. Meanwhile, our prompt-adapted backbone can be tuned to enhance semantic discriminativeness. PromptCAL can discover reliable affinities from a memory bank, especially for novel classes. Therefore, our PromptCAL is better task-aligned and discriminative to novel semantic information."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                509,
+                329,
+                885,
+                488
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                625,
+                893,
+                732
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In contrast to SSL, the Novel Category Discovery (NCD) problem was introduced by [12] to relax the closed-world assumption of SSL, which assumes the unlabeled data contain novel classes. Recently, the nascent Generalized Novel Category Discovery (GNCD) problem, first proposed in [4, 41], extends NCD and assumes the unlabeled data can contain both known and novel classes, which is more pragmatic and challenging. To be more specific, GNCD intends to categorize images sampled from predefined categories in the training set comprising labeled-knowns, unlabeledknowns, and unlabeled-novels."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                734,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                106,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                235,
+                0,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "13479"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                924,
+                516,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our work focuses on GNCD problem. The key challenge of GNCD is to discriminate among novel classes when only the ground truths of known classes are accessible in the training set. Recent studies show that self-supervised pretrained representations are conducive to discovering novel semantics [4, 5, 11, 41, 53]. A typical work on GNCD [41] takes advantage of the large-scale pre-trained visual transformer (ViT) [37], and learns robust clusters for known and novel classes through semi-supervised contrastive learning on downstream datasets. However, we discover that the remarkable potential of pre-trained ViT is actually suppressed by this practice, due to the class collision [52] issue induced by abundant false negatives in contrastive loss, i.e., considering different unlabeled images from the same or similar semantic class as false negatives. As supported by empirical studies, abundant false negatives in contrastive training can deteriorate the compactness and purity of semantic clustering [5, 16, 21, 52]. Based on empirical investigation, we show that this issue is particularly severe in category discovery. Furthermore, although the existing commonly adopted practice [4, 41] of freezing most parts of the pre-trained backbone can alleviate overfitting on known classes, it constrains the flexibility and adaptability of backbones [18]. Lack of adaptability inhibits models from learning discriminative semantic information on downstream datasets."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                469
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To address above limitations and learn better semantically discriminative representations, we propose Promptbased Contrastive Affinity Learning (PromptCAL) framework to tackle GNCD problem. To be specific, our approach aims to discover semantic clusters in unlabeled data by simultaneous semantic prompt learning based on our Discriminative Prompt Regularization (DPR) loss and representation calibration based on our Contrastive Affinity Learning (CAL) process. Firstly, CAL discovers abundant reliable pseudo positives for DPR loss and contrastive loss based on generated affinity graphs. These semantic-aware pseudo labels further enhance the semantic discriminativeness of DPR supervision. Secondly, DPR regularizes semantic representations of ensembled prompts, which facilitates the discovery of more accurate pseudo labels at the next-step of CAL. Therefore, as model and prompt representations are iteratively enhanced, we can obtain higher quality pseudo positives for further self-training as well as acquire better semantic clustering."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                473,
+                472,
+                762
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our PromptCAL achieves State-Of-The-Art (SOTA) performance in extensive experimental evaluation on six benchmarks. Specifically, PromptCAL remarkably surpasses previous SOTA by more than 10% clustering accuracy on the fine-grained CUB-200 and StandfordCars datasets; it also significantly outperforms previous SoTAs by nearly 4% on ImageNet-100 and 7% on CIFAR-100. Interestingly, we identify that both DPR supervised prompts and unsupervised prompts of PromptCAL can learn semantic discriminativeness, which advances the flexibility of the pre-trained backbone. Furthermore, PromptCAL still achieves the best performance in challenging low-labeling and few-class setups."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                763,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our contributions include: (1) We propose a two-stage framework for the generalized novel category discovery problem, in which semantic prompt tuning and contrastive affinity learning mutually reinforce and benefit each other during the learning process. (2) We propose two synergistic learning objectives, contrastive affinity loss and discriminative prompt regularization loss, based on our semi-supervised adapted affinity graphs to enhance semantic discriminativeness. (3) We comprehensively evaluate our method on three generic (i.e., CIFAR-10, CIFAR-100, and ImageNet-100) and three fine-grained benchmarks (i.e., CUB-200, Aircraft, and StandfordCars), achieving state-ofthe-art performance, thereby showing its effectiveness. (4) We further showcase generalization ability of PromptCAL and its effectiveness in more challenging low-labeling and few-class setups."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                151,
+                895,
+                395
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                406,
+                643,
+                424
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Category discovery. Novel Category Discovery (NCD), first formulated by DTC [12], aims to categorize the unlabeled novel classes by transferring the knowledge from labeled known classes [9, 11, 12, 45, 51, 53, 54]. The challenging NCD differs from SSL [40] in that the unlabeled data are sampled from distinct underlying semantic distribution. DTC [12] proposes to jointly warm up network weights and cluster prototypes based on DEC [45] method on unlabeled data, and then fit an annealing sharpened distribution. RankStats [11] and RS+ [51] propose to utilize ranking statistics to generate pseudo positives among unlabeled novel classes. OpenMix [54] transfers semantic knowledge by MixUp augmentation [50] between known and novel classes as well as between reliable novel anchors and other novel examples. NCL [53] proposes a neighborhood contrastive loss and a hard-negative generation process by mixing [50] novel and known classes. UNO [9] first formulates the NCD problem into classification based on dynamic class assignments by Sinkhorn-Knopp algorithm [23]. WTA [19] addresses multi-modal novel category discovery by inter- and intra-modal contrastive learning with permutation-ensembled ranking statistics as the pseudo-labeling method."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                433,
+                895,
+                780
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Generalized Novel Category Discovery (GNCD) problem, first proposed in [41], further extends NCD under a more realistic assumption that unlabeled data can be both sampled from novel classes and known classes. Specifically, the model learns to categorize unlabeled training data containing known and novel classes based on the knowledge of labeled known classes. Besides, a concurrent work, ORCA [4] proposes an uncertainty adaptive margin loss to reduce the intra-class variances between known and novel classes. GCD [41] addresses this challenging problem via proposed semi-supervised contrastive learning on largescale pre-trained visual transformer (ViT) followed by constraint KMeans [1, 2]. However, GCD still has limitations: first, the frozen backbone lacks the adaptability to downstream tasks; besides, abundant false negatives will degenerate the semantic representation [7,16,21,52]. To fully unleash the potential of pre-trained ViT, we address these two critical issues via our proposed prompt-based contrastive affinity learning."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                780,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "23480"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                924,
+                516,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                257
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Positive Mining in Neighborhoods. Some recent works in self-supervised learning discovered that mining positives to antagonize the side effect of abundant false negatives in the sample-wise contrastive loss is essential to the downstream performance [8, 16, 21, 35, 52]. FNC [16] comprehensively analyzes the adverse effect of false-negatives on contrastive learning SoTAs and performs positive mining based on ensembled similarities on local patch pairs. LA [55] proposes to learn better representation through soft clusters in neighborhoods at different scales. NNCLR [8], NCL [53], and WCL [52] conduct positive mining based on K-Nearest Neighbors (KNN) as pseudo positives to improve contrastive learning. We find one work in SSL [17] also leverages a graph diffusion algorithm to propagate pseudo labels. But there exist major differences between their work and ours: first, features in our context are prone to openset noises [10] and thus more challenging than SSL; second, we conduct an efficient online diffusion per iteration via a graph subsampling strategy, while they conduct diffusion per epoch on the entire dataset; third, we compute affinity propagation on consensus affinity graph with prior knowledge, while they conduct propagation on naive KNN graph. Our framework incorporates and generalizes consensus KNN [34], which was originally built upon nonlearnable SIFT [31] features of synthetic datasets, while our method exploits deep features and can guide end-to-end training, which suits the GNCD context."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                257,
+                472,
+                665
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Visual prompt learning. Prompt learning originates from the field of Natural Language Processing (NLP) [30]. Visual prompt learning (VPT) [18] tunes embedded visual prompts with a frozen pre-trained ViT backbone supervised by downstream objectives, which achieves better transfer. However, based on our experimental analysis, VPT [18] does not exhibit significant benefits especially on finegrained datasets. Our objective acts as prompt regularization or a weaker semantic supervision signal, which is distinct from the learning goals of prompt ensembling [20, 36] and prompt composition [13] in NLP [30]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                665,
+                470,
+                833
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Method"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                844,
+                169,
+                861
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The challenging aspect of GNCD in comparison to SSL is clustering novel semantics under both semantic shifts and missing annotations [40, 47]. However, existing methods [11, 41, 51, 53] cannot reliably discover and employ semantic affinities on pre-trained representations. Meanwhile, recent SoTAs [4,41] lack suitable strategies to adapt the pretrained backbone to learn discriminative semantic information without overfitting on known classes."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                181
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To this end, we propose PromptCAL, which consists of two synergistic learning objectives: discriminative prompt regularization (DPR) and contrastive affinity learning (CAL). The whole framework is displayed in Fig. 2. Specifically, in the first stage, we learn warm-up representation (in Sec. 3.2) for further tuning. Our DPR loss which is applied to both stages for prompt regularization is also explained. In the second stage, we discover reliable pseudo positives on generated affinity embedding graphs based on semi-supervised affinity generation (SemiAG) mechanism (in Sec. 3.3). Next, we propose our contrastive affinity loss (in Sec. 3.4) on pseudo labels generated by online SemiAG with the support of embedding memories. Lastly, we also present PromptCAL training algorithm in Appendix E."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                181,
+                895,
+                395
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Preliminaries"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                401,
+                642,
+                416
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Before introducing our method, we formulate the GNCD problem and present some preliminaries."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                422,
+                892,
+                454
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Problem Definition. Our GNCD setting follows [41]. Specifically, we assume that the training dataset "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r l } { \\mathcal { D } } & { { } = } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { l } \\bigcup \\mathcal { D } _ { u }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "comprises two subsets: a labeled set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r l } { \\mathcal { D } _ { l } } & { { } = } \\end{array}"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\pmb { x } _ { i } , \\mathbf { \\bar { y } } _ { i } \\} _ { i = 1 } ^ { N _ { 1 } } \\subset \\mathcal { X } _ { l } \\times \\mathcal { Y } _ { l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with its label space "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { l } = \\mathcal { C } _ { k w n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and an unlabeled set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { u } = \\{ \\pmb { x } _ { i } \\} _ { i = 1 } ^ { N _ { 2 } } \\subset \\mathcal { X } _ { u }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with its underlying label space "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\mathcal { Y } _ { u } = \\mathcal { C } = \\mathcal { C } _ { k w n } \\bigcup \\mathcal { C } _ { n e w } . } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Here, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { C } } , { \\mathcal { C } } _ { k w n }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { C } _ { n e w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denote the label set for All, Known, and New classes, respectively. Following [41], we assume |C| is known."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                454,
+                892,
+                575
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Architecture. We take a self-supervised pre-trained ViT as our backbone [37]. We denote our visual prompt-adapted ViT backbone [18] as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f ( \\cdot | \\theta , \\theta _ { \\mathrm { P } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "parameterized by prompts "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta _ { \\mathrm { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and last block weights θ. In each mini-batch "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "B ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "there are two augmented views for each sample. Given a sample vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } \\in B ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we can extract its embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\mathbf { h } = f ( \\mathbf { x } | \\theta , \\theta _ { \\mathrm { P } } ) \\in } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "H and project h into feature vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } ~ = ~ g ( \\mathbf { h } | \\theta _ { \\mathrm { H } } ) ~ \\in ~ \\mathcal { Z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "through a projection head "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g ( \\cdot | \\theta _ { \\mathrm { H } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta _ { \\mathrm { H } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Here, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { H } , \\mathcal { Z }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denote embedding and feature spaces."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                577,
+                893,
+                713
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Contrastive Loss. To simplify notations of PromptCAL, we extend the definition of the standard supervised contrastive loss [22] as follows. Given a "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "l _ { 2 } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "-normalized query vector "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { t } _ { q }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and a set of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "l _ { 2 ^ { - } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "-noramlized key vectors "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(which can be from the embedding or feature space), we define:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                712,
+                893,
+                789
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } & { L _ { \\mathrm { c o n } } ( \\mathbf { t } _ { q } , \\mathbf { T } _ { k } ; \\tau , \\mathcal { P } , \\mathcal { A } ) } \\\\ & { = - \\frac { 1 } { | \\mathcal { P } ( \\mathbf { t } _ { q } ) | } \\displaystyle \\sum _ { \\mathbf { t } _ { k } ^ { + } \\in \\mathcal { P } ( \\mathbf { t } _ { q } ) } \\frac { \\exp ( \\frac { \\mathbf { t } _ { q } \\cdot \\mathbf { t } _ { k } ^ { + } } { \\tau } ) } { \\sum _ { \\mathbf { t _ { a } \\in \\mathcal { A } ( t _ { q } ) } } \\exp ( \\frac { \\mathbf { t } _ { q } \\cdot \\mathbf { t _ { a } } } { \\tau } ) } } \\end{array}\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/c0d8659b4204a21f43e3c231ef5562f236bd3525401645e5eab8b11caabd90eb.jpg"
+                }
+            },
+            "bbox": [
+                544,
+                795,
+                848,
+                863
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where τ is the temperature parameter of the contrastive loss, and · denotes the cosine similarity operation. Here, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\mathbf { t } _ { q } )"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                869,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "33481"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                514,
+                939
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/782fa3450c9ca9fe4fee363aa90ee99e3812c3c2cea9d1eb3b6d2991664a4967.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Overview of our PromptCAL framework. Our prompt-adapted backbone outputs a class embedding and ensembled prompt embedding. (a) In warm-up training, we conduct semi-supervised contrastive clustering (Semi-sup. Contrastive Loss) on the projected features of the class token and ensembled prompt, respectively. (b) In contrastive affinity learning stage, at each iteration, we forward the student and EMA (exponentially moving averaged) teacher with different augmented views of images. Output teacher embeddings are enqueued into their corresponding token-specific memory. We iteratively compute semi-supervised contrastive loss on the current batch and our contrastive affinity loss for student embeddings and memory embeddings with pseudo-labels from the dynamically generated affinity graph by SemiAG. (c) We generate affinity graphs for the class embedding and prompt embedding respectively via affinity propagation with label constraints on their corresponding consensus KNN graphs."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                83,
+                90,
+                900,
+                277
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { A } ( \\mathbf { t } _ { q } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represent the positive set and anchor set of the query "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { t } _ { q } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "respectively, which are subsets of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { k }"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                409,
+                470,
+                440
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Warm-up Phase with Discriminative Prompt Regularization"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                450,
+                468,
+                482
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Discriminative Prompt Regularization. Although computation overheads are largely reduced by only tuning the last block [41], it restricts the backbone from better learning semantic representations and adapting to diverse downstream datasets. Counterintuitively, we discover that naively adapting backbone with visual prompts [18] overfits small datasets (refer to ablations on CUB-200 [42] in Sec. 4.5)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                489,
+                470,
+                611
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Motivated by [27, 43], we propose a discriminative prompt regularization loss to regularize and force prompts to learn semantically discriminative features with a taskrelated auxiliary loss. We investigate the superiority of DPR supervision on our prompt-adapted backbone in ablation study (Sec. 4.5) and Appendix D."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                612,
+                470,
+                703
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We assign input prompts at the last ViT block as [P] tokens (short for prompt), the output of which are ensembled and supervised by a task-related clustering loss in both training stages. All the remaining prompts are unsupervisedly learned, which provides the backbone with extra flexibility. Concretely, we average the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "l _ { 2 } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "-normalized output embeddings of all [P] tokens into an ensembled embedding h<sub>P</sub> (the same shape as the class embedding), and forward it to the projection head and obtain "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } _ { \\mathrm { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Finally, we define the DPR task-related loss function on "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bf { h } _ { \\mathrm { P } } / \\bf { z } _ { \\mathrm { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the same form of the loss defined on h/z but with a weaker weight "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                703,
+                470,
+                869
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Warm-up Training. Since randomly initialized prompts are not ready for contrastive affinity learning, we include warm-up training to prepare the class token and prompts with dataset-specific representation. The overall training objective in this stage is formulated as:"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                409,
+                893,
+                454
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "L _ { 1 } ( { \\bf x } ) = L _ { \\mathrm { s e m i } } ^ { \\mathrm { C L S } } ( \\mathbf { z } ) + \\gamma L _ { \\mathrm { s e m i } } ^ { \\mathrm { P } } ( \\mathbf { z } _ { \\mathrm { P } } )\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/3cbbb1c64c2b0fc59e541b18a6ba65fa229f174da0da4f64c12e2501505a6bff.jpg"
+                }
+            },
+            "bbox": [
+                589,
+                467,
+                802,
+                484
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathrm { { s e m i } } } ^ { \\mathrm { { C L S } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathrm { { s e m i } } } ^ { \\mathrm { { P } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represent the semi-supervised contrastive loss (SemiCL) on [CLS] and its DPR counterpart on [P], respectively. Here, γ is DPR loss weight. Further, based on extended contrastive loss (Eq. 1), the SemiCL on [CLS] feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } \\in \\mathbf { Z } _ { B }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is written as:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                497,
+                893,
+                574
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } & { L _ { \\mathrm { s e m i } } ^ { \\mathrm { C L S } } ( \\mathbf { z } ) = ( 1 - \\alpha ) L _ { \\mathrm { c o n } } \\bigg ( \\mathbf { z } , \\mathbf { Z } _ { B } ; \\tau , \\mathcal { P } _ { \\mathrm { s e l f } } , \\mathcal { A } _ { \\mathrm { s e l f } } \\bigg ) } \\\\ & { ~ + \\alpha L _ { \\mathrm { c o n } } \\bigg ( \\mathbf { z } , \\mathbf { Z } _ { B _ { l } } ; \\tau _ { a } , \\mathcal { P } _ { \\mathrm { s u p } } , \\mathcal { A } _ { \\mathrm { s u p } } \\bigg ) \\mathbb { I } \\bigg ( \\mathbf { z } \\in \\mathbf { Z } _ { \\mathcal { B } _ { l } } \\bigg ) } \\end{array}\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/4847eb5f66a1132d481244aa9e738b2969cc30c5a5290320727f45d3e3f63062.jpg"
+                }
+            },
+            "bbox": [
+                509,
+                587,
+                861,
+                638
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau , \\tau _ { a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are temperature parameters, and I is an indicator function. The first and second terms denote self-supervised and supervised contrastive loss on projected features of an entire batch "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Z } _ { B }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and only labeled samples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Z } _ { B _ { 1 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", respectively. Following [14, 22], we define "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { \\mathrm { s e l f } } ( \\mathbf { z } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the augmented counterpart of z in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Z } _ { B }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and define "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { \\mathrm { s u p } } ( \\mathbf { z } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as all other features in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Z } _ { B _ { 1 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "that shares the same class label with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Besides, we have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { A } _ { \\mathrm { s u p } } ( \\mathbf { z } ) = \\mathbf { Z } _ { B _ { 1 } } - \\{ \\mathbf { z } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { A } _ { \\mathrm { s e l f } } ( \\mathbf { z } ) = \\mathbf { Z } _ { B } - \\{ \\mathbf { z } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Similar to Eq. 3, we can define the DPR loss function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathrm { s e m i } } ^ { \\mathrm { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on ensembled prompt feature "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } _ { \\mathrm { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the overall loss (Eq. 2)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                651,
+                893,
+                804
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Semi-supervised Affinity Generation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                815,
+                816,
+                832
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Once the warmed-up semantic representation for the class token and prompts are obtained, abundant positive samples can be discovered by reliable pseudo-labeling methods for enhanced clustering and supervision signals at next iteration. However, pseudo-labeling techniques in recent works (e.g., naive nearest neighbors, pair-wise predictions as positives [4, 9, 11, 21, 53]) are not robust enough to semantic shifts [33]. To address this issue, we propose a semi-supervised affinity generation method under the assumption that consensus local neighbors share the same semantics. Specifically, we first construct an consensus affinity graph in H based on neighborhood statistics [34]. Then, we conduct affinity propagation on the entire graph to calibrate affinities. Lastly, we incorporate the semi-supervised priori from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into the graph. We explain these steps below. An illustrative example is presented in Fig. 3. The workflow of SemiAG operations is presented in Fig. 2 (c)."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                840,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "43482"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                924,
+                516,
+                936
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f77063a197323b67681ddbca013de06fc57b838aa921cca352a536d58a89ad5b.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. An intuitive toy example for SemiAG, which sequentially requires three operations. The relative pairwise distances are proportional to cosine distances in the embedding space. Each of the four graphs denotes results obtained at each step after binarization with thresholds. Each operation can either remove false positives or retrieve ground-truth positives for the query embedding (dark green). Firstly, only reliable neighbors are retrieved as positives based on consensus information; secondly, more positives are retrieved by affinity propagation on the entire graph; and thirdly, pairwise constraints in label information of labeled data (SemiPriori) are incorporated for affinity calibration."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                127,
+                92,
+                836,
+                198
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                299,
+                470,
+                494
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Consensus KNN graph. Given an embedding graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { \\mathcal { H } } = ( \\mathcal { V } , \\mathcal { E } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "whose node set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { V } = \\{ { \\bf h } _ { i } \\} _ { i = 1 } ^ { N _ { G } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "contains "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N _ { G }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "embeddings and edge set is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { E } = \\{ e _ { i , j } = \\mathbf { h } _ { i } \\cdot \\mathbf { h } _ { j } \\} _ { i , j = 1 } ^ { N _ { G } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we build a consensus graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { c } = ( g _ { i , j } ) _ { i , j = 1 } ^ { N _ { G } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on V via consensus statistics. Each edge "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g _ { i , j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is defined as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                496,
+                468,
+                577
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "g _ { i , j } = \\left\\{ \\begin{array} { l l } { | \\{ \\mathbf { h } _ { c } | \\mathbf { h } _ { i } , \\mathbf { h } _ { j } \\in \\mathcal { O } _ { K } ( \\mathbf { h } _ { c } ) ) , \\forall \\mathbf { h } _ { c } \\in \\mathcal { V } \\} | } & { \\ i \\neq j } \\\\ { 0 } & { \\ i = j , } \\end{array} \\right.\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/f9c732f125c138651c907d3c16f50a10f1be8745e0ee0fd068343f62cc690332.jpg"
+                }
+            },
+            "bbox": [
+                84,
+                585,
+                441,
+                625
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { O } } _ { K } ( \\mathbf { h } _ { c } ) = \\operatorname { a r g t o p K } _ { \\mathbf { h } _ { i } } ( \\{ \\mathbf { h } _ { j } \\cdot \\mathbf { h } _ { c } | \\mathbf { h } _ { j } \\in \\mathcal { V } \\} )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denotes the K-neighborhood of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { h } _ { c } \\in \\mathcal { V }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Then, we convert it into "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by row normalization. However, consensus graph has a defect: the neighborhood consensus condition is rigorous and only considers local information, which means abundant potential positives are still unretrieved."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                633,
+                470,
+                724
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Affinity propagation with SemiPriori. To overcome this issue, we leverage the graph diffusion algorithm [48] on the probabilistic matrix "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to propagate local affinities along multi-hop paths to characterize higher-order structural information and avoid degenerated solutions. Specifically, we apply TPG diffusion algorithm [48], which iteratively computes the diffused graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                724,
+                470,
+                832
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\tilde { \\mathbf { G } } _ { d } ^ { ( t + 1 ) } = \\tilde { \\mathbf { G } } _ { c } \\tilde { \\mathbf { G } } _ { d } ^ { ( t ) } \\tilde { \\mathbf { G } } _ { c } ^ { T } + \\mathbf { I } , t = 1 , . . . , \\eta\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/b1b164840a9fa011e8f87e4684fb440d5239e02e5959ed5e85d8af0851048f2b.jpg"
+                }
+            },
+            "bbox": [
+                142,
+                838,
+                405,
+                859
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where I is an identity matrix, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\eta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the total diffusion step. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d } ^ { ( t ) }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denotes the t-th step diffused graph and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d } ^ { ( 0 ) } = \\tilde { \\mathbf { G } } _ { c }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We denote the final diffused graph as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "In Appendix A, we provide more detailed descriptions."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                867,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                296,
+                890,
+                330
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, the consensus graph and affinity propagation neglect abundant prior information in the labeled data. To address the issue, we incorporate SemiPriori, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i . e . ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "add sample-wise class labels as pairwise constraints to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We set the edge to 1 if two nodes have the same labels "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( i . e . ,"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "y _ { i } = y _ { j } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and prune the edge if "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "y _ { i } \\neq y _ { j }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Meanwhile, we sparsify "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { G } } _ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with a pre-defined quantile q, then the generated binarized affinity graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { b }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is denoted as:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                330,
+                893,
+                453
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { G } _ { b } ( i , j ) = \\left\\{ \\begin{array} { l l } { 1 } & { ( y _ { i } = y _ { j } ) \\lor \\left( \\tilde { \\mathbf { G } } _ { d } ( i , j ) > q \\right) } \\\\ { 0 } & { ( y _ { i } \\neq y _ { j } ) } \\end{array} \\right.\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/24ada4b0eeb83310d7e93d81923de7f8758dd13bc2287a302b98ec27c11992f8.jpg"
+                }
+            },
+            "bbox": [
+                540,
+                463,
+                846,
+                511
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "On binarized affinity graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { b }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", positive/negative pairs are regarded as reliable pseudo positives/negatives in noisy embedding space for further contrastive affinity learning (in Sec. 3.4). Therefore, pseudo-labels of both labeled and unlabeled data are computed; while, those of labeled data are calibrated by SemiPriori. Note that we compute two binarized graphs for [CLS] and [P] embeddings, respectively."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                521,
+                893,
+                628
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Contrastive Affinity Learning Phase"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                635,
+                813,
+                651
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, given reliable pseudo positives identified from an embedding graph, we introduce two critical components for the second phase learning: online graph sampling strategy and our proposed CAL loss. The overall framework of contrastive affinity learning is illustrated in Fig. 2 (b). Graph sampling with memory. One practical issue arises (in Sec. 3.3): SemiAG on mini-batches is not effective due to sampling insufficiency; while conducting SemiAG offline on the entire dataset is time-consuming and memory inefficiency [17]. To strike a balance between the graph size and computation resources, inspired by [28], we dynamically construct a sub-graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { \\mathcal { H } } ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sub-sampled from the entire graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { \\mathcal { H } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "supported by an extra embedding memory bank M and an exponentially moving averaged (EMA) teacher "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( f _ { \\mathrm { T } } , g _ { \\mathrm { T } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", like MoCo [14]. Specifically, for each input batch, the EMA teacher produces stable embeddings, which are enqueued to the fixed-size first-in-first-out memory. The sub-graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { \\mathcal { H } } ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is then constructed by the embeddings in the memory and teacher embeddings in the current batch. We denote its node set as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { V } ( \\mathbf { G } _ { \\mathcal { H } } ^ { \\prime } ) = \\mathcal { M } \\bigcup \\{ \\mathbf { h } _ { \\mathrm { T } } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { T } } ( \\mathbf { x } ) | \\mathbf { x } \\in B \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In this way, we can apply the same SemiAG operation (in Sec. 3.3) to the sub-graph on the fly with adjustable memory sizes. Note that we maintain another memory for SemiAG on prompts, since we retain DPR loss in contrastive affinity learning phase."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                659,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "53483"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                227
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Contrastive affinity loss. The target of CAL loss is to gradually calibrate the semantic representation by learning from generated affinity constraints in graphs. Given the sub-graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { \\mathcal { H } } ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and its corresponding binarized graph "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G } _ { b } ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by SemiAG (in Sec. 3.3), we formulate CAL loss with [CLS] embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { h } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as a query, embeddings in sub-graph node set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\nu ( \\mathbf { G } _ { \\mathcal { H } } ^ { \\prime } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as keys:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                227,
+                470,
+                334
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "L _ { \\mathrm { C A L } } ^ { \\mathrm { C L S } } ( \\mathbf { h } _ { i } , \\mathbf { G } _ { b } ^ { \\prime } ) = L _ { \\mathrm { c o n } } ( \\mathbf { h } _ { i } , \\mathcal { V } ( \\mathbf { G } _ { \\mathcal { H } } ^ { \\prime } ) , \\tau _ { a } , \\mathcal { P } _ { a } , \\mathcal { A } _ { a } )\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1c8fe9ef627303e22a973591362e6f28b4514cab24d3ef5886f5111b67ace230.jpg"
+                }
+            },
+            "bbox": [
+                119,
+                340,
+                428,
+                358
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau _ { a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a hyper-parameter, and the positive set is defined as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { a } ( { \\bf h } _ { i } ) = \\{ { \\bf h } _ { \\mathrm { T } , j } | \\mathbf { G } _ { b } ^ { \\prime } ( i , j ) = 1 , \\forall { \\bf h } _ { \\mathrm { T } , j \\neq i } \\in \\mathcal { V } ( \\mathbf { G } _ { \\mathcal { H } } ^ { \\prime } ) \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "∪ "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\mathbf { h } _ { \\mathrm { T } , i } ^ { \\prime } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf h } _ { \\mathrm { T } , i } ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is h<sub>i</sub> augmented counterpart. Note that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { a }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is always non-empty. Since the whole "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { V } ( \\mathbf { G } _ { b } ^ { \\prime } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is too large, we define the anchor set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\mathcal { A } } _ { a } ( \\mathbf { h } _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the union of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { a } ( \\mathbf { h } _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "N _ { \\mathrm { n e g } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "randomly sampled pseudo-negatives for each query. For "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bar { L } _ { \\mathrm { C A L } } ^ { \\mathrm { C L S } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "loss, we also define its corresponding DPR counterpart of CAL loss as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathrm { C A L } } ^ { \\mathrm { P } }"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                367,
+                470,
+                486
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Overall optimization objective. At CAL stage, we also preserve SemiCL loss in feature space to retain the model capability of instance-wise discrimination. To further increase the consistency between the teacher and student, we adapt supervised and self-supervised term of SemiCL "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathrm { E q . } 3 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                487,
+                470,
+                577
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } & { L _ { \\mathrm { s e l f } } ^ { \\mathrm { C L S } } ( \\mathbf { z } ) = L _ { \\mathrm { c o n } } \\Big ( \\mathbf { z } , \\mathbf { Z } _ { \\boldsymbol { B } , T } ; \\tau , \\mathcal { P } _ { \\mathrm { s e l f } } , \\mathcal { A } _ { \\mathrm { s e l f } } \\Big ) } \\\\ & { L _ { \\mathrm { s u p } } ^ { \\mathrm { C L S } } ( \\mathbf { z } ) = L _ { \\mathrm { c o n } } \\Big ( \\mathbf { z } , \\mathbf { Z } _ { \\boldsymbol { B } _ { l } , T } ; \\tau _ { a } , \\mathcal { P } _ { \\mathrm { s u p } } , \\mathcal { A } _ { \\mathrm { s u p } } \\Big ) \\mathbb { I } \\Big ( \\mathbf { z } \\in \\mathbf { Z } _ { \\boldsymbol { B } _ { l } } \\Big ) } \\end{array}\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/be21e67f0d8ec7fe5f75c5044e820a9610dc938801d29444c24c2e79cc000323.jpg"
+                }
+            },
+            "bbox": [
+                93,
+                584,
+                450,
+                640
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Here, we use student feature z as a query and teacher features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Z } _ { B , T } , \\mathbf { Z } _ { B _ { l } , T }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as keys to strengthen consistencies. The positive and anchor sets follow the same definition as in Eq. (3) but are defined in the teacher feature space."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                651,
+                470,
+                710
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Then, the overall loss for [CLS] token at CAL stage is formulated as:"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                710,
+                468,
+                741
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "L _ { 2 } ^ { \\mathrm { C L S } } = ( 1 - \\alpha ) L _ { \\mathrm { s u p } } ^ { \\mathrm { C L S } } + \\alpha \\Big ( \\beta L _ { \\mathrm { C A L } } ^ { \\mathrm { C L S } } + ( 1 - \\beta ) L _ { \\mathrm { s e l f } } ^ { \\mathrm { C L S } } \\Big )\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9faff50f3f7e8988f7e2e5c214fab3dad478a014c1cd1a4897c7fd3efdf50adf.jpg"
+                }
+            },
+            "bbox": [
+                91,
+                746,
+                433,
+                768
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\beta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is an adjustable weight. Its corresponding DPR counterpart can be similarly defined, denoted as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { 2 } ^ { \\mathrm { P } }"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                776,
+                468,
+                808
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Finally, since we also adopt DPR at CAL stage, the overall optimization objective is formulated as:"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                808,
+                468,
+                838
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "L _ { 2 } = L _ { 2 } ^ { \\mathrm { C L S } } + \\gamma L _ { 2 } ^ { \\mathrm { P } }\\tag{10}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/fb80d41f95cc882bb65a1a3b91c88546624041f3d01ef2093a239afa6cf9f3d1.jpg"
+                }
+            },
+            "bbox": [
+                209,
+                843,
+                338,
+                863
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "During the inference, the [CLS] embeddings are adopted as final predictions."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                869,
+                470,
+                900
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                89,
+                632,
+                107
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Datasets"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                114,
+                602,
+                131
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We evaluate PromptCAL on three generic datasets (i.e., CIFAR-10/100 [25] and ImageNet-100 [26]) and three finegrained datasets (i.e., CUB-200 [42], StandfordCars [24], and Aircraft [32]). A summary of datasets is listed in Appendix B. For each dataset, we first subsample "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "| \\mathcal { C } _ { k w n } |"
+                    },
+                    {
+                        "type": "text",
+                        "content": "known classes from all classes. Then, a pre-defined ratio of images for known classes are sampled to form the labeled set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { l } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Follow GCD [41], we set labeling ratio to 80% for CIFAR-100 and 50% for other datasets unless otherwise specified. All unsampled images constitute "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { u } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In practice, we adopt the same dataset split of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { l }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D } _ { u }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as in [41]. (See Table 6 in Appendix B for more details on known class numbers and labeling ratios for all dataset). Besides, we adopt fewer "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "| \\mathcal { C } _ { k w n } |"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and smaller labeling ratios in more challenging setups for ablation study (Sec. 5)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                140,
+                893,
+                367
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Evaluation Protocol"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                378,
+                691,
+                395
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We follow GCD [41] evaluation protocol in all experiments unless otherwise specified. Specifically, we perform SemiKMeans clustering [41] on the predicted embeddings. Then, all clusters are mapped through the optimal assignment solved by Hungarian algorithm [44] to their groundtruth classes. The accuracy scores for All, Known, and New classes are reported. The predicted embeddings from the student class token are evaluated during inference."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                404,
+                893,
+                525
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Implementation Details"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                536,
+                718,
+                553
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Following GCD [41], we use ViT-B/16 pre-trained DINO [6] on ImageNet-1K [26] as our backbone for evaluation. For all experiments, we fix the batch size to 128 and use the same data augmentation strategies as [41]. We present complete implementation details in Appendix C."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                560,
+                893,
+                638
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.4. Main Results"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                650,
+                640,
+                665
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Evaluation on generic datasets. We evaluate both stages of PromptCAL on three generic datasets (i.e., CIFAR-10/100 [25], and ImageNet-100 [26]). Table 1 shows that our PromptCAL consistently and significantly surpasses previous SoTAs, i.e., ViT-adapted ORCA [4], our baseline GCD [41], and adapted NCD SOTA methods (UNO+ [9] and RankStats+ [11]) in terms of overall accuracy on all three datasets. Specifically, PromptCAL surpasses GCD by 6.4% on CIFAR-10, 8.2% on CIFAR-100, and 9.0% ImageNet-100 on All classes; it also remarkably outperforms ORCA by 7% on CIFAR-100 and 3.9% on ImageNet-100. Besides, in contrast to ORCA and UNO+ which suffer from severe overfitting on Known classes, PromptCAL manifests substantial advantages over other methods on New classes (about 10% improvements on three datasets)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                674,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "63484"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/77d3e8a236314ef623cc04e318c9fb4bd0e702083e4fe6994d2949ae400622be.jpg"
+                },
+                "table_caption": [],
+                "table_footnote": [],
+                "html": "<table><tr><td></td><td colspan=\"3\">CIFAR-10</td><td colspan=\"3\">CIFAR-100</td><td colspan=\"3\">ImageNet-100</td></tr><tr><td>Method</td><td>All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td></tr><tr><td>KMeans [1]</td><td>83.6</td><td>85.7</td><td>82.5</td><td>52.0</td><td>52.2</td><td>50.8</td><td>72.7</td><td>75.5</td><td>71.3</td></tr><tr><td>RankStats+ [11]</td><td>46.8</td><td>19.2</td><td>60.5</td><td>58.2</td><td>77.6</td><td>19.3</td><td>37.1</td><td>61.6</td><td>24.8</td></tr><tr><td>UNO+ [9]</td><td>68.6</td><td>98.3</td><td>53.8</td><td>69.5</td><td>80.6</td><td>47.2</td><td>70.3</td><td>95.0</td><td>57.9</td></tr><tr><td>GCD [41]</td><td>91.5</td><td>97.9</td><td>88.2</td><td>73.0</td><td>76.2</td><td>66.5</td><td>74.1</td><td>89.8</td><td>66.3</td></tr><tr><td>ORCA† [4]</td><td>96.9</td><td>95.1</td><td>97.8</td><td>74.2</td><td>82.1</td><td>67.2</td><td>79.2</td><td>93.2</td><td>72.1</td></tr><tr><td>PromptCAL-1st (Ours)</td><td>97.1</td><td>97.7</td><td>96.7</td><td>76.0</td><td>80.8</td><td>66.6</td><td>75.4</td><td>94.2</td><td>66.0</td></tr><tr><td>PromptCAL-2nd (Ours)</td><td>97.9</td><td>96.6</td><td>98.5</td><td>81.2</td><td>84.2</td><td>75.3</td><td>83.1</td><td>92.7</td><td>78.3</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                88,
+                465,
+                176
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/20f13b82de881ee02ee320b93e3ef874cbf43395f47820010853e5ed2892dcc7.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Evaluation on three generic datasets. Accuracy scores are reported. †denotes adapted methods. Both stages of Prompt-CAL are evaluated."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Table 2. Evaluation on three fine-grained datasets. Accuracy scores are reported. †denotes adapted methods. Both stages of PromptCAL are evaluated."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td></td><td colspan=\"3\">CUB-200</td><td colspan=\"3\">StanfordCars</td><td colspan=\"3\">Aircraft</td></tr><tr><td>Method</td><td>All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td></tr><tr><td>KMeans [1]</td><td>34.3</td><td>38.9</td><td>32.1</td><td>12.8</td><td>10.6</td><td>13.8</td><td>12.9</td><td>12.9</td><td>12.8</td></tr><tr><td>RankStats+ [11]</td><td>33.3</td><td>51.6</td><td>24.2</td><td>28.3</td><td>61.8</td><td>12.1</td><td>27.9</td><td>55.8</td><td>12.8</td></tr><tr><td>UNO+ [9]</td><td>35.1</td><td>49.0</td><td>28.1</td><td>35.5</td><td>70.5</td><td>18.6</td><td>28.3</td><td>53.7</td><td>14.7</td></tr><tr><td>GCD [41]</td><td>51.3</td><td>56.6</td><td>48.7</td><td>39.0</td><td>57.6</td><td>29.9</td><td>45.0</td><td>41.1</td><td>46.9</td></tr><tr><td>ORCA† [4]</td><td>36.3</td><td>43.8</td><td>32.6</td><td>31.9</td><td>42.2</td><td>26.9</td><td>31.6</td><td>32.0</td><td>31.4</td></tr><tr><td>PromptCAL-1st (Ours)</td><td>51.1</td><td>55.4</td><td>48.9</td><td>42.6</td><td>62.8</td><td>32.9</td><td>44.5</td><td>44.6</td><td>44.5</td></tr><tr><td>PromptCAL-2nd (Ours)</td><td>62.9</td><td>64.4</td><td>62.1</td><td>50.2</td><td>70.1</td><td>40.6</td><td>52.2</td><td>52.2</td><td>52.3</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                228,
+                465,
+                316
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "By comparing the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 ^ { s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "stage "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( { \\mathrm { P r o m p t C A L } } - 1 ^ { s t } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 ^ { n d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "stage "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( { \\mathrm { P r o m p t C A L - 2 } } ^ { n d } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we observe major performance boosts, especially on New classes. In addition, we also notice that both stages of our PromptCAL have significant contributions to the final performance on generic datasets. Specifically, PromptCAL-1<sup>st</sup> improves 5.6% and 3.0% over GCD on CIFAR-10/100, respectively; while the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { P r o m p t C A L - 2 } ^ { n d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "further improves by 5.2% and 9.0% on CIFAR-100 and ImageNet-100, respectively. Besides, we also achieve ∼ 7% boost of overall accuracy on CIFAR-100 and 4% on ImageNet-100 when compared with ORCA. Therefore, above results validate advantages and effectiveness of our two-stage PromptCAL in category discovery."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                380,
+                472,
+                578
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Evaluation on fine-grained datasets. We also report results on fine-grained datasets to demonstrate the PromptCAL effectiveness in Table 2. Apparently, the low performance of KMeans illustrates the challenging nature of fine-grained category discovery caused by larger intraclass and lower inter-class variations. Notice that ORCA performance degrades substantially on three fine-grained datasets. In contrast, our PromptCAL consistently exceeds NCD SOTA and ORCA, and outperforms GCD by ∼ 11% on All classes on CUB-200 and StanfordCars and ∼ 7% on Aircraft. Different from results in Table 1, the results on fine-grained datasets show that the major performance gain of PromptCAL originates from the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 ^ { n d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "CAL stage. Noticeably, PromptCAL-1<sup>st</sup> performance even drops compared with GCD on CUB-200 and Aircraft datasets; while, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { P r o m p t C A L - 2 } ^ { n d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "achieves remarkable and consistent improvements, especially on New classes."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                579,
+                472,
+                837
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.5. Ablation and analysis"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                845,
+                281,
+                862
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we conduct extensive ablation experiments to reveal and investigate contributions of each component. Next, we present in-depth analysis on the effectiveness of SemiAG and discuss the effect of visual prompts in PromptCAL. Further, we explore how PromptCAL performs in more challenging and real-world scenarios with lower-labeling and fewer-classes. Finally, we present additional ablation results in Appendix D, and additional qualitative results in Appendix F."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/50a950f53fdbfe5b3a059dc6c75eb8091bdbe84835de221424d1a63a7ea26411.jpg"
+                },
+                "table_caption": [],
+                "table_footnote": [],
+                "html": "<table><tr><td></td><td>cKNN</td><td>AP</td><td>SemiPriori</td><td>SemiCL</td><td>All</td><td>Known</td><td>New</td></tr><tr><td>(1)</td><td>X</td><td>X</td><td>√</td><td>√</td><td> $6 0 . 1 ^ { - 2 . 8 }$ </td><td> $7 0 . 1 ^ { + 5 . 7 }$ </td><td> $5 5 . 1 ^ { - 7 . 0 }$ </td></tr><tr><td>(2)</td><td>√</td><td>√</td><td>√</td><td>X</td><td> $6 1 . 7 \\AA ^ { - 1 . 2 }$ </td><td> $6 3 . 6 ^ { - 0 . 8 }$ </td><td> $6 0 . 7 \\AA ^ { - 1 . 4 }$ </td></tr><tr><td>(3)</td><td>√</td><td>√</td><td>X</td><td>√</td><td> $5 7 . 3 ^ { - 5 . 6 }$ </td><td> $6 1 . 8 \\AA ^ { - 2 . 6 }$ </td><td> $5 5 . 1 ^ { - 7 . 0 }$ </td></tr><tr><td>(4)</td><td>√</td><td>x</td><td>√</td><td>√</td><td> $5 4 . 6 ^ { - 8 . 3 }$ </td><td> $6 5 . 5 ^ { + 1 . 1 }$ </td><td> $4 9 . 1 ^ { - 1 3 . 0 }$ </td></tr><tr><td>(5)</td><td>√</td><td>√</td><td>√</td><td>√</td><td>62.9</td><td>64.4</td><td>62.1</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                503,
+                88,
+                888,
+                171
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9bb7e63d1ab964543c83cdb3261bac1a5997e958302f42510be6710816a132f4.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Ablation study on effectiveness of SemiAG in CAL stage on CUB-200 [42] dataset. Here, cKNN: consensus KNN graph; AP: affinity propagation; SemiPriori: semi-supervised prior knowledge; SemiCL: semi-supervised contrastive loss in projected feature space on [CLS] and [P]. Scores reported in clustering accuracy. Each proposed component favorably contributes to the overall performance."
+                    },
+                    {
+                        "type": "text",
+                        "content": "(a)"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                519,
+                287,
+                591,
+                332
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/45d7dcbb209500e0d6fe7d04b9ad17f16a5e9b5d2a19e44d3731b33c7bbe416d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b)"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                616,
+                289,
+                679,
+                330
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/370f1eb7480371c956ec5fe5f6032300e07ebf11a1e74548e1bc11c222a57d9c.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(c)"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                709,
+                289,
+                776,
+                330
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/85559b88af6ac4e8f6ac477d92dbd299bc6e843f3064fc859ba4e69369c4d7dc.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(d)"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 4. The t-SNE [39] visualization of ViT embeddings on CIFAR-10 test set. (a) is [CLS] embeddings from naive VPT model; (b) denotes our PromptCAL [CLS] embeddings; (c) denotes our PromptCAL ensembled [P] embeddings; (d) represents embeddings of an arbitraty PromptCAL unsupervised prompt. All figures share the same axis scale. The complete visualization is presented in Appendix D."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                800,
+                287,
+                875,
+                330
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                462,
+                893,
+                568
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Effectiveness of contrastive affinity learning. As mentioned in Sec. 4.4, SemiAG dominates the large improvements of PromptCAL. First, we conduct ablation experiments on SemiAG in CAL stage, in Table 3. The "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 ^ { s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "row denotes the performance of using naive KNN with SemiPriori for pseudo labeling at CAL stage; while, the last row represents our full SemiAG setup. The 2<sup>nd</sup>, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "3 ^ { r d } { } _ { ; }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "4 ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "row represent PromptCAL without semi-supervised contrastive loss, semi-supervised prior knowledge (Sec. 3.3), and affinity propagation (Sec. 3.3), respectively. From the results, we can observe that incorporating each component has a clear contribution: (a) Naive KNN severely overfits Known and performs poorer (with nearly 2.8% and 7.0% accuracy drops on All and New classes, respectively) than SemiAG, due to its susceptibility to noisy neighborhoods. (b) Affinity propagation is the most consequential component (improving by 8.3% on All and 13% on New), which proves the importance of counteracting adverse effects of false negatives in contrastive loss by retrieving more reliable positives. (c) Retaining SemiCL is beneficial, which, we guess, is because it can push away noisy pseudo positive samples and, thus, prevent overfitting and degenerated solutions. (d) SemiPriori further benefits overall performance by about 5.6% on All and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "7 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on New, which manifests the importance of incorporating the prior knowledge to calibrate pseudo labels."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                569,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "73485"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/5bbd5e1db3b1e3f86ab3a13100500dedb7f19a316dfde8672f1a25fae37d8031.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Ablation study on effectiveness of prompt-related components on CUB-200 dataset. Here, Prompt: promptadapted backbone; "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathrm { s e m i } } ^ { \\mathbf { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "semi-supervised contrastive loss on [P] prompts; "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { \\mathbf { C A L } } ^ { \\mathbf { P } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ": CAL loss on [P]; CAL stage: second-stage training. Scores reported in clustering accuracy. Each component favorably contributes to the overall performance gain."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td></td><td>Prompt</td><td> $\\mathbf { L } _ { \\mathrm { { s e m i } } } ^ { \\mathrm { { P } } }$ </td><td> $\\mathbf { L } _ { \\mathrm { C A L } } ^ { \\mathrm { P } }$ </td><td>CAL stage</td><td>All</td><td>Known</td><td>New</td></tr><tr><td>(1)</td><td>×Vv√×</td><td>××&gt;××</td><td>×××√×</td><td></td><td> $5 1 . 3 ^ { - 1 1 . 6 }$ </td><td> $5 6 . 6 ^ { - 7 . 8 }$ </td><td> $4 8 . 7 ^ { - 1 2 . 4 }$ </td></tr><tr><td>(2)</td><td></td><td></td><td></td><td></td><td> $5 1 . 1 ^ { - 1 1 . 8 }$ </td><td> $5 5 . 4 ^ { - 9 . 0 }$ </td><td> $4 8 . 9 ^ { - 1 2 . 2 }$ </td></tr><tr><td>(3)</td><td></td><td></td><td></td><td></td><td> $6 1 . 6 ^ { - 1 . 3 }$ </td><td> $6 8 . 9 ^ { + 4 . 5 }$ </td><td> $5 8 . 0 ^ { - 4 . 1 }$ </td></tr><tr><td>(4)</td><td></td><td></td><td></td><td>X×vV√</td><td> $6 1 . 2 \\AA ^ { - 1 . 7 }$ </td><td> $6 5 . 2 ^ { + 0 . 8 }$ </td><td> $5 9 . 2 ^ { - 2 . 9 } $ </td></tr><tr><td>(5)</td><td></td><td></td><td></td><td></td><td> $6 0 . 3 ^ { - 2 . 6 }$ </td><td> $6 4 . 8 ^ { + 0 . 4 }$ </td><td> $5 8 . 0 ^ { - 4 . 1 }$ </td></tr><tr><td>(6)</td><td></td><td></td><td></td><td></td><td>62.9</td><td>64.4</td><td>62.1</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                81,
+                88,
+                464,
+                181
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/35a65bfa061a7e46e041ec0a4b112b1db0433b407bff6f059e0d8e02b5301961.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Ablation study on few-annotation GNCD on CIFAR-100 [25] dataset. Digits following "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\because C ^ { \\prime }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\because _ { \\mathrm { ~ L ~ } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "stand for percentages of known classes and labeling ratios. †denotes adapted methods. Scores reported in accuracy."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>ⅡI</td><td></td><td>C50-L10</td><td></td><td></td><td>C25-L50</td><td></td><td></td><td>C10-L50</td><td></td></tr><tr><td>Method</td><td>Ⅱ All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td><td>All</td><td>Known</td><td>New</td></tr><tr><td>GCD [41]</td><td>60.2</td><td>68.9</td><td>55.8</td><td>56.8</td><td>67.6</td><td>55.0</td><td>48.3</td><td>65.1</td><td>47.3</td></tr><tr><td>ORCA (ResNet) [4]</td><td>39.4</td><td>55.1</td><td>31.2</td><td>37.0</td><td>64.1</td><td>31.7</td><td>30.1</td><td>64.3</td><td>27.1</td></tr><tr><td>ORCA† (ViT) [4]</td><td>60.3</td><td>66.0</td><td>55.3</td><td>58.2</td><td>79.9</td><td>57.5</td><td>51.7</td><td>78.0</td><td>50.2</td></tr><tr><td>PromptCAL-1st (Ours)</td><td>62.7</td><td>74.7</td><td>56.6</td><td>60.2</td><td>70.7</td><td>58.5</td><td>48.7</td><td>68.4</td><td>47.6</td></tr><tr><td>PromptCAL-2nd (Ours)</td><td>68.9</td><td>77.5</td><td>64.7</td><td>65.7</td><td>76.9</td><td>63.8</td><td>53.2</td><td>79.3</td><td>51.7</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                286,
+                465,
+                361
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                443,
+                470,
+                503
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Role of discriminative prompt regularization. Table 4 presents the ablation results for prompt-related components of PromptCAL. The "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 ^ { s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "2 ^ { n d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "rows denote the GCD baseline and our warmed-up "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { P r o m p t C A L - } 1 ^ { s t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We note that visual prompts make no significant difference to the performance. However, we argue that it is due to lack of semantic discriminative supervision. Specifically, by observing PromptCAL without semantic discrimination supervision "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 3 ^ { r d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "row) and PromptCAL without sample discrimination supervision "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 4 ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "row), we can infer that both semantic discriminativeness and sample-wise discriminativeness are critical. Generally, lack of semantic discriminativeness will cause severe overfitting on Known classes. Furthermore, semantic prompt tuning is beneficial for discovering novel classes, since PromptCAL surpasses its counterpart without any prompt-related component "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( 5 ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "row) on New by 2.6%. To summarize, semantically-aware DPR plays a positive and auxiliary role in facilitating semantic discriminativeness especially in categorizing novel classes. In fact, we conclude from additional ablations in Appendix D that the gains of prompts are more significant on larger datasets."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                505,
+                472,
+                824
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To vividly illustrate this point, we present the t-SNE [39] visualization results in Fig. 4 (see complete results in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathsf { A p - }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "pendix D.3). Here, we directly draw conclusions that (a) naive VPT causes overclustering problem and lacks semantically discriminativeness; (b) our proposed DPR supervision increases semantic discriminativeness of supervised and unsupervised prompts, which further enhances semantic signals of DPR loss and enables DPR and CAL to synergistically improve the overall performance. We present more discussions on this in Appendix D.3."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                825,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                90,
+                893,
+                166
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Towards few-annotation GNCD. We further evaluate our PromptCAL against other SOTA methods on more challenging few-annotation setups on CIFAR-100 dataset, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i . e . ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "fewer known classes and lower labeling ratios. We consider three setups in Table 5: (1) C50-L10: 50% classes are known in which 10% samples are labeled; (2) C25-L50: 25% classes are known in which 50% samples are labeled; (3) C10-L50: 10% classes are known in which 50% samples are labeled. Since the few-annotation can incur more open-set noises, we set K = 5 for PromptCAL to increase robustness to noisy pseudo-labels."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                166,
+                893,
+                333
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "From results in Table 5, we conclude that PromptCAL is robust to both low-labeling and few-class scenarios, outcompeting all SoTAs with large margins. Practically, it is more demanding for models to infer novel semantic clustering when fewer classes are known under semantic shifts. This explains the lower performance of all models in setup (3) than in setup (1). Compared with GCD and ORCA, our PromptCAL can learn semantically robust representation and consistently achieve high performance in all setups. ORCA (ViT) [4] achieves stronger performance than GCD; while, our PromptCAL can still outperform ORCA with clear margins in all setups. For example, PromptCAL surpasses ORCA (ViT) by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sim 8 \\%"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on All accuracy in C50- L10 and C25-L50. We again observe that PromptCAL-2<sup>nd</sup> learning contributes most to the overall performance, which again proves our proposed method can effectively calibrate the learned representation with remarkable gains on New classes. This capability best suits GNCD problem."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                332,
+                895,
+                606
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                617,
+                620,
+                635
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this paper, we propose a two-stage framework, PromptCAL, to tackle challenging GNCD problem. After the warm-up stage of semi-supervised contrastive learning, we iteratively and simultaneously conduct contrastive affinity learning and discriminative prompt regularization to calibrate semantic representations. Specifically, at each iteration, we leverage discovered pseudo affinities on generated affinity graphs to guide optimization of the class token and to reinforce the semantic discriminativeness of prompts and our prompt-adapted ViT backbone. Extensive experiments on multiple generic and fine-grained benchmarks showcase that PromptCAL achieves state-of-the-art performance. Additional evidences illustrates that our discriminative prompt regularization and contrastive affinity learning objectives achieve a synergistic effect. Moreover, PromptCAL exhibits remarkable gains on few-class and low-label settings for categorizing novel classes."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                643,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "83486"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] David Arthur and Sergei Vassilvitskii. k-means++: The advantages of careful seeding. Technical report, Stanford, 2006. 3, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Paul S Bradley, Kristin P Bennett, and Ayhan Demiriz. Constrained k-means clustering. Microsoft Research, Redmond, 20(0):0, 2000. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Zhaowei Cai, Avinash Ravichandran, Paolo Favaro, Manchen Wang, Davide Modolo, Rahul Bhotika, Zhuowen Tu, and Stefano Soatto. Semi-supervised vision transformers at scale. arXiv preprint arXiv:2208.05688, 2022. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Kaidi Cao, Maria Brbic, and Jure Leskovec. Open-world semi-supervised learning. arXiv preprint arXiv:2102.03526, 2021. 1, 2, 3, 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Mathilde Caron, Piotr Bojanowski, Armand Joulin, and Matthijs Douze. Deep clustering for unsupervised learning of visual features. In Proceedings of the European conference on computer vision (ECCV), pages 132–149, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Mathilde Caron, Hugo Touvron, Ishan Misra, Herve J ´ egou,´ Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerging properties in self-supervised vision transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9650–9660, 2021. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Tsai-Shien Chen, Wei-Chih Hung, Hung-Yu Tseng, Shao-Yi Chien, and Ming-Hsuan Yang. Incremental false negative detection for contrastive learning. arXiv preprint arXiv:2106.03719, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Debidatta Dwibedi, Yusuf Aytar, Jonathan Tompson, Pierre Sermanet, and Andrew Zisserman. With a little help from my friends: Nearest-neighbor contrastive learning of visual representations. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9588–9597, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Enrico Fini, Enver Sangineto, Stephane Lathuili´ ere, Zhun` Zhong, Moin Nabi, and Elisa Ricci. A unified objective for novel class discovery. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 9284–9292, 2021. 2, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Chuanxing Geng, Sheng-jun Huang, and Songcan Chen. Recent advances in open set recognition: A survey. IEEE transactions on pattern analysis and machine intelligence, 43(10):3614–3631, 2020. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Kai Han, Sylvestre-Alvise Rebuffi, Sebastien Ehrhardt, Andrea Vedaldi, and Andrew Zisserman. Automatically discovering and learning new visual categories with ranking statistics. arXiv preprint arXiv:2002.05714, 2020. 2, 3, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Kai Han, Andrea Vedaldi, and Andrew Zisserman. Learning to discover novel visual categories via deep transfer clustering. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 8401–8409, 2019. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Xu Han, Weilin Zhao, Ning Ding, Zhiyuan Liu, and Maosong Sun. Ptr: Prompt tuning with rules for text classification. arXiv preprint arXiv:2105.11259, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Kaiming He, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick. Momentum contrast for unsupervised visual representation learning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 9729–9738, 2020. 4, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Samer Hijazi, Rishi Kumar, Chris Rowen, et al. Using convolutional neural networks for image recognition. Cadence Design Systems Inc.: San Jose, CA, USA, 9, 2015. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Tri Huynh, Simon Kornblith, Matthew R Walter, Michael Maire, and Maryam Khademi. Boosting contrastive selfsupervised learning with false negative cancellation. In Proceedings of the IEEE/CVF Winter Conference on Applications ofComputer Vision, pages 2785–2795, 2022. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Ahmet Iscen, Giorgos Tolias, Yannis Avrithis, and Ondrej Chum. Label propagation for deep semi-supervised learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5070–5079, 2019. 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Menglin Jia, Luming Tang, Bor-Chun Chen, Claire Cardie, Serge Belongie, Bharath Hariharan, and Ser-Nam Lim. Visual prompt tuning. arXiv preprint arXiv:2203.12119, 2022. 2, 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Xuhui Jia, Kai Han, Yukun Zhu, and Bradley Green. Joint representation learning and novel category discovery on single-and multi-modal data. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 610–619, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Zhengbao Jiang, Frank F Xu, Jun Araki, and Graham Neubig. How can we know what language models know? Transactions of the Association for Computational Linguistics, 8:423–438, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Salar Hosseini Khorasgani, Yuxuan Chen, and Florian Shkurti. Slic: Self-supervised learning with iterative clustering for human action videos. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16091–16101, 2022. 2, 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Prannay Khosla, Piotr Teterwak, Chen Wang, Aaron Sarna, Yonglong Tian, Phillip Isola, Aaron Maschinot, Ce Liu, and Dilip Krishnan. Supervised contrastive learning. Advances in Neural Information Processing Systems, 33:18661–18673, 2020. 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Philip A Knight. The sinkhorn–knopp algorithm: convergence and applications. SIAM Journal on Matrix Analysis and Applications, 30(1):261–275, 2008. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Jonathan Krause, Michael Stark, Jia Deng, and Li Fei-Fei. 3d object representations for fine-grained categorization. In Proceedings of the IEEE international conference on computer vision workshops, pages 554–561, 2013. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Alex Krizhevsky, Geoffrey Hinton, et al. Learning multiple layers of features from tiny images. 2009. 6, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Alex Krizhevsky, Ilya Sutskever, and Geoffrey E Hinton. Imagenet classification with deep convolutional neural networks. Communications ofthe ACM, 60(6):84–90, 2017. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Chen-Yu Lee, Saining Xie, Patrick Gallagher, Zhengyou Zhang, and Zhuowen Tu. Deeply-supervised nets. In Artificial intelligence and statistics, pages 562–570. PMLR, 2015. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Jure Leskovec and Christos Faloutsos. Sampling from large graphs. In Proceedings of the 12th ACM SIGKDD international conference on Knowledge discovery and data mining, pages 631–636, 2006. 5"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                468,
+                155
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "93487"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Junnan Li, Caiming Xiong, and Steven CH Hoi. Comatch: Semi-supervised learning with contrastive graph regularization. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 9475–9484, 2021. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Pengfei Liu, Weizhe Yuan, Jinlan Fu, Zhengbao Jiang, Hiroaki Hayashi, and Graham Neubig. Pre-train, prompt, and predict: A systematic survey of prompting methods in natural language processing. arXiv preprint arXiv:2107.13586, 2021. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] David G Lowe. Object recognition from local scale-invariant features. In Proceedings of the seventh IEEE international conference on computer vision, volume 2, pages 1150–1157. Ieee, 1999. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Subhransu Maji, Esa Rahtu, Juho Kannala, Matthew Blaschko, and Andrea Vedaldi. Fine-grained visual classification of aircraft. arXiv preprint arXiv:1306.5151, 2013. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Avital Oliver, Augustus Odena, Colin A Raffel, Ekin Dogus Cubuk, and Ian Goodfellow. Realistic evaluation of deep semi-supervised learning algorithms. Advances in neural information processing systems, 31, 2018. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Vittal Premachandran and Ramakrishna Kakarala. Consensus of k-nns for robust neighborhood selection on graphbased manifolds. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1594–1601, 2013. 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Saquib Sarfraz, Vivek Sharma, and Rainer Stiefelhagen. Efficient parameter-free clustering using first neighbor relations. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8934–8943, 2019. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Timo Schick and Hinrich Schutze. Exploiting cloze ques-¨ tions for few shot text classification and natural language inference. arXiv preprint arXiv:2001.07676, 2020. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Gilad Sharir, Asaf Noy, and Lihi Zelnik-Manor. An image is worth 16x16 words, what is a video worth? arXiv preprint arXiv:2103.13915, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Antti Tarvainen and Harri Valpola. Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results. Advances in neural information processing systems, 30, 2017. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Laurens Van der Maaten and Geoffrey Hinton. Visualizing data using t-sne. Journal of machine learning research, 9(11), 2008. 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Jesper E Van Engelen and Holger H Hoos. A survey on semi-supervised learning. Machine Learning, 109(2):373– 440, 2020. 1, 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Sagar Vaze, Kai Han, Andrea Vedaldi, and Andrew Zisserman. Generalized category discovery. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7492–7501, 2022. 1, 2, 3, 4, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Catherine Wah, Steve Branson, Peter Welinder, Pietro Perona, and Serge Belongie. The caltech-ucsd birds-200-2011 dataset. 2011. 4, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Yaming Wang, Vlad I Morariu, and Larry S Davis. Learning a discriminative filter bank within a cnn for fine-grained recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4148–4157, 2018. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] MB Wright. Speeding up the hungarian algorithm. Computers & Operations Research, 17(1):95–96, 1990. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Junyuan Xie, Ross Girshick, and Ali Farhadi. Unsupervised deep embedding for clustering analysis. In International conference on machine learning, pages 478–487. PMLR, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Qizhe Xie, Minh-Thang Luong, Eduard Hovy, and Quoc V Le. Self-training with noisy student improves imagenet classification. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 10687– 10698, 2020. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Jingkang Yang, Kaiyang Zhou, Yixuan Li, and Ziwei Liu. Generalized out-of-distribution detection: A survey. arXiv preprint arXiv:2110.11334, 2021. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Xingwei Yang, Lakshman Prasad, and Longin Jan Latecki. Affinity learning with diffusion on tensor product graph. IEEE transactions on pattern analysis and machine intelligence, 35(1):28–38, 2012. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Xiaohua Zhai, Avital Oliver, Alexander Kolesnikov, and Lucas Beyer. S4l: Self-supervised semi-supervised learning. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 1476–1485, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Hongyi Zhang, Moustapha Cisse, Yann N Dauphin, and David Lopez-Paz. mixup: Beyond empirical risk minimization. arXiv preprint arXiv:1710.09412, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Bingchen Zhao and Kai Han. Novel visual category discovery with dual ranking statistics and mutual knowledge distillation. Advances in Neural Information Processing Systems, 34:22982–22994, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Mingkai Zheng, Fei Wang, Shan You, Chen Qian, Changshui Zhang, Xiaogang Wang, and Chang Xu. Weakly supervised contrastive learning. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10042– 10051, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Zhun Zhong, Enrico Fini, Subhankar Roy, Zhiming Luo, Elisa Ricci, and Nicu Sebe. Neighborhood contrastive learning for novel class discovery. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 10867–10875, 2021. 2, 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Zhun Zhong, Linchao Zhu, Zhiming Luo, Shaozi Li, Yi Yang, and Nicu Sebe. Openmix: Reviving known knowledge for discovering novel visual categories in an open world. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9462–9470, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Chengxu Zhuang, Alex Lin Zhai, and Daniel Yamins. Local aggregation for unsupervised learning of visual embeddings. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 6002–6012, 2019. 3"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                468,
+                147
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "103488"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                925,
+                516,
+                938
+            ]
+        }
+    ]
+]
