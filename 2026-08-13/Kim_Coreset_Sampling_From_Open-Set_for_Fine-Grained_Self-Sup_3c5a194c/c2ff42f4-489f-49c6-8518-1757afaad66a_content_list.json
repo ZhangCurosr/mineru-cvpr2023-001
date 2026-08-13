@@ -1,0 +1,1580 @@
+[
+    {
+        "type": "text",
+        "text": "Coreset Sampling from Open-Set for Fine-Grained Self-Supervised Learning",
+        "text_level": 1,
+        "bbox": [
+            98,
+            130,
+            872,
+            152
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Sungnyun Kim\\* Sangmin Bae\\* Se-Young Yun",
+        "bbox": [
+            266,
+            181,
+            697,
+            199
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "KAIST AI",
+        "bbox": [
+            441,
+            203,
+            531,
+            219
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "{ksn4397, bsmn0223, yunseyoung}@kaist.ac.kr",
+        "bbox": [
+            292,
+            223,
+            674,
+            238
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            233,
+            272,
+            313,
+            290
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Deep learning in general domains has constantly been extended to domain-specific tasks requiring the recognition offine-grained characteristics. However, real-world applicationsforfine-grained tasks sufferfrom two challenges: a high reliance on expert knowledge for annotation and necessity of a versatile model for various downstream tasks in a specific domain (e.g., prediction ofcategories, bounding boxes, or pixel-wise annotations). Fortunately, the recent self-supervised learning (SSL) is a promising approach to pretrain a model without annotations, serving as an effective initializationfor any downstream tasks. Since SSL does not rely on the presence ofannotation, in general, it utilizes the large-scale unlabeled dataset, referred to as an open-set. In this sense, we introduce a novel Open-Set Self-Supervised Learning problem under the assumption that a large-scale unlabeled open-set is available, as well as thefine-grained target dataset, during a pretraining phase. In our problem setup, it is crucial to consider the distribution mismatch between the open-set and target dataset. Hence, we propose SimCore algorithm to sample a coreset, the subset of an open-set that has a minimum distance to the target dataset in the latent space. We demonstrate that SimCore significantly improves representation learning performance through extensive experimental settings, including elevenfine-grained datasets and seven open-sets in various downstream tasks.",
+        "bbox": [
+            75,
+            304,
+            472,
+            684
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction",
+        "text_level": 2,
+        "bbox": [
+            76,
+            713,
+            209,
+            729
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The success of deep learning in general computer vision tasks has encouraged its widespread applications to specific domains of industry and research [21, 46, 73], such as facial recognition or vehicle identification. We particularly focus on the visual recognition of fine-grained datasets, where the goal is to differentiate between hard-to-distinguish images. However, real-world application for fine-grained tasks poses two challenges for practitioners and researchers developing algorithms. First, it requires a number of experts for annotation, which incurs a large cost [3, 14, 60]. For example, ordinary people do not have professional knowledge about aircraft types or fine-grained categories of birds. Therefore, a realistic presumption for a domain-specific fine-grained dataset is that there may be no or very few labeled samples. Second, fine-grained datasets are often re-purposed or used for various tasks according to the user’s demand, which motivates development of a versatile pretrained model. One might ask, as a target task, that bird images be classified by species or even segmented into foreground and background. A good initialization model can handle a variety of annotations for fine-grained datasets, such as multiple attributes [43, 47, 74], pixel-level annotations [53, 74], or bounding boxes [35, 47, 53].",
+        "bbox": [
+            75,
+            739,
+            472,
+            877
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            275,
+            895,
+            486
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Recently, self-supervised learning (SSL) [11, 14, 24, 28] has enabled learning how to represent the data even without annotations, such that the representations serve as an effective initialization for any future downstream tasks. Since labeling is not necessary, SSL generally utilizes an openset, or large-scale unlabeled dataset, which can be easily obtained by web crawling [23, 64], for the pretraining. In this paper, we introduce a novel Open-Set Self-Supervised Learning (OpenSSL) problem, where we can leverage the open-set as well as the training set of fine-grained target dataset. Refer to Figure 1 for the overview of OpenSSL.",
+        "bbox": [
+            498,
+            488,
+            895,
+            655
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In the OpenSSL setup, since the open-set may contain instances irrelevant to the fine-grained dataset, we should consider the distribution mismatch. A large distribution mismatch might inhibit representation learning for the target task. For instance, in Figure 2, SSL on the open-set (OS) does not always outperform SSL on the fine-grained dataset (X) because it depends on the semantic similarity between X and OS. This is in line with the previous observations [21, 22, 64] that the performance of self-supervised representation on downstream tasks is correlated with similarity of pretraining and fine-tuning datasets.",
+        "bbox": [
+            496,
+            656,
+            893,
+            823
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "To alleviate this mismatch issue, we could exploit a coreset, a subset of an open-set, which shares similar semantics with the target dataset. As a motivating experiment, we manually selected the relevant classes from ImageNet $( O S _ { \\mathrm { o r a c l e } } )$ that are supposed to be helpful according to each target dataset. Interestingly, in Figure 2, merging $O S _ { \\mathrm { o r a c l e } }$ to X shows a significant performance gain, and its superiority over merging the entire open-set $( X { + } O S )$ or the randomly sampled subset $( X { + } O S _ { \\mathrm { r a n d } } )$ implies the necessity of a sampling algorithm for the coreset in the OpenSSL problem.",
+        "bbox": [
+            496,
+            824,
+            895,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "CVF",
+        "bbox": [
+            104,
+            2,
+            181,
+            41
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore.",
+        "bbox": [
+            235,
+            1,
+            810,
+            46
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "\\*equal contribution",
+        "bbox": [
+            94,
+            887,
+            202,
+            900
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "7537",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/a1cb415b4f85c187971f65abf1fbb53ea90c918574acecee0f06071f80523bfb.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            93,
+            83,
+            872,
+            304
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "chart",
+        "img_path": "images/096beb9802fe1368af2f2f642d7d59f2eb05963a5c193e576759ed2ac8bfe794.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 1. Overview of an OpenSSL problem. For any downstream tasks, we pretrain an effective model with the fine-grained dataset via self-supervised learning (SSL). Here, the assumption for a large-scale unlabeled open-set in the pretraining phase is well-suited for a real-world scenario. The main goal is to find a coreset, highlighted by the blue box, among the open-set to enhance fine-grained SSL."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            83,
+            366,
+            887,
+            472
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "table",
+        "img_path": "images/6792aa0e6dd45581aca0d071c6144bbe2522afdee6ff506809dd47d86479adbe.jpg",
+        "table_caption": [
+            "Figure 2. Linear evaluation performance on the fine-grained target dataset. Each color corresponds to a pretraining dataset, while “+” means merging two datasets. The table on the right side shows the manually selected categories from an open-set (OS), ImageNet-1k [20] in this case, according to each target dataset (X). Selected categories and exact numbers are detailed in Appendix A. We followed the typical linear evaluation protocol [14, 24] and used the SimCLR method [14] on ResNet50 encoder [29]."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=1 colspan=1>Target(X)</td><td rowspan=1 colspan=1>Classes for $O S _ { \\mathrm { o r a c l e } }$ (#)</td></tr><tr><td rowspan=1 colspan=1>Aircraft</td><td rowspan=1 colspan=1>airliner, warplane, ... (8)</td></tr><tr><td rowspan=1 colspan=1>Cars</td><td rowspan=1 colspan=1>convertible, jeep, ... (10)</td></tr><tr><td rowspan=1 colspan=1>Pet</td><td rowspan=1 colspan=1>Persian cat, beagle, ... (24)</td></tr><tr><td rowspan=1 colspan=1>Birds</td><td rowspan=1 colspan=1>goldfinch, junco, ... (20)</td></tr></table>",
+        "bbox": [
+            656,
+            382,
+            887,
+            458
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            551,
+            472,
+            627
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Therefore, we propose SimCore, a simple yet effective coreset sampling algorithm from an unlabeled open-set. Our main goal is to find a subset semantically similar to the target dataset. We formulate the data subset selection problem to obtain a coreset that has a minimum distance to the target dataset in the latent space. SimCore significantly improves performance in extensive experimental settings (eleven finegrained datasets and seven open-sets), and shows consistent gains with different architectures, SSL losses, and downstream tasks. Our contributions are outlined as follows:",
+        "bbox": [
+            75,
+            627,
+            472,
+            777
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We first propose a realistic OpenSSL task, assuming an unlabeled open-set available during the pretraining phase on the fine-grained dataset.",
+        "bbox": [
+            78,
+            779,
+            470,
+            821
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We propose a coreset selection algorithm, SimCore, to leverage a subset semantically similar to the target dataset.",
+        "bbox": [
+            80,
+            824,
+            470,
+            854
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Our extensive experiments with eleven fine-grained datasets and seven open-sets substantiate the significance of data selection in our OpenSSL problem.",
+        "bbox": [
+            80,
+            856,
+            470,
+            900
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2. Related Works",
+        "text_level": 2,
+        "bbox": [
+            500,
+            550,
+            650,
+            566
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2.1. Self-Supervised Learning",
+        "text_level": 2,
+        "bbox": [
+            500,
+            574,
+            732,
+            592
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "After Oord et al. [52] proposed an InfoNCE loss, contrastive learning algorithms began to show remarkable improvements in representation learning [10, 11, 14, 16, 24, 28, 37]. While a large-scale open-set enhances the generalization of learned representation [19, 31, 64], recent literature has pointed out the distribution mismatch between pretraining and fine-tuning datasets [21, 23, 64]. Particularly, El et al. [21] claimed that pretraining on ImageNet may not always be effective on the target task from different domains. Tian et al. [64] found that pretraining with uncurated data, a more realistic scenario, deteriorates the target task performance. Although the motivations coincide with ours, their proposed methods are focused on a single data scheme: a denoising autoencoder [21] only for fine-grained dataset, and distillation from expert models [64] or a novel architecture [23] for uncurated open-sets. In contrast, we propose an explicit sampling strategy from an open-set, which becomes more effective by augmenting fine-grained dataset with well-matched samples, as well as achieving robustness to the distribution discrepancy or curation of the open-set.",
+        "bbox": [
+            496,
+            598,
+            897,
+            901
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "7538",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "table",
+        "img_path": "images/5d44a8f68137c1894b256ce8f080b4e04fc9b60b0f5e22dbb12d416803ff88a5.jpg",
+        "table_caption": [
+            "Table 1. Comparisons of the OpenSSL problem with relevant literature. We focus on the problem setting and the definition of open-set (OS) or coreset (CS) in each field. AL and CL refer to active learning and continual learning, respectively, and \\* indicates the instances in the unlabeled data pool that are supposed to be annotated after the active selection."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=1 colspan=1>Task [ref.]</td><td rowspan=1 colspan=6>Train    TrainProblem Setting                              Test  Definition of OS / CS        Main Goal(Labeled)(Unlabeled)</td></tr><tr><td rowspan=1 colspan=1>Novel Class Discovery[26,30,81]</td><td rowspan=1 colspan=1>test data consist ofonly novel classes</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>novel</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>cluster novel classesin test dataset</td></tr><tr><td rowspan=1 colspan=1>Open-Set Recognition[5,12,57,68]</td><td rowspan=1 colspan=1>test set contains seenand novel classes</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>seen +novel</td><td rowspan=1 colspan=1>[OS] test dataset containingseen and novel classes</td><td rowspan=1 colspan=1>reject instances fromnovel classes at test time</td></tr><tr><td rowspan=1 colspan=1>Webly Sup.[15,39,62]</td><td rowspan=1 colspan=1>train data contains web-crawled noisy samples</td><td rowspan=1 colspan=1>partiallynoisy</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>[OS] web-crawled train datasetcontaining noisy samples</td><td rowspan=1 colspan=1>robustly train instanceswith corrupted labels</td></tr><tr><td rowspan=1 colspan=1>Open-Set Semi-Sup.[17,33,51,56,61]</td><td rowspan=1 colspan=1>unlabeled train datacontain novel classes</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>seen +novel</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>[OS] training dataset contain-ing seen and novel classes</td><td rowspan=1 colspan=1>train a robust model whileregularizing novel classes</td></tr><tr><td rowspan=1 colspan=1>Open-World Semi-Sup.[4,8,9]</td><td rowspan=1 colspan=1>train and test datacontain novel classes</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>seen +novel</td><td rowspan=1 colspan=1>seen +novel</td><td rowspan=1 colspan=1>[OS] dataset containingseen and novel classes</td><td rowspan=1 colspan=1>discover novel classes andassign samples at test time</td></tr><tr><td rowspan=1 colspan=1>Open-Set Annotation[50]</td><td rowspan=1 colspan=1>unlabeled data poolcontains novel classes</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>seen*+novel*</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>[OS] unlabeled data poolwith seen and novel classes</td><td rowspan=1 colspan=1>aim to query seen classesfrom unlabeled data pool</td></tr><tr><td rowspan=1 colspan=1>Coreset Selectionin AL [58,72]</td><td rowspan=1 colspan=1>query instances to beannotated</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>seen*</td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>[CS] the most representativesubset of unlabeled set</td><td rowspan=1 colspan=1>find a small subsetcompetitive to whole dataset</td></tr><tr><td rowspan=1 colspan=1>Coreset Selectionin CL [1, 65,78]</td><td rowspan=1 colspan=1>continuously learna sequence of tasks</td><td rowspan=1 colspan=1>partiallynovel</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>seen</td><td rowspan=1 colspan=1>[CS] the most representativeinstances at each task</td><td rowspan=1 colspan=1>promote task adaptation withless catastrophic forgetting</td></tr><tr><td rowspan=1 colspan=1>Hard Negative Miningin Self-Sup. [55,70]</td><td rowspan=1 colspan=1>assume that hardnegatives are helpful</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>target</td><td rowspan=1 colspan=1>target</td><td rowspan=1 colspan=1>[CS] the hardest contrastivepair instances for SSL</td><td rowspan=1 colspan=1>improve SSL performanceusing core-negative instances</td></tr><tr><td rowspan=1 colspan=1>Open-Set Self-Sup.[ours]</td><td rowspan=1 colspan=1>utilize open-set inpretraining, which mayhave irrelevant data</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>target +irrelevant</td><td rowspan=1 colspan=1>target</td><td rowspan=1 colspan=1>[OS] large-scale unlabeled set[CS] subset of OS sharing thesame semantics with target set</td><td rowspan=1 colspan=1>improve SSL performanceon fine-grained datset viacoreset sampling method</td></tr></table>",
+        "bbox": [
+            81,
+            88,
+            892,
+            460
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2.2. Coreset Selection from Open-Set",
+        "text_level": 2,
+        "bbox": [
+            76,
+            541,
+            364,
+            558
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "In an OpenSSL problem, we denote an open-set as the additional unlabeled pretraining set that includes instances either from relevant or irrelevant domain to target dataset. The assumption of available open-set is also common in other research fields, such as open-set recognition [5, 12, 57, 68], webly supervised learning [15, 39, 62], open-set [17, 33, 51, 56] or open-world [4, 8, 9] semi-supervised learning, and openset annotation [50], although its detailed meaning varies in each field. We summarize the details in Table 1. Especially, our OpenSSL task is to recognize coreset from a large-scale open-set, without exploiting any label information. From this perspective, recent coreset selection approaches give us a good intuition. Existing studies find the representative subset of the unlabeled set for active selection [58, 72], or find the subset of current task data to avoid catastrophic forgetting for continual learning [1, 65, 78]. In the meantime, several works on self-supervised learning have developed a novel loss function that leverages hard negative samples, i.e., hard negative mining [55, 70], which shares similar concepts to our coreset. Our problem setup further requires an effective algorithm that takes into consideration of the distribution discrepancy in the open-set.",
+        "bbox": [
+            75,
+            569,
+            472,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3. Method",
+        "text_level": 2,
+        "bbox": [
+            500,
+            540,
+            591,
+            556
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3.1. OpenSSL Problem Formulation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            564,
+            781,
+            580
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "SSL is a groundbreaking paradigm for learning inherent properties of data, while discarding irrelevant signals by discriminating perturbed samples. Recent literature has proposed a contrastive loss function to encourage making representations from the same image similar and representa tions from different images dissimilar [14, 28, 79].",
+        "bbox": [
+            496,
+            588,
+            895,
+            679
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Given an input data $X ~ = ~ \\{ x _ { i } \\} _ { i = 1 } ^ { N }$ , we generate two copies of random augmented image, $\\mathbf { \\tilde { \\mathcal { A } } } ( X ) ~ = ~ \\{ \\tilde { x } _ { i } \\} _ { i = 1 } ^ { 2 N }$ where ${ \\tilde { x } } _ { i }$ and $\\tilde { x } _ { N + i }$ are an augmented pair of each other. Let $E _ { \\theta }$ be an encoder network. Then, with the augmented pairs, we generally formulate a contrastive loss as follows:",
+        "bbox": [
+            498,
+            679,
+            893,
+            756
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/080b50b10bf150ac7d2de54474c8883a643f4a82044c29c5bcfb162dac1a1b0b.jpg",
+        "text": "$$\n\\mathcal { L } ( X ; E _ { \\theta } ) = \\frac { 1 } { 2 | X | } \\sum _ { \\tilde { x } _ { i } \\in A ( X ) } \\ell _ { \\mathsf { s s l } } ( z _ { i } , z _ { i } ^ { + } ; \\{ z _ { i } ^ { - } \\} )\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            544,
+            762,
+            848,
+            801
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $z _ { i } = E _ { \\theta } ( \\tilde { x } _ { i } ) , z _ { i } ^ { + }$ denotes the representation from the augmented pair of ${ \\tilde { x } } _ { i }$ , and $\\{ z _ { i } ^ { - } \\}$ is the set of features from all the other samples. Eq. 1 forces $z _ { i }$ to be closer with $z _ { i } ^ { + }$ and farther from $\\{ z _ { i } ^ { - } \\}$ . Projection heads [14] or predictors [24] are often used in measuring the similarities of representations. In addition, non-contrastive methods [10, 11, 16, 24] have also been proposed by not utilizing any negative pair set, $i . e . , \\{ z _ { i } ^ { - } \\} = \\emptyset .$",
+        "bbox": [
+            496,
+            809,
+            893,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "7539",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            90,
+            468,
+            122
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In the OpenSSL problem, X corresponds to the training set of the fine-grained target dataset. Using Eq. 1, we can pretrain an encoder without any annotation of $X$ . Furthermore, we have an unlabeled open-set $u ,$ which can be jointly used with X. Rather than pretraining on a simple fusion of $X$ and $u ,$ we are motivated to sample a relevant subset from the open-set. We then pretrain the encoder with ${ \\mathcal { L } } ( X \\cup S ; E _ { \\theta } )$",
+        "bbox": [
+            75,
+            121,
+            472,
+            228
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.2. Simple Coreset Sampling from Open-Set",
+        "text_level": 2,
+        "bbox": [
+            76,
+            234,
+            426,
+            252
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We introduce a simple coreset sampling algorithm, coined as SimCore. Motivated by Figure 2, selecting an appropriate coreset is a key for the OpenSSL problem. To this end, we build a set with the open-set samples that are the nearest neighbors of the target samples.",
+        "bbox": [
+            75,
+            258,
+            470,
+            334
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "This is formulated by finding a subset that maximizes the following objective function: $f ( S ) = \\sum _ { x \\in X } \\operatorname* { m a x } _ { u \\in S } w ( x , u )$ , where $\\pmb { S } \\subseteq \\mathcal { U } , \\mathcal { U } \\cap \\pmb { X } = \\emptyset$ (2) while $w ( x , u ) = z _ { x } ^ { \\top } z _ { u }$ estimates similarity of two representations, and z is the normalized feature from the encoder $E _ { \\theta }$ pretrained on X with small epochs. From Eq. 2, SimCore finds a subset that shares the most similar semantics with the target set. This is reminiscent of the facility location function [48, 72], $\\begin{array} { r } { f _ { \\mathrm { f a c } } ( S ) = \\sum _ { x \\in \\mathcal { U } } \\operatorname* { m a x } _ { u \\in \\mathcal { S } } w ( x , u ) , S \\subseteq \\mathcal { U } } \\end{array}$ However, $f ( S )$ is different from $f _ { \\mathrm { f a c } } ( S )$ , since target samples are the elements of X, which is disjoint with .",
+        "bbox": [
+            75,
+            335,
+            470,
+            529
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Meanwhile, the direct calculation of pairwise similarities requires the complexity of $\\mathcal { O } ( \\vert X \\vert \\vert u \\vert )$ , which might be extremely large. To reduce the computational overhead and make the algorithm scalable, we adapt k-means clustering [2] for the target dataset X, and replace it with the centroid set ${ \\hat { X } } .$ Its associated objective function is ${ \\hat { f } } ( S )$ . Even when exploiting only the centroids $( k = 1 0 0$ in practice), we show significant performance gains on various benchmarks.",
+        "bbox": [
+            75,
+            527,
+            472,
+            650
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Iterative coreset sampling: ${ \\hat { f } } ( S )$ is a monotonically increasing submodular function. One remark is that if there is no constrained budget on $s ,$ a subset achieving the maximum value of ${ \\hat { f } } ( S )$ is not unique. If we denote $S ^ { * }$ as a minimal set with the maximum value, $S ^ { * }$ is obtained when including only the instances closest to each instance of $\\hat { X }$ $( i . e . , | S ^ { * } | \\leq | \\hat { X } | )$ . Since we want to sample sufficiently large subset, we re-define Eq. 2 with the selection round t: $\\hat { f } ( { \\cal S } _ { t } )$ where the candidate set is $\\mathcal { U } _ { t }$ . Thus, we iterate the rounds to repeat sampling $\\boldsymbol { S } _ { t } ^ { * }$ and excluding them from the candidate set, until we reach the proper budget size (see Algorithm 1). We collect all the coreset samples into a set $\\mathcal { T } = \\mathcal { S } _ { 1 } ^ { * } \\cup \\mathcal { S } _ { 2 } ^ { * } \\cup \\cdot \\cdot \\cdot \\cup \\mathcal { S } _ { T } ^ { * }$ to merge with X.",
+        "bbox": [
+            75,
+            652,
+            472,
+            852
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Stopping criterion: However, we have no knowledge in practice if every sampled instance within the budget is sufficiently close to the target set. This necessitates stopping criterion that blocks the sampling process from continuing when the samples are no longer close to the target set. To this end, we calculate the ratio $\\hat { f } ( S _ { t } ^ { * } ) / \\hat { f } ( S _ { 1 } ^ { * } )$ at each iteration and stop the sampling process if its value is less than the threshold. This implies that we stop at iteration t if the sampled subset is not as similar as the first subset is to the target set. We filtered-out by using the threshold $\\tau = 0 . 9 5$ throughout experiments.",
+        "bbox": [
+            75,
+            854,
+            470,
+            901
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "Algorithm 1: Simple coreset sampling from open-set   \n1 Require: $E _ { \\theta } \\colon$ encoder pretrained on $X ;$   \n2 Require: $\\textstyle { \\mathcal { U } } _ { 0 } \\colon$ initial candidate set (open-set);   \n3 Require: , ⌧: coreset budget, threshold;   \n4 initialize $\\mathcal { T }  \\emptyset , t  0 ;$   \n5 replace $\\hat { X }$ cluster centroids of $X ;$   \n6 calculate $z _ { x } , z _ { u } \\gets E _ { \\theta } ( x ) , E _ { \\theta } ( u )$ for $\\forall x , u \\in \\hat { X } \\times \\mathcal { U } _ { 0 } ;$   \n7 while $| \\mathcal { T } | < B$ do   \n8 set $S _ { t } ^ { * }$ as the elements in $\\mathcal { U } _ { t }$ that are closest to   \neach element in $\\hat { X }$ (Eq. 2);   \n9 $\\mathcal { T }  \\mathcal { T } \\cup \\mathcal { S } _ { t } ^ { * } , \\ \\mathcal { U } _ { t + 1 }  \\mathcal { U } _ { t } \\setminus \\mathcal { S } _ { t } ^ { * }$   \n10 $t \\gets t + 1$   \n11 // stopping criterion   \n12 $\\mathbf { i f } \\ \\hat { f } ( S _ { t } ^ { * } ) < \\tau \\cdot \\hat { f } ( S _ { 1 } ^ { * } )$ then   \n13 stop sampling;   \n14 end   \n15 end   \n16 re-initialize ✓ and pretrain $E _ { \\theta }$ with $X \\cup \\mathcal { T } ;$",
+        "bbox": [
+            500,
+            93,
+            892,
+            386
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            404,
+            893,
+            526
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4. Experiments",
+        "text_level": 2,
+        "bbox": [
+            500,
+            539,
+            633,
+            556
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We evaluate the learned representation quality according to each pretraining dataset. We thus demonstrate, through various fine-grained target tasks, that SimCore samples an effective subset that enhances pretraining. Here, we used eleven target datasets: Aircraft [47], Cars [35], Pet [53], Birds [74], Dogs [32], Flowers [49], Action [77], Indoor [54], Textures [18], Faces [36], and Food [59]. For the open-set, we mainly used ImageNet-1k [20], while we extended to other open-sets in Section 4.2. By default, we used Sim-CLR [14] with ResNet50 architecture as the encoder. The detailed experimental setups and dataset configurations are in Appendix B.",
+        "bbox": [
+            496,
+            564,
+            895,
+            747
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.1. Performance Evaluation on Target Tasks",
+        "text_level": 2,
+        "bbox": [
+            500,
+            756,
+            849,
+            772
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Linear evaluation: Conventional SSL literature evaluates linear probing performance with frozen pretrained encoder to measure the representation quality [14, 24]. Table 2 summarizes the linear evaluation results on eleven fine-grained datasets. We note two observations from this experiment. First, we evaluated if the coreset sampled by SimCore is qualitative as pretraining data. To this end, we set the budget size t $0 p = 1 \\% 0 \\mathrm { { r } } p = 5 \\% ( i . e .$ , sampling p-ratio of the open set) and compared them with $p \\%$ random sampling strategy. In every case, SimCore outperformed the random sampling. This demonstrates that exploiting the coreset is actually crucial compared to naïvely using random samples. Second, using a number of cluster centroids of the target dataset is more advantageous than a single cluster, although SimCore with k = 1 also outperformed the random sampling.",
+        "bbox": [
+            496,
+            779,
+            895,
+            902
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "7540",
+        "bbox": [
+            482,
+            944,
+            516,
+            958
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "table",
+        "img_path": "images/da94535bcd8eb9f2970fb1c1f813b6898b5a720386d892f101967849354e8afb.jpg",
+        "table_caption": [
+            "Target dataset (X) and its number of samples",
+            "Table 2. Linear evaluation performance on eleven fine-grained datasets. We used ImageNet-1k [20] as an open-set. The ratio p is a fixed budget size to sample from the open-set, either via random sampling $( O S _ { \\mathrm { r a n d } } )$ or SimCore $( O S _ { \\mathrm { S i m C o r e } } )$ . Given that OS has 1.3M samples, $p = 1 \\%$ corresponds to 13K samples. denotes SimCore with $k = 1$ , a single cluster. Bold and underline indicate the best and the second best accuracy for each target dataset, respectively."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>pretrain</td><td>p</td><td>Aircraft 6,667</td><td>Cars 8,144</td><td>Pet 3,680</td><td>Birds 5,990</td><td>Dogs 12,000</td><td>Flowers 2,040</td><td>Action 4,000</td><td>Indoor 5,360</td><td>Textures 3,760</td><td>Faces 4,263</td><td>Food 13,296</td></tr><tr><td>X</td><td></td><td>46.56</td><td>55.42</td><td>59.23</td><td>29.27</td><td>49.88</td><td>80.14</td><td>43.76</td><td>54.10</td><td>58.78</td><td>56.63</td><td>87.99</td></tr><tr><td>OS</td><td>一</td><td>41.50</td><td>41.86</td><td>67.66</td><td>33.21</td><td>49.94</td><td>85.67</td><td>60.65</td><td>64.46</td><td>67.23</td><td>52.84</td><td>86.14</td></tr><tr><td>X+OS</td><td>=</td><td>39.88</td><td>42.92</td><td>68.22</td><td>32.88</td><td>50.42</td><td>85.34</td><td>60.61</td><td>63.66</td><td>67.98</td><td>52.76</td><td>85.90</td></tr><tr><td> $\\overline { { X + O S _ { \\mathrm { r a n d } } } }$ </td><td>1%</td><td>48.24</td><td>49.26</td><td>64.27</td><td>31.90</td><td>49.62</td><td>83.17</td><td>47.25</td><td>55.37</td><td>61.33</td><td>57.37</td><td>88.08</td></tr><tr><td> $X { + } O S _ { \\mathrm { { S i m C o r e } ^ { \\dagger } } }$ </td><td>1%</td><td>48.06</td><td>58.56</td><td>74.82</td><td>33.37</td><td>57.42</td><td>82.12</td><td>51.37</td><td>57.84</td><td>61.76</td><td>56.95</td><td>90.35</td></tr><tr><td> $X { + } O S _ { \\mathrm { { S i m C o r e } } }$ </td><td>1%</td><td>48.45</td><td>59.00</td><td>77.13</td><td>36.56</td><td>59.83</td><td>86.70</td><td>52.98</td><td>59.18</td><td>63.40</td><td>58.85</td><td>89.78</td></tr><tr><td> $\\overline { { X + O S _ { \\mathrm { r a n d } } } }$ </td><td>5%</td><td>45.75</td><td>46.03</td><td>68.38</td><td>33.63</td><td>50.24</td><td>84.52</td><td>57.27</td><td>60.71</td><td>65.80</td><td>56.05</td><td>87.75</td></tr><tr><td> $X { + } O S _ { \\mathrm { { S i m C o r e } ^ { \\dagger } } }$ </td><td>5%</td><td>45.57</td><td>50.75</td><td>80.20</td><td>35.56</td><td>64.62</td><td>85.11</td><td>64.53</td><td>68.13</td><td>66.22</td><td>58.93</td><td>89.87</td></tr><tr><td> $X { + } O S _ { \\mathrm { { S i m C o r e } } }$ </td><td>5%</td><td>47.14</td><td>52.22</td><td>81.75</td><td>39.21</td><td>66.82</td><td>87.28</td><td>66.38</td><td>70.96</td><td>68.13</td><td>59.34</td><td>90.74</td></tr><tr><td>Stopping Criterion</td><td></td><td>1.03%</td><td>0.95%</td><td>14.4%</td><td>13.7%</td><td>9.72%</td><td>7.96%</td><td>15.6%</td><td>13.5%</td><td>5.89%</td><td>0.27%</td><td>3.86%</td></tr><tr><td> $X { + } O S _ { \\mathrm { { S i m C o r e } } }$ </td><td></td><td>48.27</td><td>60.29</td><td>79.66</td><td>37.65</td><td>66.48</td><td>87.04</td><td>67.46</td><td>71.95</td><td>67.66</td><td>59.01</td><td>91.31</td></tr></table>",
+        "bbox": [
+            83,
+            107,
+            887,
+            308
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "table",
+        "img_path": "images/b313515688d478804a0b206658ce8f80f5050b43ccdeb78db0a6018ea1fbd458.jpg",
+        "table_caption": [
+            "Table 3. Linear evaluation performance with different architectures. SimCore corresponds to $X { + } O S _ { \\mathrm { S i m C o r e } }$ with a stopping criterion."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>method</td><td>architecture</td><td>pretrain</td><td>Aircraft</td><td>Cars</td><td>Pet</td><td>Birds</td></tr><tr><td>SimCLR</td><td>EfficientNet</td><td>X</td><td>25.5</td><td>37.0</td><td>58.1</td><td>27.8</td></tr><tr><td>SimCLR</td><td>EfficientNet</td><td>OS</td><td>31.6</td><td>29.5</td><td>57.8</td><td>26.5</td></tr><tr><td>SimCLR</td><td>EfficientNet</td><td>SimCore</td><td>41.7</td><td>52.8</td><td>69.5</td><td>29.6</td></tr><tr><td>SimCLR</td><td>ResNet18</td><td>X</td><td>43.4</td><td>51.9</td><td>58.2</td><td>25.9</td></tr><tr><td>SimCLR</td><td>ResNet18</td><td>OS</td><td>33.9</td><td>33.1</td><td>62.5</td><td>27.7</td></tr><tr><td>SimCLR</td><td>ResNet18</td><td>SimCore</td><td>44.5</td><td>55.1</td><td>72.7</td><td>31.3</td></tr><tr><td>SimCLR</td><td>ResNeXt50</td><td>X</td><td>45.9</td><td>56.5</td><td>63.4</td><td>28.6</td></tr><tr><td>SimCLR</td><td>ResNeXt50</td><td>OS</td><td>39.2</td><td>39.4</td><td>68.2</td><td>32.6</td></tr><tr><td>SimCLR</td><td>ResNeXt50</td><td>SimCore</td><td>49.5</td><td>59.5</td><td>81.0</td><td>37.4</td></tr><tr><td>SimCLR</td><td>ResNet101</td><td>X</td><td>49.4</td><td>54.5</td><td>64.0</td><td>29.1</td></tr><tr><td>SimCLR</td><td>ResNet101</td><td>OS</td><td>40.4</td><td>41.9</td><td>69.5</td><td>34.2</td></tr><tr><td>SimCLR</td><td>ResNet101</td><td>SimCore</td><td>50.9</td><td>58.8</td><td>83.0</td><td>39.1</td></tr></table>",
+        "bbox": [
+            88,
+            388,
+            467,
+            574
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            625,
+            472,
+            731
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Interestingly, the different trend across target datasets gives us a hint about the optimal coreset size based on the level of distribution mismatch to the open-set. For example, in datasets like Pet and Birds, OS pretraining was pretty effective, and in those datasets, SimCore took advantage of the large budget size. This implies that several target datasets require more coreset samples than do others. However, in practice, we cannot pre-define the optimal budget size, since we do not have much knowledge about an uncurated openset. Therefore, we should handle SimCore with a stopping criterion, as we already have proposed in Section 3.2.",
+        "bbox": [
+            75,
+            734,
+            472,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "table",
+        "img_path": "images/73562a4eb31b93aaad94b3a4fbf4ab09839e153c5130dcf26d31ff32999e6668.jpg",
+        "table_caption": [
+            "Table 4. Linear evaluation performance with different SSL methods. SimCore corresponds to $X { + } O S _ { \\mathrm { S i m C o r e } }$ with a stopping criterion."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>method</td><td>architecture</td><td>pretrain</td><td>Aircraft</td><td>Cars</td><td>Pet</td><td>Birds</td></tr><tr><td>BYOL</td><td>ResNet50</td><td>X</td><td>40.6</td><td>49.4</td><td>56.5</td><td>27.6</td></tr><tr><td>BYOL</td><td>ResNet50</td><td>OS</td><td>46.1</td><td>49.6</td><td>78.4</td><td>44.7</td></tr><tr><td>BYOL</td><td>ResNet50</td><td>SimCore</td><td>46.5</td><td>50.4</td><td>85.1</td><td>47.9</td></tr><tr><td>SwAV</td><td>ResNet50</td><td>X</td><td>34.5</td><td>42.4</td><td>49.4</td><td>21.6</td></tr><tr><td>SwAV</td><td>ResNet50</td><td>OS</td><td>33.8</td><td>30.0</td><td>64.2</td><td>27.3</td></tr><tr><td>SwAV</td><td>ResNet50</td><td>SimCore</td><td>45.0</td><td>45.1</td><td>80.2</td><td>36.6</td></tr><tr><td>DINO</td><td>ViT-Ti/16</td><td>X</td><td>27.3</td><td>48.2</td><td>42.4</td><td>28.5</td></tr><tr><td>DINO</td><td>ViT-Ti/16</td><td>OS</td><td>42.0</td><td>39.1</td><td>78.4</td><td>61.2</td></tr><tr><td>DINO</td><td>ViT-Ti/16</td><td>SimCore</td><td>43.2</td><td>47.2</td><td>83.3</td><td>72.6</td></tr><tr><td>MAE</td><td>ViT-B/16</td><td>X</td><td>55.9</td><td>44.7</td><td>56.3</td><td>32.2</td></tr><tr><td>MAE</td><td>ViT-B/16</td><td>OS</td><td>39.8</td><td>37.3</td><td>68.3</td><td>31.4</td></tr><tr><td>MAE</td><td>ViT-B/16</td><td>SimCore</td><td>48.1</td><td>52.4</td><td>77.8</td><td>42.1</td></tr></table>",
+        "bbox": [
+            511,
+            390,
+            892,
+            574
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Surprisingly, SimCore with a stopping criterion highly improves the accuracy by +10.5% (averaged over 11 datasets), compared to the X pretraining. This is much larger gain compared to the large-scale OS pretraining (+2.7%) and 1% random sampling (+1.3%). This is because SimCore adaptively samples a proper amount of coreset, and this amount differs by each target dataset. For Aircraft and Cars, Sim-Core sampled around 1% of ImageNet. This is a reasonable number, because in the ImageNet dataset [20], there are actually 4 aircraft-related and 10 cars-related classes (refer to Appendix A), out of 1,000 classes in total.",
+        "bbox": [
+            496,
+            625,
+            897,
+            792
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Different encoder architectures and SSL methods: In Table 3, we have applied SimCore to different architectures: EfficientNet-B0 [63], ResNet18 [29], ResNeXt50 [76], and ResNet101 [29]. Regardless of whether the encoder architecture is much smaller or larger, SimCore greatly improves pretraining on the target dataset. Moreover, we have experimented with various SSL methods, such as BYOL [24],",
+        "bbox": [
+            496,
+            795,
+            897,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "7541",
+        "bbox": [
+            482,
+            944,
+            514,
+            958
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a055b4a8bf7a9f90450b3d38c776472333b21b68dc0fa4ee33a299785a5e5723.jpg",
+        "content": "",
+        "chart_caption": [
+            "w/o OS COCO",
+            "iNaturalist Places365 ImageNet"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            501,
+            209,
+            563,
+            256
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/6b0395de31b699fdaf7599278452444ef91821c4f39f77682f1a7ddad5a485f7.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            766,
+            208,
+            828,
+            255
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/c83276e2bc35dfa107689d34a7554fa7c0935d45f4498eb7421eec2bcf873929.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            81,
+            109,
+            259,
+            218
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/9af68b164453afa306f1ee9899a0cd6f07371f86f281e10bb812b6924a690598.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b) Birds"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            279,
+            109,
+            459,
+            205
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/17a13e853d4fa4d63d030565bea035e606a71f7a6789a28ca451ec14c3e05459.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            80,
+            223,
+            261,
+            332
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/fcf8f97ec5024dc4e71417acfb292856ab4240698edae1c8553f15c071c6614e.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 3. SimCore performances compared to the X pretraining (w/o OS). In addition to ImageNet-1k, we included MS COCO, iNaturalist 2021-mini, and Places365 as an open-set. For target datasets, we used Pet and Birds for natural image datasets and Action and Indoor for unnatural image datasets."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            276,
+            222,
+            457,
+            332
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/cf83eb3bd72a77373435a87413ee62651d5a54f6283a2af9551d262f4c93a955.jpg",
+        "image_caption": [
+            "Figure 4. Selected samples of Places365 coreset (top) for Pet (left) and Birds (right) and iNaturalist coreset (bottom) for Action (left) and Indoor (right). Captions are the actual labels in each open-set."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            78,
+            421,
+            468,
+            547
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "SwAV [10], DINO [11], and MAE [27], in Table 4. SimCore consistently demonstrates the effect of merging the coreset samples, even with the recent autoencoder-based SSL.",
+        "bbox": [
+            76,
+            607,
+            470,
+            654
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "4.2. SimCore on Various Open-Sets",
+        "text_level": 2,
+        "bbox": [
+            76,
+            664,
+            352,
+            680
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Thus far, we have used ImageNet-1k benchmark [20] as the open-set, which is a well-curated dataset covering general domains [23, 64]. Drawing a coreset from ImageNet has shown large performance gains in the target tasks. However, in practice, an open-set is far from what we know about; it is rather a grouping of data arbitrarily drawn from the web or database. Here, we show that our SimCore with any open-set robustly improves pretraining because it finds a well-matched coreset. We experimented with three other open-sets: MS COCO [42], iNaturalist 2021-mini [67], and Places365 [82].",
+        "bbox": [
+            75,
+            688,
+            472,
+            854
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Figure 3 shows that SimCore consistently outperforms the pretraining without OS, while the performance of SimCore depends on the open-set. In unnatural fine-grained datasets like Action and Indoor, using iNaturalist is not as effective as ImageNet, but it offers a good coreset for Birds. As expected, for Indoor, Places365 offers the best coreset among every open-sets because it contains a lot of scenery semantics.",
+        "bbox": [
+            75,
+            854,
+            472,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "table",
+        "img_path": "images/6818e94e63156c8ab566b72298674f2bc289bc8a757ef3906e0331b0ac742fb7.jpg",
+        "table_caption": [
+            "Table 5. Linear evaluation of SimCore with uncurated open-sets."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>OS</td><td>Aircraft</td><td>Cars</td><td>Birds</td><td>Pet</td><td>Action</td><td>Indoor</td></tr><tr><td>x</td><td>46.6</td><td>55.4</td><td>29.3</td><td>59.2</td><td>43.8</td><td>54.1</td></tr><tr><td>ImageNet-1k</td><td>48.3</td><td>60.3</td><td>37.7</td><td>79.7</td><td>67.5</td><td>72.0</td></tr><tr><td>ALL</td><td>58.8</td><td>64.8</td><td>38.0</td><td>79.5</td><td>67.2</td><td>75.1</td></tr><tr><td>WebVision</td><td>48.2</td><td>59.1</td><td>36.7</td><td>80.3</td><td>67.1</td><td>72.6</td></tr><tr><td>WebFG-496</td><td>55.4</td><td>63.1</td><td>37.7</td><td>=</td><td></td><td>=</td></tr></table>",
+        "bbox": [
+            511,
+            89,
+            887,
+            171
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/94fc0ca6dd6a9f50b6e1d9e89e2de62599ef5cc4a4ee2b312477d89701057d3c.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            700,
+            208,
+            766,
+            256
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/4e4eb57592854d8543d4fd3e55beff71c25054a21239196e52b65fa962b40ca4.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a) Aircraft",
+            "(c) Pet"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            501,
+            268,
+            692,
+            316
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/27dcb1af145220d7d63f3d84e1318c643789b6a87583f3b5f8aaccc467c50859.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            697,
+            268,
+            761,
+            316
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/8fc79194f76713517746d99500000d2e1bad8bfe1ea71ab4aeed1ef86363e3b2.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b) Cars"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            761,
+            268,
+            823,
+            315
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/98289068fead48ff47c82df502c1d55786c3641dca796957e6098cc8d3bb25f2.jpg",
+        "content": "",
+        "chart_caption": [
+            "(d) Birds",
+            "Figure 5. Feature distribution map of OS (left), X (middle), and the coreset sampled by SimCore (right)."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            823,
+            270,
+            887,
+            315
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            498,
+            377,
+            893,
+            438
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Nevertheless, we have observed the unexpected gains, such as Places365 open-set for Pet target dataset. Figure 4 illustrates a few selected samples of those coresets. It is interesting to see that SimCore has found the animal images, although the actual labels correspond to the locations. Also, the iNaturalist coreset contains natural creatures that are held by humans or located in indoor. This might help in Action target, part of which are humans taking photos, fishing, or gardening, as well as in Indoor scenery target.",
+        "bbox": [
+            498,
+            439,
+            895,
+            575
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Uncurated open-sets: To demonstrate the effect of Sim-Core in the more realistic scenario, we have tested SimCore with uncurated open-sets. First, we used a combined dataset of all four pre-mentioned open-sets (ALL), to simulate the more large-scaled and heterogeneous open-set case. In addition, we further used web-crawled image dataset queried by ImageNet classes (WebVision [40]), and the images queried by Aircraft+Cars+Birds classes (WebFG-496 [62]). Interestingly, in the case of WebFG-496 that includes noisy instances, SimCore sampled slightly less of the actual crawled set for each target. For example, while WebFG-496 contains 13,508 number of queried instances for Aircraft, SimCore sampled a coreset of 8,089 instances. Table 5 demonstrates that these uncurated open-sets are comparable to the curated ones and significantly outperform the pretraining without open-sets. Indeed, SimCore could sample a useful coreset regardless of how uncurated an open-set is.",
+        "bbox": [
+            496,
+            579,
+            895,
+            838
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "4.3. Qualitative Evaluation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            845,
+            710,
+            863
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Feature distribution analysis: To analyze how the Sim-Core algorithm samples the coreset in the latent space, we visualized the feature distribution on a unit ring by Gaussian kernel density estimation in $\\mathbb { R } ^ { 2 }$ [71] (implementation details in Appendix D). The results in Figure 5 are interesting, as SimCore actually samples the instances that are closely embedded to the target data. In addition, through a comparison of the occupied areas of OS and X, we confirmed the distribution similarity of the open-set to each target dataset, indicating the sampling ratios by SimCore in Table 2 are reasonable.",
+        "bbox": [
+            498,
+            869,
+            895,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "7542",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ea75094a23b430383bda76d1ee2cdbd9792f8bdfe3837a975d55bd21489fe44c.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            84,
+            93,
+            258,
+            219
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/1766e984d3fd22a16ac01dac2b7eb4dc1540e294b5ce0af3a9c43961a6b74844.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            83,
+            228,
+            258,
+            352
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/918698c257a5d9da1d7cc3c6481e44519d5220d2ef3bbe6c946dddeae45f5e3f.jpg",
+        "image_caption": [
+            "(a) $O S _ { \\mathrm { S i m C o r e } }$ with X = Pet and {k = 1 (top), k = 100 (bottom)}"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            271,
+            93,
+            467,
+            344
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/e8a7f85c5a06e13ed9d9603583ac78c32bdac1ea9f23f992961b02dea9620ad9.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            496,
+            93,
+            671,
+            219
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/fc5cb21ac646a7086d82751f067e3e4e83606be9a474bba3068ae59f1a27bf0c.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            495,
+            224,
+            671,
+            352
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/714192c56e752f39497915015041b727d2f82207b65609615d385d053ea6f7e3.jpg",
+        "image_caption": [
+            "(b) $O S _ { \\mathrm { S i m C o r e } }$ with X = Birds and {k = 1 (top), k = 100 (bottom)}",
+            "Figure 6. Visualization of the sampled coreset by SimCore method. We plotted histograms for the top-20 classes with the largest number of samples and visualized one example image per top-12 classes. We highlighted with orange the coreset classes that look dissimilar to the target data. k is the number of centroids in k-means clustering to reduce the complexity of SimCore. The x-axis and y-axis of histograms denote the class index and the number of samples, respectively."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            495,
+            92,
+            880,
+            354
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            453,
+            472,
+            589
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Coreset visualization: We visualized which instances from the open-set are actually sampled by our SimCore algorithm. To this end, we displayed in Figure 6 the ground-truth labels of the coreset samples when the target dataset is Pet or Birds. For comparison, we also displayed the coreset by SimCore with k = 1, using a single centroid. We used the open-set as ImageNet, so the ground-truth labels of coreset samples correspond to the ImageNet classes. Note that Pet contains 12 cat breeds and 25 dog breeds [53], and Birds contains 200 bird species [74].",
+        "bbox": [
+            75,
+            597,
+            472,
+            747
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "For the Pet dataset (Figure 6a), SimCore with $k \\ = \\ 1$ sampled mostly animal images, but included data somewhat irrelevant to cats and dogs. The second most class is giant panda, the third is koala, and the eighth is guenon, a kind of monkey. On the contrary, SimCore with k = 100 sampled mostly cat or dog images, with up to top-20 classes, each being a breed of either cat or dog. Interestingly, eight out of the top-10 classes were those that overlap with the Pet class labels, such as Persian cat, Saint Bernard, etc.",
+        "bbox": [
+            75,
+            748,
+            472,
+            885
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "For the Birds dataset (Figure 6b), SimCore with k = 1 sampled a lot of irrelevant images, such as French horn, trombone, bullet train, admiral, hard disc, maillot, etc. On the contrary, SimCore with k = 100 sampled only the bird species up to the top-20 classes, including bulbul, chickadee, brambling, bee eater, house finch, goldfinch, etc.",
+        "bbox": [
+            96,
+            885,
+            470,
+            900
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/abf9c5e8cb7de5f6bd18a1f68ce4f190a91c127c42856670cf968c2fb65232bc.jpg",
+        "table_caption": [
+            "Table 6. Comparisons with Self-Training [61] and OpenMatch [56] in the OpenSemi framework, and Co-teaching [25] and DivideMix [38] in the WeblySup framework."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td>framework: Open-Set Semi-Sup.</td><td></td><td>framework: Webly Sup.</td></tr><tr><td>pretrain</td><td>method</td><td>Aircraft Cars Birds</td><td>method Aircraft Cars Birds</td></tr><tr><td>SimCore</td><td>FT (50%)</td><td>73.5 80.1 57.4</td><td>FT (100%) 84.3 89.3 70.6</td></tr><tr><td>x</td><td>SelfTrain</td><td>51.9 55.5 35.7</td><td>CoTeach 79.3 51.7 70.4</td></tr><tr><td>SimCore</td><td>SelfTrain</td><td>78.1 81.3 59.1</td><td>CoTeach 89.8 57.0 78.9</td></tr><tr><td>x</td><td>OpenMatch</td><td>70.1 70.2 52.3</td><td>DivideMix 82.2 54.4 74.5</td></tr><tr><td>SimCore</td><td>OpenMatch</td><td>83.5 89.5 66.4</td><td>DivideMix 86.5 56.5 80.0</td></tr></table>",
+        "bbox": [
+            503,
+            452,
+            887,
+            547
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            612,
+            895,
+            689
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4.4. Comparisons with Open-Set Semi-Supervised and Webly Supervised Learning",
+        "text_level": 2,
+        "bbox": [
+            500,
+            695,
+            892,
+            728
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Prior literature has similarly utilized unlabeled or noisylabeled open-sets, such as open-set semi-supervised learning (OpenSemi) [56, 61] and webly supervised learning (Webly-Sup) [15, 62]. OpenSemi and WeblySup work with predefined labels and co-train with the entire huge-scale open-set. Our OpenSSL, on the other hand, is a valuable problem itself in that a model can be pretrained without any label information and with efficient subset sampling. We thus design an experiment under each framework, setting (X / OS) as the following example: (Birds<sup>50%</sup> / Birds<sup>50%</sup>+WebFG) and (Birds<sup>100%</sup> / WebFG<sup>Birds</sup>), respectively.",
+        "bbox": [
+            496,
+            734,
+            897,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "7543",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/57c6258a9640cf7c5715f1e26d178b2a2022943979b7769fb7e6e5cbef157bfb.jpg",
+        "table_caption": [
+            "(a) kNN classification"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">pretrain</td><td colspan=\"2\">Aircraft</td><td colspan=\"2\">Cars</td><td colspan=\"2\">Pet</td><td colspan=\"2\">Birds</td></tr><tr><td>20</td><td>200</td><td>20</td><td>200</td><td>20</td><td>200</td><td>20</td><td>200</td></tr><tr><td>X</td><td>36.1</td><td>36.7</td><td>33.1</td><td>34.3</td><td>52.0</td><td>51.8</td><td>20.7</td><td>21.8</td></tr><tr><td>OS</td><td>19.3</td><td>17.7</td><td>11.4</td><td>10.9</td><td>50.4</td><td>49.0</td><td>13.9</td><td>15.1</td></tr><tr><td>SimCore</td><td>40.7</td><td>41.4</td><td>33.8</td><td>34.6</td><td>61.4</td><td>61.4</td><td>18.3</td><td>19.2</td></tr></table>",
+        "bbox": [
+            83,
+            89,
+            429,
+            166
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/2d1d2cabb6a1d0dc29bb9303f7d365505cc6e9a13441d083c87d8aa6ffae7fe5.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">pretrain</td><td colspan=\"3\">Aircraft</td><td colspan=\"3\">Cars</td><td colspan=\"3\">Pet</td><td colspan=\"3\">Birds</td></tr><tr><td>10%</td><td>20%</td><td>50%</td><td>10%</td><td>20%</td><td>50%</td><td>10%</td><td>20%</td><td>50%</td><td>10%</td><td>20%</td><td>50%</td></tr><tr><td>X</td><td>29.0</td><td>47.6</td><td>64.6</td><td>25.1</td><td>53.5</td><td>80.2</td><td>47.2</td><td>58.7</td><td>71.4</td><td>13.3</td><td>25.2</td><td>51.2</td></tr><tr><td>OS</td><td>19.6</td><td>34.1</td><td>43.9</td><td>10.8</td><td>35.7</td><td>74.1</td><td>35.7</td><td>62.3</td><td>76.9</td><td>10.1</td><td>21.0</td><td>51.2</td></tr><tr><td>SimCore</td><td>33.9</td><td>51.3</td><td>65.6</td><td>25.4</td><td>55.3</td><td>81.6</td><td>50.9</td><td>70.4</td><td>79.7</td><td>11.9</td><td>25.5</td><td>55.7</td></tr></table>",
+        "bbox": [
+            446,
+            89,
+            890,
+            165
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/284404f6d7dfd2b37e829d87daaae749d473ea126ad9e003cc40ba3cb63c1d19.jpg",
+        "table_caption": [
+            "(c) Object detection and pixel-wise segmentation"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td colspan=\"2\">Aircraft</td><td colspan=\"2\">Cars</td><td colspan=\"2\">Pet</td><td colspan=\"2\">Birds</td></tr><tr><td>pretrain</td><td>mAP</td><td> $\\mathrm { m A P 5 0 }$ </td><td>mAP</td><td>mAP50</td><td>IoUfg</td><td>IoUbg</td><td>IoUfg</td><td>IoUbg</td></tr><tr><td>X</td><td>10.8</td><td>12.7</td><td>34.7</td><td>40.0</td><td>79.1</td><td>82.0</td><td>65.3</td><td>92.6</td></tr><tr><td>OS</td><td>23.7</td><td>27.0</td><td>20.8</td><td>23.6</td><td>79.8</td><td>82.8</td><td>67.9</td><td>93.3</td></tr><tr><td>SimCore</td><td>29.6</td><td>36.8</td><td>37.6</td><td>43.2</td><td>80.0</td><td>83.1</td><td>68.4</td><td>93.4</td></tr></table>",
+        "bbox": [
+            81,
+            183,
+            478,
+            263
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/e11b8ad6f853f1a2a84f7ecdd5c385b968c7a6e6875c617a220d62e9bf1a182f.jpg",
+        "table_caption": [
+            "(b) Semi-supervised learning",
+            "(d) Multi-attribute classification",
+            "Table 7. Various downstream task performances. For the kNN classifier, we experimented with 20-nearest and 200-nearest neighbors to classify the query images. In the semi-supervised learning setup, we used the label ratio of 10%, 20%, and 50%. mAP is evaluated in the object detection, and IoU of foreground and background are evaluated in the semantic segmentation. In the multi-attribute classification, mfr., pointy, and oval denote manufacturer, pointy nose, and oval face, respectively."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td colspan=\"9\">(b) Sem-supervised learinig Aircraft Cars</td></tr><tr><td></td><td colspan=\"2\"></td><td colspan=\"2\"></td><td colspan=\"2\"></td><td colspan=\"2\">Faces</td></tr><tr><td>pretrain</td><td>mfr.</td><td>family</td><td>brand</td><td>type</td><td>pointy</td><td>oval</td><td></td><td>young smiling</td></tr><tr><td>X</td><td>21.1</td><td>40.4</td><td>67.3</td><td>78.0</td><td>66.8</td><td>83.4</td><td>93.1</td><td>93.4</td></tr><tr><td>OS</td><td>17.9</td><td>35.2</td><td>49.3</td><td>61.3</td><td>64.9</td><td>81.9</td><td>92.9</td><td>86.3</td></tr><tr><td>SimCore</td><td>21.9</td><td>41.9</td><td>70.7</td><td>80.1</td><td>67.5</td><td>83.9</td><td>93.6</td><td>93.7</td></tr></table>",
+        "bbox": [
+            490,
+            178,
+            887,
+            263
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Table 6 summarizes the comparisons with the representative methods of each learning framework. We observed two findings from Table 6. (1) When the SimCore model, using WebFG-496 as an open-set, is simply fine-tuned on each target, it outperforms OpenSemi and WeblySup methods. (2) SimCore can synergize with both frameworks, serving as an effective initialization. These results are in line with Su et al. [61], where Self-Training with SSL pretrained model was most preferred.",
+        "bbox": [
+            75,
+            362,
+            472,
+            500
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "4.5. Different Downstream Tasks",
+        "text_level": 2,
+        "bbox": [
+            75,
+            507,
+            334,
+            522
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "kNN classifier: We have shown the linear evaluation performance on each fine-grained dataset to evaluate the quality of learned representation. Here, we evaluate on another downstream task, nearest neighbor (NN) classification. The NN classification is a nonparametric way to classify test images, making the prediction via weighted voting of nearest neighbors [10, 75]. Table 7a summarizes the 20 NN and 200 NN classifier results, presenting that SimCore shows the best accuracy, except for Birds where every accuracy was low.",
+        "bbox": [
+            75,
+            530,
+            472,
+            667
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Semi-supervised learning: In addition, when part of the datasets becomes labeled by expert annotators, we can use those labels to further fine-tune the entire network. Here, we followed the semi-supervised learning protocol in [14, 24], where the randomly selected samples are annotated and used in the fine-tuning. In Table 7b, we show the results with three label ratios, each trained with 100 epochs. SimCore again showed the best results overall, by particularly large margins in Aircraft and Pet datasets. For other semi-supervised learning algorithms, refer to Appendix F.3.",
+        "bbox": [
+            75,
+            670,
+            472,
+            823
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Object detection and pixel-wise segmentation: For object detection, we used RetinaNet detector [41] with ResNet50 encoder and trained for 100 epochs. The metric is mAP evaluated as in [42], averaging over 10 IoU thresholds from 0.5 to 0.95 with a step size 0.05. mAP<sub>50</sub> is the mAP when IoU threshold is 0.5. For pixel-wise segmentation, we used DeepLabV3+ segmentation model [13] and trained for 30 epochs. In Table 7c, our SimCore-pretrained encoder could more effectively identify the vehicle objects and segregate the foreground part of pet and bird images.",
+        "bbox": [
+            75,
+            824,
+            472,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            362,
+            895,
+            439
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Multi-attribute classification: Fine-grained images are often distinguished by multiple attributes. For example, one might ask if the aircraft images could be classified by manufacturers (e.g., Boeing), families (e.g., Boeing 737), or variants (e.g., Boeing 737-700). The Cars dataset can also be identified by brands (e.g., Audi) or types (e.g., Coupe), in addition to the models (e.g., Audi TTS Coupe 2012) we used in linear evaluation. To this end, we evaluated our pretrained models on multi-attribute classification tasks of three finegrained datasets, and SimCore excelled the baselines in every task (see Table 7d).",
+        "bbox": [
+            496,
+            444,
+            895,
+            611
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "5. Conclusion",
+        "text_level": 2,
+        "bbox": [
+            500,
+            626,
+            620,
+            642
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "In this work, we present a novel OpenSSL problem, where a large-scale open-set can be utilized in self-supervised learning on a fine-grained target dataset. Thereafter, we propose SimCore algorithm, which samples the effective coreset from an open-set with semantics similar to the target dataset. We demonstrate that the coreset samples enhance representation learning for any fine-grained downstream tasks. We believe that our approach will stimulate more investigation into fine-grained SSL with the open-set in the future.",
+        "bbox": [
+            496,
+            652,
+            895,
+            789
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Acknowledgement. This work was supported by Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government (MSIT) (No. 2019-0-00075, Artificial Intelligence Graduate School Program (KAIST) and No. 2022-0-00871, Development of AI Autonomy and Knowledge Enhancement for AI Agent Collaboration).",
+        "bbox": [
+            496,
+            795,
+            895,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "7544",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            78,
+            89,
+            176,
+            106
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[1] Rahaf Aljundi, Min Lin, Baptiste Goujaud, and Yoshua Bengio. Gradient based sample selection for online continual learning. Advances in neural information processing systems, 32, 2019. 3",
+            "[2] David Arthur and Sergei Vassilvitskii. k-means++: The advantages of careful seeding. Technical report, Stanford, 2006. 4",
+            "[3] Jordan T Ash, Chicheng Zhang, Akshay Krishnamurthy, John Langford, and Alekh Agarwal. Deep batch active learning by diverse, uncertain gradient lower bounds. arXiv preprint arXiv:1906.03671, 2019. 1, 20",
+            "[4] Abhijit Bendale and Terrance Boult. Towards open world recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1893–1902, 2015. 3",
+            "[5] Abhijit Bendale and Terrance E Boult. Towards open set deep networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1563–1572, 2016. 3",
+            "[6] David Berthelot, Nicholas Carlini, Ekin D Cubuk, Alex Kurakin, Kihyuk Sohn, Han Zhang, and Colin Raffel. Remixmatch: Semi-supervised learning with distribution matching and augmentation anchoring. In International Conference on Learning Representations, 2020. 20",
+            "[7] David Berthelot, Nicholas Carlini, Ian Goodfellow, Nicolas Papernot, Avital Oliver, and Colin A Raffel. Mixmatch: A holistic approach to semi-supervised learning. Advances in neural information processing systems, 32, 2019. 16, 20",
+            "[8] Terrance E Boult, Steve Cruz, Akshay Raj Dhamija, Manuel Gunther, James Henrydoss, and Walter J Scheirer. Learning and the unknown: Surveying steps toward open world recognition. In Proceedings of the AAAI conference on artificial intelligence, volume 33, pages 9801–9807, 2019. 3",
+            "[9] Kaidi Cao, Maria Brbic, and Jure Leskovec. Open-world semi-supervised learning. arXiv preprint arXiv:2102.03526, 2021. 3",
+            "[10] Mathilde Caron, Ishan Misra, Julien Mairal, Priya Goyal, Piotr Bojanowski, and Armand Joulin. Unsupervised learning of visual features by contrasting cluster assignments. Advances in Neural Information Processing Systems, 33:9912–9924, 2020. 2, 4, 6, 8, 16",
+            "[11] Mathilde Caron, Hugo Touvron, Ishan Misra, Hervé Jégou, Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerging properties in self-supervised vision transformers. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 9650–9660, 2021. 1, 2, 4, 6, 16",
+            "[12] Guangyao Chen, Peixi Peng, Xiangqian Wang, and Yonghong Tian. Adversarial reciprocal points learning for open set recognition. arXiv preprint arXiv:2103.00953, 2021. 3",
+            "[13] Liang-Chieh Chen, Yukun Zhu, George Papandreou, Florian Schroff, and Hartwig Adam. Encoder-decoder with atrous separable convolution for semantic image segmentation. In Proceedings of the European conference on computer vision (ECCV), pages 801–818, 2018. 8",
+            "[14] Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. A simple framework for contrastive learning",
+            "of visual representations. In International conference on machine learning, pages 1597–1607. PMLR, 2020. 1, 2, 3, 4, 8, 15, 19, 20, 21",
+            "[15] Xinlei Chen and Abhinav Gupta. Webly supervised learning of convolutional networks. In Proceedings ofthe IEEE international conference on computer vision, pages 1431–1439, 2015. 3, 7",
+            "[16] Xinlei Chen and Kaiming He. Exploring simple siamese representation learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 15750–15758, 2021. 2, 4",
+            "[17] Yanbei Chen, Xiatian Zhu, Wei Li, and Shaogang Gong. Semisupervised learning under class distribution mismatch. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 34, pages 3569–3576, 2020. 3",
+            "[18] Mircea Cimpoi, Subhransu Maji, Iasonas Kokkinos, Sammy Mohamed, and Andrea Vedaldi. Describing textures in the wild. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 3606–3613, 2014. 4, 15",
+            "[19] Elijah Cole, Xuan Yang, Kimberly Wilber, Oisin Mac Aodha, and Serge Belongie. When does contrastive visual representation learning work? In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 14755–14764, 2022. 2",
+            "[20] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In 2009 IEEE conference on computer vision and pattern recognition, pages 248–255. Ieee, 2009. 2, 4, 5, 6, 15",
+            "[21] Alaaeldin El-Nouby, Gautier Izacard, Hugo Touvron, Ivan Laptev, Hervé Jegou, and Edouard Grave. Are large-scale datasets necessary for self-supervised pre-training? arXiv preprint arXiv:2112.10740, 2021. 1, 2",
+            "[22] Linus Ericsson, Henry Gouk, and Timothy M Hospedales. How well do self-supervised models transfer? In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5414–5423, 2021. 1",
+            "[23] Priya Goyal, Mathilde Caron, Benjamin Lefaudeux, Min Xu, Pengchao Wang, Vivek Pai, Mannat Singh, Vitaliy Liptchin sky, Ishan Misra, Armand Joulin, et al. Self-supervised pretraining of visual features in the wild. arXiv preprint arXiv:2103.01988, 2021. 1, 2, 6",
+            "[24] Jean-Bastien Grill, Florian Strub, Florent Altché, Corentin Tallec, Pierre Richemond, Elena Buchatskaya, Carl Doersch, Bernardo Avila Pires, Zhaohan Guo, Mohammad Gheshlaghi Azar, et al. Bootstrap your own latent-a new approach to self-supervised learning. Advances in neural information processing systems, 33:21271–21284, 2020. 1, 2, 3, 4, 5, 8, 15, 20",
+            "[25] Bo Han, Quanming Yao, Xingrui Yu, Gang Niu, Miao Xu, Weihua Hu, Ivor Tsang, and Masashi Sugiyama. Co-teaching: Robust training of deep neural networks with extremely noisy labels. Advances in neural information processing systems, 31, 2018. 7, 16",
+            "[26] Kai Han, Sylvestre-Alvise Rebuffi, Sebastien Ehrhardt, Andrea Vedaldi, and Andrew Zisserman. Automatically discovering and learning new visual categories with ranking statistics. arXiv preprint arXiv:2002.05714, 2020. 3"
+        ],
+        "bbox": [
+            84,
+            114,
+            470,
+            169
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "7545",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[27] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16000– 16009, 2022. 6, 16",
+            "[28] Kaiming He, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick. Momentum contrast for unsupervised visual representation learning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 9729–9738, 2020. 1, 2, 3, 15, 21",
+            "[29] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 2, 5",
+            "[30] Yen-Chang Hsu, Zhaoyang Lv, and Zsolt Kira. Learning to cluster in order to transfer across domains and tasks. arXiv preprint arXiv:1711.10125, 2017. 3",
+            "[31] Ashish Jaiswal, Ashwin Ramesh Babu, Mohammad Zaki Zadeh, Debapriya Banerjee, and Fillia Makedon. A survey on contrastive self-supervised learning. Technologies, 9(1):2, 2020. 2",
+            "[32] Aditya Khosla, Nityananda Jayadevaprakash, Bangpeng Yao, and Fei-Fei Li. Novel dataset for fine-grained image categorization: Stanford dogs. In Proc. CVPR workshop on fine-grained visual categorization (FGVC), volume 2. Citeseer, 2011. 4, 15",
+            "[33] Krishnateja Killamsetty, Xujiang Zhao, Feng Chen, and Rishabh Iyer. Retrieve: Coreset selection for efficient and robust semi-supervised learning. Advances in Neural Information Processing Systems, 34:14488–14501, 2021. 3",
+            "[34] Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014. 15",
+            "[35] Jonathan Krause, Michael Stark, Jia Deng, and Li Fei-Fei. 3d object representations for fine-grained categorization. In Proceedings ofthe IEEE international conference on computer vision workshops, pages 554–561, 2013. 1, 4, 15",
+            "[36] Cheng-Han Lee, Ziwei Liu, Lingyun Wu, and Ping Luo. Maskgan: Towards diverse and interactive facial image manipulation. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5549–5558, 2020. 4, 15",
+            "[37] Chunyuan Li, Jianwei Yang, Pengchuan Zhang, Mei Gao, Bin Xiao, Xiyang Dai, Lu Yuan, and Jianfeng Gao. Efficient selfsupervised vision transformers for representation learning. arXiv preprint arXiv:2106.09785, 2021. 2",
+            "[38] Junnan Li, Richard Socher, and Steven CH Hoi. Dividemix: Learning with noisy labels as semi-supervised learning. arXiv preprint arXiv:2002.07394, 2020. 7, 16",
+            "[39] Junnan Li, Caiming Xiong, and Steven CH Hoi. Mopro: Webly supervised learning with momentum prototypes. arXiv preprint arXiv:2009.07995, 2020. 3",
+            "[40] Wen Li, Limin Wang, Wei Li, Eirikur Agustsson, and Luc Van Gool. Webvision database: Visual learning and understanding from web data. arXiv preprint arXiv:1708.02862, 2017. 6",
+            "[41] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. Focal loss for dense object detection. In Proceedings of the IEEE international conference on computer vision, pages 2980–2988, 2017. 8",
+            "[42] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014. 6, 8, 15",
+            "[43] Ziwei Liu, Ping Luo, Xiaogang Wang, and Xiaoou Tang. Deep learning face attributes in the wild. In Proceedings of International Conference on Computer Vision (ICCV), December 2015. 1",
+            "[44] Ilya Loshchilov and Frank Hutter. Sgdr: Stochastic gradient descent with warm restarts. arXiv preprint arXiv:1608.03983, 2016. 15",
+            "[45] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101, 2017. 16",
+            "[46] Wei Luo, Xitong Yang, Xianjie Mo, Yuheng Lu, Larry S Davis, Jun Li, Jian Yang, and Ser-Nam Lim. Cross-x learning for fine-grained visual categorization. In Proceedings of the IEEE/CVF international conference on computer vision, pages 8242–8251, 2019. 1",
+            "[47] Subhransu Maji, Esa Rahtu, Juho Kannala, Matthew Blaschko, and Andrea Vedaldi. Fine-grained visual classification of aircraft. arXiv preprint arXiv:1306.5151, 2013. 1, 4, 15",
+            "[48] Pitu B Mirchandani and Richard L Francis. Discrete location theory. Wiley, 1990. 4",
+            "[49] Maria-Elena Nilsback and Andrew Zisserman. Automated flower classification over a large number of classes. In 2008 Sixth Indian Conference on Computer Vision, Graphics & Image Processing, pages 722–729. IEEE, 2008. 4, 15",
+            "[50] Kun-Peng Ning, Xun Zhao, Yu Li, and Sheng-Jun Huang. Active learning for open-set annotation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 41–49, 2022. 3",
+            "[51] Avital Oliver, Augustus Odena, Colin A Raffel, Ekin Dogus Cubuk, and Ian Goodfellow. Realistic evaluation of deep semi-supervised learning algorithms. Advances in neural information processing systems, 31, 2018. 3",
+            "[52] Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Representation learning with contrastive predictive coding. arXiv preprint arXiv:1807.03748, 2018. 2",
+            "[53] Omkar M Parkhi, Andrea Vedaldi, Andrew Zisserman, and CV Jawahar. Cats and dogs. In 2012 IEEE conference on computer vision and pattern recognition, pages 3498–3505. IEEE, 2012. 1, 4, 7, 15",
+            "[54] Ariadna Quattoni and Antonio Torralba. Recognizing indoor scenes. In 2009 IEEE conference on computer vision and pattern recognition, pages 413–420. IEEE, 2009. 4, 15",
+            "[55] Joshua Robinson, Ching-Yao Chuang, Suvrit Sra, and Stefanie Jegelka. Contrastive learning with hard negative samples. arXiv preprint arXiv:2010.04592, 2020. 3, 21",
+            "[56] Kuniaki Saito, Donghyun Kim, and Kate Saenko. Openmatch: Open-set consistency regularization for semi-supervised learning with outliers. arXiv preprint arXiv:2105.14148, 2021. 3, 7, 16"
+        ],
+        "bbox": [
+            78,
+            93,
+            470,
+            160
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "7546",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[57] Walter J Scheirer, Anderson de Rezende Rocha, Archana Sapkota, and Terrance E Boult. Toward open set recognition. IEEE transactions on pattern analysis and machine intelligence, 35:1757–1772, 2012. 3",
+            "[58] Ozan Sener and Silvio Savarese. Active learning for convolutional neural networks: A core-set approach. arXiv preprint arXiv:1708.00489, 2017. 3, 20",
+            "[59] Ashutosh Singla, Lin Yuan, and Touradj Ebrahimi. Food/nonfood image classification and food categorization using pretrained googlenet model. In Proceedings of the 2nd International Workshop on Multimedia Assisted Dietary Management, pages 3–11, 2016. 4, 15",
+            "[60] Kihyuk Sohn, David Berthelot, Nicholas Carlini, Zizhao Zhang, Han Zhang, Colin A Raffel, Ekin Dogus Cubuk, Alexey Kurakin, and Chun-Liang Li. Fixmatch: Simplifying semi-supervised learning with consistency and confidence. Advances in neural information processing systems, 33:596– 608, 2020. 1, 20",
+            "[61] Jong-Chyi Su, Zezhou Cheng, and Subhransu Maji. A realistic evaluation of semi-supervised learning for fine-grained classification. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 12966– 12975, 2021. 3, 7, 8, 16",
+            "[62] Zeren Sun, Yazhou Yao, Xiu-Shen Wei, Yongshun Zhang, Fumin Shen, Jianxin Wu, Jian Zhang, and Heng Tao Shen. Webly supervised fine-grained recognition: Benchmark datasets and an approach. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 10602– 10611, 2021. 3, 6, 7",
+            "[63] Mingxing Tan and Quoc Le. Efficientnet: Rethinking model scaling for convolutional neural networks. In International conference on machine learning, pages 6105–6114. PMLR, 2019. 5",
+            "[64] Yonglong Tian, Olivier J Henaff, and Aäron van den Oord. Divide and contrast: Self-supervised learning from uncurated data. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision, pages 10063–10074, 2021. 1, 2, 6",
+            "[65] Rishabh Tiwari, Krishnateja Killamsetty, Rishabh Iyer, and Pradeep Shenoy. Gcr: Gradient coreset based replay buffer selection for continual learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 99–108, 2022. 3",
+            "[66] Laurens Van der Maaten and Geoffrey Hinton. Visualizing data using t-sne. Journal of machine learning research, 9(11), 2008. 17",
+            "[67] Grant Van Horn, Oisin Mac Aodha, Yang Song, Yin Cui, Chen Sun, Alex Shepard, Hartwig Adam, Pietro Perona, and Serge Belongie. The inaturalist species classification and detection dataset. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 8769–8778, 2018. 6, 15",
+            "[68] Sagar Vaze, Kai Han, Andrea Vedaldi, and Andrew Zisserman. Open-set recognition: A good closed-set classifier is all you need. arXiv preprint arXiv:2110.06207, 2021. 3",
+            "[69] Dan Wang and Yi Shang. A new active labeling method for deep learning. In 2014 International Joint Conference on Neural Networks), pages 112–119, 2014. 20",
+            "[70] Feng Wang and Huaping Liu. Understanding the behaviour of contrastive loss. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 2495–2504, 2021. 3, 21",
+            "[71] Tongzhou Wang and Phillip Isola. Understanding contrastive representation learning through alignment and uniformity on the hypersphere. In International Conference on Machine Learning, pages 9929–9939. PMLR, 2020. 7, 17",
+            "[72] Kai Wei, Rishabh Iyer, and Jeff Bilmes. Submodularity in data subset selection and active learning. In International conference on machine learning, pages 1954–1963. PMLR, 2015. 3, 4",
+            "[73] Xiu-Shen Wei, Yi-Zhe Song, Oisin Mac Aodha, Jianxin Wu, Yuxin Peng, Jinhui Tang, Jian Yang, and Serge Belongie. Finegrained image analysis with deep learning: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2021. 1",
+            "[74] Peter Welinder, Steve Branson, Takeshi Mita, Catherine Wah, Florian Schroff, Serge Belongie, and Pietro Perona. Caltechucsd birds 200. 2010. 1, 4, 7, 15",
+            "[75] Zhirong Wu, Yuanjun Xiong, Stella X Yu, and Dahua Lin. Unsupervised feature learning via non-parametric instance discrimination. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 3733–3742, 2018. 8",
+            "[76] Saining Xie, Ross Girshick, Piotr Dollár, Zhuowen Tu, and Kaiming He. Aggregated residual transformations for deep neural networks. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 1492–1500, 2017. 5",
+            "[77] Bangpeng Yao, Xiaoye Jiang, Aditya Khosla, Andy Lai Lin, Leonidas Guibas, and Li Fei-Fei. Human action recognition by learning bases of action attributes and parts. In 2011 International conference on computer vision, pages 1331– 1338. IEEE, 2011. 4, 15",
+            "[78] Jaehong Yoon, Divyam Madaan, Eunho Yang, and Sung Ju Hwang. Online coreset selection for rehearsal-based continual learning. arXiv preprint arXiv:2106.01085, 2021. 3",
+            "[79] Jure Zbontar, Li Jing, Ishan Misra, Yann LeCun, and Stéphane Deny. Barlow twins: Self-supervised learning via redundancy reduction. In International Conference on Machine Learning, pages 12310–12320. PMLR, 2021. 3",
+            "[80] Bowen Zhang, Yidong Wang, Wenxin Hou, Hao Wu, Jindong Wang, Manabu Okumura, and Takahiro Shinozaki. Flexmatch: Boosting semi-supervised learning with curriculum pseudo labeling. Advances in Neural Information Processing Systems, 34:18408–18419, 2021. 20",
+            "[81] Zhun Zhong, Linchao Zhu, Zhiming Luo, Shaozi Li, Yi Yang, and Nicu Sebe. Openmix: Reviving known knowledge for discovering novel visual categories in an open world. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9462–9470, 2021. 3",
+            "[82] Bolei Zhou, Agata Lapedriza, Aditya Khosla, Aude Oliva, and Antonio Torralba. Places: A 10 million image database for scene recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2017. 6, 15"
+        ],
+        "bbox": [
+            78,
+            93,
+            470,
+            147
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "7547",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 10
+    }
+]

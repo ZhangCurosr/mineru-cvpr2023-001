@@ -1,0 +1,1809 @@
+[
+    {
+        "type": "text",
+        "text": "Instant-NVR: Instant Neural Volumetric Rendering for Human-object Interactions from Monocular RGBD Stream",
+        "text_level": 1,
+        "bbox": [
+            129,
+            128,
+            839,
+            174
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Yuheng Jiang<sup>1,2</sup>\\* Kaixin Yao<sup>1,2</sup>\\* Zhuo Su<sup>3</sup> Zhehao Shen<sup>1</sup> Haimin Luo<sup>1</sup> Lan Xu<sup>1</sup> <sup>1</sup>ShanghaiTech University <sup>2</sup>NeuDim <sup>3</sup>Pico IDL, ByteDance",
+        "bbox": [
+            132,
+            203,
+            834,
+            246
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            233,
+            272,
+            313,
+            290
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Convenient 4D modeling of human-object interactions is essential for numerous applications. However, monocular tracking and rendering of complex interaction scenarios remain challenging. In this paper, we propose Instant-NVR, a neural approach for instant volumetric humanobject tracking and rendering using a single RGBD camera. It bridges traditional non-rigid tracking with recent instant radiance field techniques via a multi-thread trackingrendering mechanism. In the tracking front-end, we adopt a robust human-object capture scheme to provide sufficient motion priors. We further introduce a separated instant neural representation with a novel hybrid deformation module for the interacting scene. We also provide an on-the-fly reconstruction scheme of the dynamic/static radiance fields via efficient motion-prior searching. Moreover, we introduce an online key frame selection scheme and a rendering-aware refinement strategy to significantly improve the appearance details for online novel-view synthesis. Extensive experiments demonstrate the effectiveness and efficiency of our approach for the instant generation of human-object radiance fields on the fly, notably achieving real-time photo-realistic novel view synthesis under complex human-object interactions. Project page: https://nowheretrix.github.io/Instant-NVR/.",
+        "bbox": [
+            75,
+            304,
+            470,
+            669
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction",
+        "text_level": 2,
+        "bbox": [
+            76,
+            696,
+            209,
+            714
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The accurate tracking and photo-realistic rendering for human-object interactions are critical for numerous humancentric applications like telepresence, tele-education or immersive experience in VR/AR. However, a convenient solution from monocular input, especially for on-the-fly setting, remains extremely challenging in the vision community.",
+        "bbox": [
+            75,
+            723,
+            470,
+            814
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Early high-end solutions [6, 9, 13, 18] require dense cameras for high-fidelity reconstruction. Recent approaches [11, 12, 17, 46, 47, 59, 63] need less RGB or RGBD video inputs (from 3 to 8 views) by using volumetric tracking techniques [19, 32]. Yet, the multi-view setting is still undesirable for consumer-level daily usage. Differently, the monocular method with a single handiest commercial RGBD camera is more practical and attractive. For monocular human-object modeling, most approaches [2, 15, 53, 57, 65, 66] track the rigid and skeletal motions of object and human using a pre-scanned template or parametric model. Besides, the monocular volumetric methods [32,41,43,58,64] obtain detailed geometry through depth fusion, while the recent advance [44] further extends it into the human-object setting. However, they fail to generate realistic appearance results, restricted by the limited geometry resolution.",
+        "bbox": [
+            75,
+            814,
+            470,
+            876
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/cefe7461445a2d2490e12d9ea19c6f5dea4d79a6766ed6771893da7abb35beef.jpg",
+        "image_caption": [
+            "Figure 1. Our Instant-NVR adopts a separated instant neural representation to achieve photo-realistic rendering for human-object interacting scenarios."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            501,
+            273,
+            882,
+            419
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            476,
+            893,
+            672
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Recent neural rendering advances, represented by Neural Radiance Fields (NeRF) [29], have recently enabled photorealistic rendering with dense-view supervision. Notably, some recent dynamic variants of NeRF [21, 28, 50, 51, 55, 60, 67] obtain the compelling novel-view synthesis of human activities even under monocular capturing. However, they rely on tedious and time-consuming per-scene training to fuse the temporal observations into the canonical space, thus unsuitable for on-the-fly usage like telepresence. Only recently, Instant-NGP [30] enables fast radiance field generation in seconds, bringing the possibility for on-the-fly radiance field modeling. Yet, the original Instant-NGP can only handle static scenes. Few researchers explore the onthe-fly neural rendering strategies for human-object interactions, especially for monocular setting.",
+        "bbox": [
+            496,
+            674,
+            895,
+            902
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "",
+        "bbox": [
+            106,
+            2,
+            181,
+            41
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore.",
+        "bbox": [
+            235,
+            1,
+            810,
+            46
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "Equal Contribution.",
+        "bbox": [
+            96,
+            886,
+            210,
+            900
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "595",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we present Instant-NVR – an instant neural volumetric rendering system for human-object interacting scenes using a single RGBD camera. As shown in Fig. 1, Instant-NVR enables instant photo-realistic novel view synthesis via on-the-fly generation of the radiance fields for both the rigid object and dynamic human. Our key idea is to bridge the traditional volumetric non-rigid tracking with instant radiance field techniques. Analogous to the tracking-mapping design in SLAM, we adopt a multi-thread and tracking-rendering mechanism. The tracking front-end provides online motion estimations of both the performer and object, while the rendering back-end reconstructs the radiance fields of the interaction scene to provide instant novel view synthesis with photo-realism.",
+        "bbox": [
+            75,
+            90,
+            472,
+            303
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "For the tracking front-end, we first utilize off-the-shelf instant segmentation to distinguish the human and object from the input RGBD stream. Then, we adopt an efficient non-rigid tracking scheme for both the performer and rigid object, where we adopt both embedded deformation [45] and SMPL [27] to model human motions. For the rendering back-end, inspired by Instant-NGP [30] we adopt a separate instant neural representation. Specifically, both the dynamic performer and static object are represented as implicit radiance fields with multi-scale feature hashing in the canonical space and share volumetric rendering for novel view synthesis. For the dynamic human, we further introduce a hybrid deformation module to efficiently utilize the non-rigid motion priors. Then, we modify the training process of radiance fields into a key-frame based setting, so as to enable graduate and on-the-fly optimization of the radiance fields within the rendering thread. For the dynamic one, we further propose to accelerate our hybrid deform module with a hierarchical and GPU-friendly strategy for motion-prior searching. Yet we observe that naively selecting key-frames with fixed time intervals will cause non-evenly distribution of the captured regions of the dynamic scene. It results in unbalanced radiance field optimization and severe appearance artifacts during free-view rendering. To that end, we propose an online key-frame selection scheme with a rendering-aware refinement strategy. It jointly considers the visibility and motion distribution across the selected keyframes, achieving real-time and photo-realistic novel-view synthesis for human-object interactions.",
+        "bbox": [
+            75,
+            303,
+            472,
+            741
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To summarize, our main contributions include:",
+        "bbox": [
+            96,
+            741,
+            408,
+            756
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We present the first instant neural rendering system under human-object interactions from an RGBD sensor.",
+        "bbox": [
+            94,
+            762,
+            470,
+            792
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We introduce an on-the-fly reconstruction scheme for dynamic/static radiance fields using the motion priors through a tracking-rendering mechanism.",
+        "bbox": [
+            94,
+            796,
+            470,
+            843
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We introduce an online key frame selection scheme and a rendering-aware refinement strategy to significantly improve the online novel-view synthesis.",
+        "bbox": [
+            94,
+            845,
+            470,
+            892
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2. Related Work",
+        "text_level": 2,
+        "bbox": [
+            500,
+            89,
+            643,
+            106
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Traditional Human Volumetric Capture. Human volumetric capture and reconstruction have been widely investigated to achieve detailed geometry reconstruction and accurate tracking. A series of works are proposed to make volumetric fusion more robust with SIFT features [16], multiview systems [11, 12], scene flow [54], human articulated skeleton prior [62, 64], extra IMU sensors [70], data-driven prior [43, 44], learned correspondences [5], neural deformation graph [4, 23] or implicit function [17, 63]. Starting from the pioneering work DynamicFusion [32] which benefits from the GPU solvers, the high-end solutions [11, 12] rely on the multi-view camera system and complex calibration. VolumeDeform [16] combines depth-based correspondences with sparse SIFT features to reduce drift. KillingFusion [41] and SobolevFusion [42] support topology changes via more constraints on the motion fields. Thanks to the human parametric model [27], DoubleFusion [64] proposes the two-layer representation to capture scene more robustly. UnstructuredFusion [59] extends it to an unstructured multiview setup. RobustFusion [44] further handles the challenging human-object interaction scenarios. Besides, Function4d [63] and NeuralHOFusion [17] marry the non-rigidtracking with implicit modeling. However, these methods are dedicated to getting detailed geometry without focusing on high-quality texture and most methods can not handle human-object interactions. Comparably, our approach bridges the traditional volumetric capture and neural rendering advances, achieving photo-realistic rendering results under human-object interactions.",
+        "bbox": [
+            496,
+            114,
+            895,
+            553
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Static Neural Scene Representations. Coordinates-based neural scene representations in static scenes produce impressive novel view synthesis results and show huge potential. Various data representations are adopted to obtain better performance and characteristics, such as pointclouds [1, 48, 56], voxels [26], textured meshes [25, 49], occupancy [33, 40] or SDF [34, 52]. Meanwhile, Since the vanilla NeRF which requires hours of training is timeconsuming, some NeRF extensions [30, 39, 61] are proposed to accelerate both training and rendering. Plenoctrees [61] utilizes the octree to skip the empty regions. Plenoxels [39] parameterizes the encoding using spherical harmonics on the explicit 3D volume. Instant-NGP [30] utilizes the multi-scale feature hashing and TCNN to speed up. Though its rendering speed seems possible to train on-thefly, they do not have a specific design for streaming input and only can recover static scenes. Comparably, our Instant-NVR achieves on-the-fly efficiency based on the Instant-NGP [30].",
+        "bbox": [
+            496,
+            553,
+            895,
+            840
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Dynamic Neural Scene Representations. Novel view synthesis in dynamic scenes is an important research problem. D-NeRF [38] and Non-rigid NeRF [50] leverage the displacement field to represent the motion while Nerfies [35] and HyperNeRF [36] use the SE(3) field. Moreover, some researchers focus on human reconstruction and utilize the human prior. Neuralbody anchors latent code on the SMPL [27] vertices. Humannerf [68] combines the SMPL warping and deformation net to construct the motion field. TAVA [20] learns the skinning weight for joints via root-finding and can generalize to novel pose. De-VRF [24] incorporates 4D-motion volume into the NeRF pipeline. NDR [7] defines a bijective function which naturally compatible with the cycle consistency. However, most methods rely on multi-view camera input and the training is costly. Comparably, our Instant-NVR bridges the non-rigid volumetric capture with the instant radiance field training, achieving photo-realistic rendering results from monocular RGBD stream.",
+        "bbox": [
+            496,
+            840,
+            895,
+            901
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "596",
+        "bbox": [
+            485,
+            945,
+            513,
+            957
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/defe2be03d6ab96598fcc29826d6465c6d4e9772eaf94669cc29fd032ca0e941.jpg",
+        "image_caption": [
+            "Figure 2. Our approach consists of two stages. The tracking front-end (Sec. 4.1) captures human and object motions, while the rendering back-end (Sec. 4.2) separately reconstructs the human-object radiance fields on-the-fly, for instant novel view synthesis with photo-realism."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            83,
+            88,
+            880,
+            320
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            376,
+            472,
+            603
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3. Overview",
+        "text_level": 2,
+        "bbox": [
+            76,
+            622,
+            184,
+            638
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "From monocular RGBD input, Instant-NVR bridges the real-time non-rigid capture with instant neural rendering, allowing for high-quality novel-view synthesis under humanobject interactions. As illustrated in Fig. 2, our system consists of two cooperating threads: a tracking front-end (Sec. 4.1) and a neural rendering back-end (Sec. 4.2).",
+        "bbox": [
+            75,
+            650,
+            470,
+            742
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Tracking Front-end. We extend the traditional volumetric tracking [32, 59, 64] into a human-object setting. For non-rigid human capture, we adopt the embedded deformation(ED) [45] and SMPL [27] as motion representations. For object, we directly track its rigid motions via the Iterative Closest Point(ICP) algorithm. This thread provides accurate per-frame human-object motion priors, enabling the integration of all the radiance information into the global canonical space. Note that the reconstructed volumetric geometry suffers from discrete and low-resolution artifacts.",
+        "bbox": [
+            75,
+            750,
+            472,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Thus, we only transmit the motion priors with the RGBD images to the rendering thread and discard the explicit volumetric geometry prior.",
+        "bbox": [
+            496,
+            376,
+            893,
+            422
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Neural Rendering Back-end. We extend instant radiance fields [30] to the monocular and dynamic human-centric scenes, where we maintain the canonical instant radiance fields for both dynamic human and rigid objects separately. We introduce a lightweight pose-conditioned deformation module to learn the residual motion to refine the initial warping provided by motion priors. To enable on-the-fly radiance field generation and rendering, we adapt the training process into a key frame setting with the aid of efficient motion-prior caching. We introduce a key frame selection method to jointly consider the diversity of capturing view and human pose, visibility maps, and the input image quality. We further adaptively refine the appearance output in the rendering view with more analogous spatial-temporal capturing views. Note that our rendering thread reconstructs the radiance fields online to provide instant novel view synthesis with photo realism.",
+        "bbox": [
+            496,
+            429,
+            893,
+            688
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4. Method",
+        "text_level": 2,
+        "bbox": [
+            500,
+            700,
+            591,
+            717
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4.1. Tracking Front-end",
+        "text_level": 2,
+        "bbox": [
+            500,
+            724,
+            689,
+            742
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Human Non-rigid Tracking. We follow the traditional volumetric capture methods [44, 64] to track human nonrigid motions. Specifically, we parameterize human nonrigid motions as an embedded deformation graph $W =$ $\\{ d q _ { i } , x _ { i } \\}$ , where $x _ { i }$ is the coordinates of the sampled ED node in canonical space and $d q _ { i }$ is the dual quaternions representing the corresponding rigid transformation in SE(3) space. Each 3D point $v _ { c }$ in the canonical space can be wrapped into the live space using an efficient and accurate motion interpolation method Dual-Quaternion Blend-",
+        "bbox": [
+            496,
+            750,
+            893,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "597",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/7b9c7de9ceb88fc2784953bfe7bdd22a9de7940d61be54996775364ae9807a7c.jpg",
+        "image_caption": [
+            "Figure 3. Our Neural Rendering back-end adopts a separated neural representation. Left are the input RGBD images with motions. Middle is a separate rendering engine that includes a hybrid deformation module and volumetric rendering. Right are rendering results."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            94,
+            90,
+            870,
+            306
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "ing (DQB):",
+        "bbox": [
+            76,
+            364,
+            163,
+            381
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "img_path": "images/c04ded1f21fe18c1d669d0730e990e4ac21203dc19e48ad4e24208574f7ff78f.jpg",
+        "text": "$$\n\\begin{array} { c } { \\displaystyle { D Q B ( v _ { c } ) = \\sum _ { i \\in \\mathcal { N } ( v _ { c } ) } w ( x _ { i } , v _ { c } ) d q _ { i } , } } \\\\ { \\displaystyle { \\tilde { v } _ { c } = S E 3 ( D Q B ( v _ { c } ) ) v _ { c } . } } \\end{array}\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            156,
+            388,
+            390,
+            443
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where $\\mathcal { N } ( v _ { c } )$ is a set of neighboring ED nodes of $v _ { c } ,$ $w ( x _ { i } , v _ { c } )$ is the influence weight of the i − th node x to $v _ { c }$ and formulated as $w ( x _ { i } , v _ { c } ) = e x p ( - \\| \\mathbf { v } _ { c } - \\mathbf { x } _ { i } \\| _ { 2 } ^ { 2 } / r ^ { 2 } )$ r is the influence radius (0.1 in our setting). Note that the ED-only-based human tracking is fragile since the non-rigid ICP often fails at fast articulated human motions due to losing correspondence. Therefore, we also introduce the SMPL inner body with shape parameters $\\beta$ and pose parameters θ as the skeleton prior and utilize θ with the skinning weight to wrap 3D point $v _ { c } ,$ which further constrain the ED motion tracking within a reasonable motion scale. Please refer to [64] for details about the ED-sampling and double layer motion representation.",
+        "bbox": [
+            75,
+            452,
+            470,
+            650
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To calculate the final ED-based motion, we jointly optimize the skeleton pose θ and ED non-rigid motion field W as follows:",
+        "bbox": [
+            75,
+            650,
+            468,
+            695
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "img_path": "images/48fadac7477349c1d14d95e263157928f5f3bb13847662fefc7b011baf0ebc11.jpg",
+        "text": "$$\n\\begin{array} { r } { E ( W , \\theta ) = \\lambda _ { \\mathrm { d a t a } } E _ { \\mathrm { d a t a } } + \\lambda _ { \\mathrm { b i n d } } E _ { \\mathrm { b i n d } } + \\lambda _ { \\mathrm { r e g } } E _ { \\mathrm { r e g } } + } \\\\ { \\lambda _ { \\mathrm { p r i o r } } E _ { \\mathrm { p r i o r } } + \\lambda _ { \\mathrm { p o s e } } E _ { \\mathrm { p o s e } } + \\lambda _ { \\mathrm { i n t e r } } E _ { \\mathrm { i n t e r } } . } \\end{array}\\tag{2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            88,
+            700,
+            439,
+            738
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The data term $E _ { \\mathrm { d a t a } }$ measures the point-to-plane distances between the deformed model and the current input depth map:",
+        "bbox": [
+            75,
+            746,
+            470,
+            790
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "img_path": "images/1429c120ff8d55ccd7cc3d13c57419ff3de9020ab2fcf029e5a6e7b1fdddb6aa.jpg",
+        "text": "$$\nE _ { \\mathrm { d a t a } } = \\sum _ { ( \\mathbf { v } _ { c } , \\mathbf { u } ) \\in \\mathcal { P } } \\psi ( \\mathbf { n } _ { \\mathbf { u } } ^ { T } ( \\widetilde { \\mathbf { v } } _ { c } - \\mathbf { u } ) ) ,\\tag{3}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            156,
+            789,
+            388,
+            823
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where u is a sampled point in the depth map, $\\mathbf { n } _ { \\mathbf { u } }$ is its normal, and $\\mathbf { v } _ { c }$ denotes its closest point on the fused surface. $\\mathcal { P } _ { i }$ is the set of correspondences found via a projective local search [32]. Besides, the binding term $E _ { \\mathrm { b i n d } }$ constrains both skeleton and final ED motions to be consistent while the geometry regularity term $E _ { \\mathrm { r e g } }$ produces locally as-rigid-as-possible (ARAP) motions to prevent overfitting to depth inputs. These two terms are detailed in [14, 64]. The pose prior term $E _ { \\mathrm { p r i o r } }$ from [3] penalizes the unnatural poses. Both the pose term $E _ { \\mathrm { p o s e } }$ and interaction term $E _ { \\mathrm { i n t e r } }$ are form [44] to encourage natural motion capture during human-object interactions. Note that the optimization nonlinear least squares problem in Eqn. 2 is solved using LM method with the PCG solver on GPU [12, 14].",
+        "bbox": [
+            75,
+            825,
+            470,
+            901
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/8bec3362c357ae8dcee80ff337269fb613c97d2a7385bb269833d789f19b4f85.jpg",
+        "image_caption": [
+            "Figure 4. Illustration of our online refinement strategy."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            501,
+            369,
+            887,
+            501
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            527,
+            893,
+            664
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Object Rigid Tracking. For rigid tracking of objects, we follow [44] to optimize the rigid motions and transform them to camera pose $T ^ { t }$ under the ICP framework, in which we fuse the depth map to a canonical TSDF volume to maintain the stable correspondence for robust object tracking.",
+        "bbox": [
+            498,
+            665,
+            893,
+            742
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.2. Neural Rendering Back-end",
+        "text_level": 2,
+        "bbox": [
+            500,
+            753,
+            753,
+            770
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To enable efficient photo-realistic neural rendering of the interaction scenes, our neural rendering back-end adopts a separated instant neural representation based on the on-thefly key frame selection strategy.",
+        "bbox": [
+            496,
+            779,
+            893,
+            839
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Separated instant neural representation. We design the instant neural representation to reconstruct the human and object separately. For object branch, given the RGBD image $I _ { t }$ and $D _ { t }$ with the camera pose $T ^ { t }$ as the training set, we leverage the original Instant-NGP [30] to extract the 3D point $v _ { c } ^ { o }$ features on the hash table $\\mathbf { H ^ { o } }$ and then feed them and color MLP $\\mathbf { E _ { c } ^ { o } }$ to acquire the density and color.",
+        "bbox": [
+            496,
+            840,
+            893,
+            901
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "598",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            90,
+            470,
+            151
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "For dynamic human, in contrast to recent approaches [35, 36, 38, 50] which can’t handle long sequences via pure MLP and human NeRFs [37, 55, 69] that heavily rely on SMPL [27] which do not align well with the surface and easily cause artifacts, we introduce a hybrid deformation module to efficiently leverage the motion priors. The explicit non-rigid warping and an implicit pose-conditioned deformation net jointly aggregate the corresponding point information in the canonical space.",
+        "bbox": [
+            75,
+            152,
+            470,
+            287
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Specifically, given this human non-rigid motion $\\{ d q _ { i } ^ { t } \\}$ SMPL pose $\\vec { \\theta ^ { t } }$ and a sampling point $v _ { l } ^ { h }$ at frame $t ,$ we construct the warping function to map $v _ { l } ^ { h }$ back to the canonical space $v _ { t } ^ { h }$ . We calculate the deformed ED nodes $x _ { i } ^ { t } = d q _ { i } ^ { t } x _ { i }$ and then the point $v _ { l } ^ { h }$ in the influence radius r of these nodes can be warped into canonical surface via neighboring ED nodes weight blending:",
+        "bbox": [
+            75,
+            287,
+            470,
+            396
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "img_path": "images/96623e99f50aa7348a15ae86072da1763460b1639a564c8276d4e918f226337e.jpg",
+        "text": "$$\nv _ { t } ^ { h } = S E 3 ( D Q B ^ { - 1 } ( v _ { l } ^ { h } ) ) v _ { l } ^ { h } .\\tag{4}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            165,
+            404,
+            362,
+            422
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To reduce the warping error and improve the rendering quality, we further integrate pose-conditioned deformation net here to correct the misalignment, where we concatenate the encoded $v _ { t } ^ { h }$ via hash-encoding with the human pose $ { \\vec { \\theta _ { t } } }$ and predict the residual displacement $\\delta \\boldsymbol { v } ^ { h }$ through an MLP. Finally, we feed $v _ { c } ^ { h } \\ = \\ \\overline { { v _ { t } ^ { h } } } + \\delta v ^ { h }$ into the canonical hashencoding $\\mathbf { H ^ { h } }$ , geometry as well as color MLPs $\\mathbf { E _ { g } ^ { h } } , \\mathbf { E _ { c } ^ { h } }$",
+        "bbox": [
+            75,
+            433,
+            470,
+            539
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "On-the-fly Radiance Fields. To ensure accurate tracking, hundreds of ED-nodes are maintained to query live points neighbors which is time-consuming and lead to bottlenecks. The time consumption is $O ( n )$ even if we query a small number of neighbors for each sampled point, in which n is the number of ED nodes. To enhance on-the-fly efficiency, we introduce a look-up-table-based fast search strategy here to speed up. Specifically, we only initialize the canonical KNN(k-nearest-neighbors) field in the beginning, whose resolution is $5 1 2 ^ { 3 }$ , and each voxel saves s neighboring ED nodes index(4 in our setting). We then concatenate non-rigid motions in each frame to form a look-up table. At frame $t ,$ for a voxel with index k and coordinates $v _ { k }$ in the canonical, we warp it via Eqn. 1 to the live space and obtain its corresponding voxel index $f .$ We save the canonical index k in live voxel $f .$ Afterward, for each sampling point, we can acquire the live space index $f$ and obtain the canonical index k. k links the 4 neighbor ED nodes index. Offsetting the index to frame t on the look-up-table, we can acquire the corresponding motions and calculate the blending weight as well as warped point via DQB in O(1) manner. In addition, we are able to construct the live KNN field for each voxel in $O ( 1 )$ time by utilizing custom CUDA kernels.",
+        "bbox": [
+            75,
+            537,
+            470,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Online Key Frame Selection. To achieve online performance and high quality rendering, we choose key frames to organize our neural rendering training dataset. Before choosing, we discard blurry RGB frames caused by fast motion based on the blurriness measure [10]. Besides, we observe that naively selecting key-frames with fixed time intervals brings the time-related details but causes the nonevenly distribution of the captured regions. Inspired by [22, 31], we introduce a key frame selection scheme here to keep the diversity of motion distribution and complement visibility. Specifically, we formulate the visibility map for each ED node $\\boldsymbol { x } _ { i } ^ { t } = ( x ^ { \\prime } , y ^ { \\prime } , z ^ { \\prime } )$ in frame t as follows:",
+        "bbox": [
+            496,
+            90,
+            893,
+            273
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "img_path": "images/7053a381e4a397397358c1235e8b3bb8940364bc1048dd667b72d618b0491786.jpg",
+        "text": "$$\ns _ { i } ^ { t } = \\left\\{ \\begin{array} { l } { 1 , \\quad i f \\quad | z ^ { \\prime } - D ^ { t } ( \\pi ( x _ { i } ^ { t } ) ) | < \\epsilon } \\\\ { 0 , \\quad o t h e r s i z e } \\end{array} \\right. ,\\tag{5}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            284,
+            833,
+            318
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "where $\\pi ( \\cdot )$ denotes the projection matrix, $D ^ { t } ( \\cdot )$ represents the depth value of the corresponding pixel at frame t, \u000f is the visibility degree (0.01 in our setting). we continue to define the similarity for two frames:",
+        "bbox": [
+            498,
+            328,
+            892,
+            390
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "img_path": "images/464c563bba891e2f18d87f54a04df3c17cf1558319cdb7afbb6bbb7404f0f04f.jpg",
+        "text": "$$\n\\begin{array} { c } { { E _ { h } ( t _ { 1 } , t _ { 2 } ) = \\stackrel {  } { \\beta _ { \\mathrm { p o s e } } } | \\stackrel {  } { \\theta _ { t _ { 1 } } } - \\stackrel {  } { \\theta _ { t _ { 2 } } } | ^ { 2 } + \\beta _ { \\mathrm { v i s } } \\sum _ { i } s _ { i } ^ { t _ { 1 } } \\oplus s _ { i } ^ { t _ { 2 } } + } } \\\\ { { { } } } \\\\ { { \\beta _ { \\mathrm { h } } | t _ { 1 } - t _ { 2 } | ^ { 2 } , } } \\end{array}\\tag{6}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            513,
+            400,
+            861,
+            452
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "where $\\oplus$ is the xor operation and $t _ { 1 } , t _ { 2 }$ are frame indexes.",
+        "bbox": [
+            498,
+            463,
+            882,
+            478
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "For an object with the pose $T ^ { t }$ which includes rotation $\\mathbf { R } ^ { t }$ and translation $\\vec { d } ^ { t }$ , we define the similarity as follows:",
+        "bbox": [
+            498,
+            479,
+            892,
+            511
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "img_path": "images/079ec981b0d351e2e7910f0d13feca7f6a3277c3a4cdc6cb56bc8c2cfd95f22d.jpg",
+        "text": "$$\nE _ { o } ( t _ { 1 } , t _ { 2 } ) = \\beta _ { \\mathrm { d } } \\lvert \\lvert \\vec { d ^ { t _ { 1 } } } - \\vec { d ^ { t _ { 2 } } } \\rvert \\rvert _ { 2 } ^ { 2 } + \\beta _ { \\mathrm { o } } \\lvert t _ { 1 } - t _ { 2 } \\rvert ^ { 2 } ,\\tag{7}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            545,
+            520,
+            844,
+            540
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Furthermore, we define $\\gamma$ to determine the diversity of the spatial pool. At the start time, the pool is empty and imported the first frame. Once the similarity of each two among the latest frame received from tracking and frame(s) in the pool is greater than γ, we push this frame to the pool. When the pool capacity reaches its peak (100 in our setting), we will continually update the pool using the new frame by removing the frame with the biggest similarity. In this manner, our spatial pool constantly updates in all frames.",
+        "bbox": [
+            498,
+            550,
+            893,
+            686
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To achieve photo-realistic novel-view synthesis, our Instant-NVR further refines the rendering view via training short iterations on the carefully selected frames in a spatial-temporal pool. The spatial-temporal pool includes m frames from the spatial pool, which have the most similarity with the rendering view and m latest frames received from the front-end. Our selection strategy ensures highquality rendering without losing temporal detail.",
+        "bbox": [
+            498,
+            686,
+            893,
+            809
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "4.3. Implementation Details",
+        "text_level": 2,
+        "bbox": [
+            500,
+            815,
+            717,
+            833
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To train the dynamic NeRF under human-object interactions, we first apply the semantic segmentation MIVOS [8] to decouple the scene and obtain the human and object masks separately. To assemble human and object in a novel view, we additionally render the depth maps and then combine the RGB images according to the depth occlusion. We implement our entire pipeline on GPU based on the Instant-NGP [30] using two Nvidia GeForce RTX3090 GPU. One GPU for the tracking front-end(14 GB memory consumption) and another for the neural rendering(15 GB for human branch and 4 GB for object). For deformation net, the input is the 32-dim hash feature and the 72-dim pose. The hidden layer is 4 and hidden dimension is 128. For key frame selection, we use the bigger weight for the joint rotation of the torso to domain the human pose diversity, specifically, for $\\beta _ { \\mathrm { p o s e } } ^ {  } ,$ we set each torso weight $\\beta _ { p o s e ( t o r s o ) } = 0 .$ 1 and each limbs weight as 0.02. Besides, we use the following empirically determined parameters: $\\beta _ { \\mathrm { v i s } } = 0 . 0 1 , \\beta _ { \\mathrm { h } } = 0 . 0 2 , \\beta _ { \\mathrm { d } } =$ $1 . 0 , \\beta _ { \\mathrm { o } } = 0 . 0 2 , \\gamma = 2 . 5 , \\lambda _ { \\mathrm { d a t a } } = 1 . 0 , \\lambda _ { \\mathrm { b i n d } } = 1 . 0 , \\lambda _ { \\mathrm { r e g } } =$ $4 . 0 , \\lambda _ { \\mathrm { p r i o r } } = 0 . 0 1 , \\lambda _ { \\mathrm { p o s e } } = 0 . 0 2 , \\lambda _ { \\mathrm { i n t e r } } = 1 . 0$ . For efficiency, we choose $m = 1 0$ in the spatial-temporal pool. We use the photometric loss and depth loss to supervise human NeRF and object NeRF separately as follows:",
+        "bbox": [
+            496,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "599",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/aa2cbb37fd0a32752c7e46375590ba480b5f296dc23af877f98031db76cae0aa.jpg",
+        "image_caption": [
+            "Figure 5. The rendering results of Instant-NVR on various interaction sequences, including “driving a balance car”,“shaking a bag”, and “playing a water gun”."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            88,
+            106,
+            867,
+            440
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            500,
+            470,
+            787
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "img_path": "images/1e2840dd9d75a014792ab0acc5fbce58756761d13927d6facbb1e26b98bd17f1.jpg",
+        "text": "$$\n\\begin{array} { l } { \\displaystyle \\mathcal { L } _ { \\mathrm { c o l o r } } = \\sum _ { \\mathbf { r } \\in \\mathcal { R } } \\| M ( \\mathbf { r } ) ( \\hat { \\mathbf { C } } ( \\mathbf { r } ) - \\mathbf { C } ( \\mathbf { r } ) ) \\| _ { 2 } , } \\\\ { \\displaystyle \\mathcal { L } _ { \\mathrm { d e p t h } } = \\sum _ { \\mathbf { r } \\in \\mathcal { R } } \\| M ( \\mathbf { r } ) ( \\hat { \\mathbf { D } } ( \\mathbf { r } ) - \\mathbf { D } ( \\mathbf { r } ) ) \\| _ { 1 } } \\end{array}\\tag{8}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            142,
+            801,
+            403,
+            869
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where $M ( r )$ is human or object mask.",
+        "bbox": [
+            76,
+            885,
+            331,
+            900
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "5. Experimental Results",
+        "text_level": 2,
+        "bbox": [
+            500,
+            497,
+            705,
+            515
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In this section, we compare the state-of-the-art methods and evaluate Instant-NVR on various challenging humanobject interaction scenarios. Besides, various rendering results of Instant-NVR are shown in Fig. 5, such as driving a balance car, shaking a bag and playing with a water gun. Please also kindly refer to our video.",
+        "bbox": [
+            496,
+            526,
+            893,
+            617
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "5.1. Comparison",
+        "text_level": 2,
+        "bbox": [
+            500,
+            633,
+            632,
+            648
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We compare Instant-NVR against the fusion-based methods RobustFusion [44], NeuralHOFusion [17] and NeRF-based methods NeuralBody [37], HumanNerf [68], both in efficiency and rendering quality. For comparison with fusion-based methods, as illustrated in Fig. 6 (b), RobustFusion [44] generates blurry appearance results, which are restricted by the limited geometry resolution. For a fair comparison, NeuralHOFusion [17] is modified to a single view setting and suffers from artifacts as shown in Fig. 6 (c). For NeRF-based methods, we employ the RGBD input to estimate the SMPL [27] as their prior and adopt RGBD loss terms. Both NeuralBody [37] and HumanNerf [68] give erroneous and blurry rendering results in the monocular setting $\\left( { \\mathrm { F i g . ~ } } 6 \\left( { \\mathrm { d } } { \\cdot } { \\mathrm { e } } \\right) \\right)$ ), which rely heavily on SMPL [27] and can not handle human-object interactions. In addition, training in these methods is time-consuming and novel",
+        "bbox": [
+            496,
+            659,
+            893,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "600",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/be7a76a71b4ead6c746792a7c2e02fd1b4c5e425b26a2d4cbf0ab3b6df96514c.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            99,
+            88,
+            209,
+            199
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/b94df2b737c95cca4e8cb2481d9f3649d20d06466627b07ef4aceacb28e00fba.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            232,
+            93,
+            281,
+            199
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/6d7b2b4dd4f50aa6cb3e10b562318fdb930e6a56ae646a97a685ebef4a17ad9a.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            281,
+            106,
+            349,
+            190
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/c04e1dc8646fc286cbb9c8d5714ba37eba651c86ed58ffb6bfd350c1f94bc837.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            99,
+            205,
+            209,
+            314
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/261ef85144d7e957ff202f2cccb857b910695b100389c76afc10f8bbe57740bd.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            356,
+            93,
+            405,
+            200
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/779a92bee1b1519aa8324f5dba217327bf0e2e3a0b1dda1c41130a9912291e7d.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            220,
+            207,
+            292,
+            270
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/fe0cbf45a17634b49142c9dcd2377ddd1624452f248c6ae7b2b5a57514a7e41c.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "(b)"
+        ],
+        "bbox": [
+            294,
+            198,
+            343,
+            314
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/3071ff6f33f8e65d61d8fdc1613f3fec668396c29ea2eb04bcdd499c191a4651.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            405,
+            106,
+            475,
+            199
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/9ea491431854192faf96da3a867ceb7caaff2a7d63f2ec5d0007d3fef06852d9.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            348,
+            209,
+            415,
+            271
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/4d784ab82d3579c2fd2bcd85d41d5bd7a26a56af556bc1d6c4b3ccf2727676dd.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "(c)"
+        ],
+        "bbox": [
+            419,
+            199,
+            473,
+            319
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/91a4b9ea04f5d4f8b9e7bf5d6a39dc28e9388e700de22e699a0cffb08920c242.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Method</td><td>PSNR↑</td><td>SSIM ↑</td><td>Rendering Time↓</td></tr><tr><td>RobustFusion [44]</td><td>20.59</td><td>0.935</td><td>0.123s</td></tr><tr><td>NeuralHOFusion [17]</td><td>21.09</td><td>0.942</td><td>0.151s</td></tr><tr><td>NeuralBody [37]</td><td>19.71</td><td>0.928</td><td>2.420s</td></tr><tr><td>HumanNerf [68]</td><td>18.68</td><td>0.892</td><td>5.103s</td></tr><tr><td>Ours</td><td>27.81</td><td>0.976</td><td>0.023s</td></tr></table>",
+        "bbox": [
+            89,
+            541,
+            455,
+            616
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "5.2. Evaluation",
+        "text_level": 2,
+        "bbox": [
+            78,
+            632,
+            197,
+            647
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/ee0362fb587632cc9dce72c55773e04dd094dfa689e1da538211f101e1ad6597.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            483,
+            93,
+            602,
+            199
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Online Human rendering. As shown in Fig. 7 (b), pervertex texture extracted from the fused albedo volume [14] is blurry. Naively selecting key-frames with fixed time intervals generates noising rendering results in Fig. 7 (c) due to the non-evenly distribution of the captured regions. In contrast, our online key frame selection strategy based on the diversity of motion distribution and complement visibility can achieve much clearer rendering results, as shown in Fig. 7 (d). To boost the rendering quality, the further refinement scheme can help us to achieve more photo-realistic rendering results, as shown in Fig. 7 (e). As for quantitative analysis, we evaluate the rendering quality in Tab. 2, which highlights the contributions of each component.",
+        "bbox": [
+            75,
+            656,
+            470,
+            854
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/261a769ccc593a25c975dfe9c5992726e8a6c0bdc03353b3052bbed9433bcb4f.jpg",
+        "image_caption": [
+            "Table 1. Comparison against fusion and NeRF-based methods."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            478,
+            204,
+            545,
+            270
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Online Object Rendering. As for the evaluation of online object rendering in Fig. 8, we can observe that per-vertex texture failed to generate high-quality appearance which is view synthesis remains slow. In contrast, our Instant-NVR achieves more detailed and photo-realistic rendering results under human-object interactions, as shown in Fig. 6 (f). The quantitative results in Tab. 1 also demonstrate that our approach can achieve consistently better rendering quality and achieve efficient training as well as rendering speed to support on-the-fly performance. Note that both Neural-Body [37] and HumanNerf [68] take several hours to train, while training for our method is online.",
+        "bbox": [
+            75,
+            854,
+            470,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/9f20b9f9e9f9d1c051b82b5ed7ca8fdb314c96341b7f62b6ca71b2dbb652423f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            795,
+            107,
+            862,
+            171
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/b5df50ba637fe104ef92bb099d9c6a680c114cd3049be09ebeb985480e6c9d0e.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "(d)"
+        ],
+        "bbox": [
+            547,
+            199,
+            602,
+            319
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/e89f5185b2f92124548aafa02b237739a1917c856904fb8e15df0c1e87390dfa.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            616,
+            205,
+            686,
+            271
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/2f237a7f24bfd2aed220893bd0b4736fa19b887df95821be10307c915dd657e1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            746,
+            93,
+            794,
+            202
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/40ee688722b97f99a2aaedba97519ecab06255c9c3a76115b4d1beb75d5a10e0.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "Figure 6. Qualitative comparison with fusion-based methods and NeRF-based methods. (a) Reference view. (b) RobustFusion [44] (c) NeuralHOFusion [17] (d) NeuralBody [37] (e) HumanNerf [68] (f) NeuralHOFusion [17] (d) NeuralBody [37] (e) HumanNerf [68] (f) Ours"
+        ],
+        "bbox": [
+            687,
+            198,
+            745,
+            320
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            349,
+            472,
+            515
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/3f4101790e6765f7a672007b27035a40d61e2eb159e9eb90e34e7e64c9885e05.jpg",
+        "image_caption": [],
+        "image_footnote": [
+            "(e)",
+            "(f)"
+        ],
+        "bbox": [
+            746,
+            200,
+            867,
+            319
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/368971fff2382c01fa95fbc0d4585563d5557fa6292dfbf3baefe277aeebb1bf.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            501,
+            381,
+            588,
+            445
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/5e77d6b20f7506df602e7f43796ef92d29bc912efcf9181bf220a10dbe79a7c5.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            501,
+            449,
+            588,
+            512
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/0182be098d63ce74c142ba034c5f1c1c50dbcf5d96fd51e4edfb92c4e13e81dd.jpg",
+        "image_caption": [
+            "(b)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            589,
+            377,
+            660,
+            513
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/17a67eef1ebe22f2841b11ddd1b7a3918106d5605b23ed9a6a0efc64488e5591.jpg",
+        "image_caption": [
+            "(c)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            661,
+            376,
+            728,
+            515
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/1315fa1a961af5edf83870ab4f608f539b630e767f738d549f2737f82548bb25.jpg",
+        "image_caption": [
+            "(d)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            730,
+            376,
+            802,
+            515
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/08460d3a73d0c4b62c7a2fd2d92ae1dcdf5abc22dc7bd7a138e493032adfcd9f.jpg",
+        "image_caption": [
+            "(e)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            802,
+            375,
+            888,
+            515
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/3f1c11553e76c7601ae28bf1e06abcfcefa54c1557c5a0f8fe45d121c1ea6910.jpg",
+        "table_caption": [
+            "Figure 7. Quantitative evaluation of Online Human Rendering. (a) Input image; (b) Per-vertex texture; (c) Key frame selection using fixed interval; (c) Key frame selection w/o refinement; (d) Key frame selection w refinement.",
+            "Table 2. Quantitative evaluation of Online Human Rendering."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Method</td><td>PSNR ↑</td><td>SSIM↑</td><td>MAE↓</td></tr><tr><td>Per-vertex texture</td><td>19.710</td><td>0.902</td><td>3.176</td></tr><tr><td>Key frame selection using fixed interval</td><td>23.071</td><td>0.922</td><td>1.571</td></tr><tr><td>Key frame selection w/o refinement</td><td>25.768</td><td>0.949</td><td>1.229</td></tr><tr><td>Key frame selection w refinement</td><td>28.255</td><td>0.972</td><td>0.534</td></tr></table>",
+        "bbox": [
+            513,
+            613,
+            877,
+            672
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "restricted by the limited geometry resolution. Moreover, naively selecting key-frames with fixed time interval brings the noises. Fig. 8 (d) shows that applying our key frame selection strategy without refinement is still unclear. In contrast, we can achieve the best rendering results with our full training pipeline. Moreover, the quantitative evaluation is as demonstrated in Tab. 3, in which our full pipeline with the online key frame selection and rendering refinement achieves the highest accuracy.",
+        "bbox": [
+            496,
+            702,
+            893,
+            838
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Run-time Evaluation. In Tab. 4, we list the run-time of each step in our pipeline, including both the tracking frontend and the neural rendering back-end. For tracking frontend, the rigid tracking of the object takes 40ms while the human non-rigid tracking takes 62ms. Besides, the deformation net costs 5ms. For rendering back-end, training without fast search strategy takes 205.53ms while using our fast search scheme, the training time reduces to 17.95ms. Besides, we use 15.38ms for the rendering process.",
+        "bbox": [
+            498,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "601",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/6774c8210abe32589ff1a51534d2d1e844ce10d53582e14be4935c5bbb758b54.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            78,
+            89,
+            151,
+            140
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/1a9ebc06f5043bcf252aafeb57381ab4282678d10cb4153b0f484476c988fe37.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            81,
+            151,
+            151,
+            207
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/d3e47b94bb7567224944e026e3bc2e66cce54f90e3926602acfee20170cb6b52.jpg",
+        "image_caption": [
+            "(b)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            153,
+            89,
+            228,
+            207
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/b7d29e4af6e8f061a4f5e93ba15beccef671970cd94b3e9769f1adb6a301fca0.jpg",
+        "image_caption": [
+            "(c)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            230,
+            88,
+            308,
+            205
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/ee7e72364a974ad059fad2f811ad2fea111986fa7e31acf2ff15e826998c50fd.jpg",
+        "image_caption": [
+            "(d)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            308,
+            89,
+            385,
+            205
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/c33411f4b5a01d562e8456a4a46acec07c66d9113c793aa26e45856740be66ea.jpg",
+        "image_caption": [
+            "(e)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            387,
+            89,
+            464,
+            207
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/8f4db6374783c71068c45ed466366ad9c96bcd115a1490452588397a0c2c626a.jpg",
+        "table_caption": [
+            "Figure 8. Quantitative evaluation of Online Object Rendering. (a) Input image; (b) Per-vertex texture; (c) Key frame selection using fixed interval; (c) Key frame selection w/o refinement ; (d) Key frame selection w refinement.",
+            "Table 3. Quantitative evaluation of Online Object Rendering."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Method</td><td>PSNR↑</td><td>SSIM↑</td><td>MAE↓</td></tr><tr><td>Per-vertex texture</td><td>21.253</td><td>0.944</td><td>4.431</td></tr><tr><td>Key frame selection using fixed interval</td><td>25.248</td><td>0.954</td><td>1.043</td></tr><tr><td>Key frame selection w/o refinement</td><td>26.747</td><td>0.965</td><td>0.931</td></tr><tr><td>Key frame selection w refinement</td><td>28.826</td><td>0.977</td><td>0.615</td></tr></table>",
+        "bbox": [
+            91,
+            309,
+            452,
+            367
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/d91c7994cc02831afaa1f7f4dc8d2776c359f1b3a5ef3c210234efd6c4895ce3.jpg",
+        "table_caption": [
+            "Table 4. Quantitative evaluation of Run-time"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Procedure</td><td>Time</td></tr><tr><td>rigid tracking non-rigid-tracking</td><td>40ms 62ms</td></tr><tr><td>deformation net</td><td>5ms</td></tr><tr><td>training w/o fast search</td><td>205.53ms</td></tr><tr><td>training w fast search</td><td>17.95ms</td></tr><tr><td>rendering</td><td>23.38ms</td></tr></table>",
+        "bbox": [
+            111,
+            401,
+            433,
+            488
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/5fbc5a0e927a11fe5b05ce7c6e7e35629a20a40447ccb9e008130ae644a0e9ba.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            78,
+            508,
+            163,
+            593
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/664f58756756e377f089282bba8b08b681928dc639d517578c8100060fecd620.jpg",
+        "image_caption": [
+            "(b)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            165,
+            510,
+            222,
+            590
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/aad00ac55167c23434643ba79a2f9d9e05e43ebfa9eafd10f8b9023b65e5c2ba.jpg",
+        "image_caption": [
+            "(c)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            223,
+            511,
+            281,
+            590
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/72f139cc662c91a110e8d5f58162dc443e52826a87e8056b1c16faa26c4fb031.jpg",
+        "image_caption": [
+            "(d)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            284,
+            508,
+            351,
+            593
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/6683bdf645b94a825e578ae3dc23e083eaea1bea45390696860ed143b312fb85.jpg",
+        "image_caption": [
+            "(e)",
+            "(f)",
+            "Figure 9. Evaluation of the hybrid deformation module. (a), (d) are the reference views. (b), (e) are the results with only deform block. (c),(f) use our deform block with the aid of deform net."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            352,
+            511,
+            457,
+            594
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            670,
+            470,
+            746
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Hybrid Deformation Module Evaluation. We conduct further evaluation of our hybrid deformation module to demonstrate its advantages. As shown in Fig. 9 (b)(e), employing only the explicit deform block results in misalignment between the ground truth and warped space, leading to blurry images and erroneous silhouettes. Conversely, by utilizing the deform block with the aid of implicit deform net to learn the residual displacement in Fig. 9 (c)(f), the rendering results outcome exhibit superior alignment and significantly enhance texture.",
+        "bbox": [
+            75,
+            750,
+            470,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "5.3. Limitation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            90,
+            619,
+            106
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "As the first instant neural rendering system from an RGBD sensor that performs real-time and photo-realistic novel-view synthesis under human-object interactions, the proposed Instant-NVR still has some limitations. First, although we adopt the hybrid deformation module to efficiently utilize the non-rigid motion priors since our method is in monocular RGB-D camera setting, non-rigid fusion fails when facing the fast movement and leads to inaccurate priors which affect the on-the-fly rendering. Due to limited resolution and inherent noise of the depth input, our method cannot reconstruct the extremely fine details of the performer, such as the fingers. Data-driven techniques on different human parts will be critical for such problem. Besides, Instant-NVR is committed to rendering photo-realistic results on-the-fly. Therefore, we choose the density field as geometry representation, analogous to Instant-NGP [30]. It is promising to integrate other SDF representations [7, 52], which can generate a more delicate geometry. Furthermore, to ensure efficient transmission between tracking front-end and rendering back-end, we discard the volumetric explicit geometry priors produced by the tracking step. It is an interesting direction to explore more complementary between tracking and rendering.",
+        "bbox": [
+            496,
+            118,
+            893,
+            467
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "6. Conclusion",
+        "text_level": 2,
+        "bbox": [
+            500,
+            492,
+            619,
+            508
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "We have presented a practical neural tracking and rendering approach for human-object interaction scenes using a single RGBD camera. By bridging traditional non-rigid tracking with recent instant radiance field techniques, our system achieves a photo-realistic free-viewing experience for human-object scenes on the fly. Our non-rigid tracking robustly provides sufficient motion priors for both the performer and the object. Our separated instant neural representation with hybrid deformation and efficient motionprior searching enables the on-the-fly reconstruction of both the dynamic and static radiance fields. Our online key frame selection with a rendering-aware refinement strategy further provides a more vivid and detailed novel-view synthesis for our online setting. Our experimental results demonstrate the effectiveness of Instant-NVR for the instant generation of dynamic radiance fields and photo-realistic novel view synthesis of human-object interactions in real time. We believe that our approach is a critical step to virtual but realistic teleport human-object interactions, with many potential applications like consumer-level telepresence in VR/AR.",
+        "bbox": [
+            496,
+            522,
+            893,
+            825
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Acknowledgements. This work was supported by Shanghai YangFan Program (21YF1429500), Shanghai Local college capacity building program (22010502800). We also acknowledge support from Shanghai Frontiers Science Center of Human-centered Artificial Intelligence (ShangHAI).",
+        "bbox": [
+            498,
+            825,
+            893,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "602",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            78,
+            89,
+            176,
+            106
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[1] Kara-Ali Aliev, Artem Sevastopolsky, Maria Kolos, Dmitry Ulyanov, and Victor Lempitsky. Neural point-based graphics. In European Conference on Computer Vision, pages 696–712. Springer, 2020. 2",
+            "[2] Bharat Lal Bhatnagar, Xianghui Xie, Ilya Petrov, Cristian Sminchisescu, Christian Theobalt, and Gerard Pons-Moll. Behave: Dataset and method for tracking human object interactions. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR). IEEE, jun 2022. 1",
+            "[3] Federica Bogo, Angjoo Kanazawa, Christoph Lassner, Peter Gehler, Javier Romero, and Michael J. Black. Keep it smpl: Automatic estimation of 3d human pose and shape from a single image. In Bastian Leibe, Jiri Matas, Nicu Sebe, and Max Welling, editors, Computer Vision – ECCV 2016, pages 561–578, Cham, 2016. Springer International Publishing. 4",
+            "[4] Aljaz Bozic, Pablo Palafox, Michael Zollhofer, Justus Thies, Angela Dai, and Matthias Nießner. Neural deformation graphs for globally-consistent non-rigid reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1450–1459, 2021. 2",
+            "[5] Aljaz Bozic, Michael Zollhofer, Christian Theobalt, and Matthias Nießner. Deepdeform: Learning non-rigid rgb-d reconstruction with semi-supervised data. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7002–7012, 2020. 2",
+            "[6] Derek Bradley, Tiberiu Popa, Alla Sheffer, Wolfgang Heidrich, and Tamy Boubekeur. Markerless garment capture. In ACM SIGGRAPH 2008 papers, pages 1–9. 2008. 1",
+            "[7] Hongrui Cai, Wanquan Feng, Xuetao Feng, Yan Wang, and Juyong Zhang. Neural surface reconstruction of dynamic scenes with monocular rgb-d camera. In Thirty-sixth Conference on Neural Information Processing Systems (NeurIPS), 2022. 3, 8",
+            "[8] Ho Kei Cheng, Yu-Wing Tai, and Chi-Keung Tang. Modular interactive video object segmentation: Interaction-to-mask, propagation and difference-aware fusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5559–5568, 2021. 5",
+            "[9] Alvaro Collet, Ming Chuang, Pat Sweeney, Don Gillett, Dennis Evseev, David Calabrese, Hugues Hoppe, Adam Kirk, and Steve Sullivan. High-quality streamable free-viewpoint video. ACM Transactions on Graphics (TOG), 34(4):69, 2015. 1",
+            "[10] Frederique Crete, Thierry Dolmiere, Patricia Ladret, and Marina Nicolas. The blur effect: perception and estimation with a new no-reference perceptual blur metric. In Human vision and electronic imaging XII, volume 6492, pages 196– 206. SPIE, 2007. 5",
+            "[11] Mingsong Dou, Philip Davidson, Sean Ryan Fanello, Sameh Khamis, Adarsh Kowdle, Christoph Rhemann, Vladimir Tankovich, and Shahram Izadi. Motion2fusion: Realtime volumetric performance capture. ACM Trans. Graph., 36(6):246:1–246:16, Nov. 2017. 1, 2",
+            "[12] Mingsong Dou, Sameh Khamis, Yury Degtyarev, Philip Davidson, Sean Ryan Fanello, Adarsh Kowdle, Sergio Orts Escolano, Christoph Rhemann, David Kim, Jonathan Taylor,",
+            "et al. Fusion4d: Real-time performance capture of challenging scenes. ACM Transactions on Graphics (ToG), 35(4):1– 13, 2016. 1, 2, 4",
+            "[13] Kaiwen Guo, Peter Lincoln, Philip Davidson, Jay Busch, Xueming Yu, Matt Whalen, Geoff Harvey, Sergio Orts-Escolano, Rohit Pandey, Jason Dourgarian, et al. The relightables: Volumetric performance capture of humans with realistic relighting. ACM Transactions on Graphics (TOG), 38(6):1–19, 2019. 1",
+            "[14] Kaiwen Guo, Feng Xu, Tao Yu, Xiaoyang Liu, Qionghai Dai, and Yebin Liu. Real-time geometry, albedo and motion reconstruction using a single rgbd camera. ACM Transactions on Graphics (TOG), 2017. 4, 7",
+            "[15] Sanjay Haresh, Xiaohao Sun, Hanxiao Jiang, Angel X Chang, and Manolis Savva. Articulated 3d human-object interactions from rgb videos: An empirical analysis of approaches and challenges. In 2022 International Conference on 3D Vision (3DV). IEEE, 2022. 1",
+            "[16] Matthias Innmann, Michael Zollhofer, Matthias Nießner,¨ Christian Theobalt, and Marc Stamminger. Volumedeform: Real-time volumetric non-rigid reconstruction. In European Conference on Computer Vision, pages 362–379. Springer, 2016. 2",
+            "[17] Yuheng Jiang, Suyi Jiang, Guoxing Sun, Zhuo Su, Kaiwen Guo, Minye Wu, Jingyi Yu, and Lan Xu. Neuralhofusion: Neural volumetric rendering under human-object interactions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6155– 6165, 2022. 1, 2, 6, 7",
+            "[18] Hanbyul Joo, Tomas Simon, and Yaser Sheikh. Total capture: A 3d deformation model for tracking faces, hands, and bodies. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), June 2018. 1",
+            "[19] Hao Li, Bart Adams, Leonidas J Guibas, and Mark Pauly. Robust single-view geometry and motion reconstruction. ACM Transactions on Graphics (ToG), 28(5):1–10, 2009. 1",
+            "[20] Ruilong Li, Julian Tanke, Minh Vo, Michael Zollhofer, Jurgen Gall, Angjoo Kanazawa, and Christoph Lassner. Tava: Template-free animatable volumetric actors. 2022. 3",
+            "[21] Tianye Li, Mira Slavcheva, Michael Zollhoefer, Simon Green, Christoph Lassner, Changil Kim, Tanner Schmidt, Steven Lovegrove, Michael Goesele, and Zhaoyang Lv. Neural 3d video synthesis, 2021. 1",
+            "[22] Zhe Li, Tao Yu, Zerong Zheng, Kaiwen Guo, and Yebin Liu. Posefusion: Pose-guided selective fusion for single-view human volumetric capture. In IEEE Conference on Computer Vision and Pattern Recognition, June 2021. 5",
+            "[23] Wenbin Lin, Chengwei Zheng, Jun-Hai Yong, and Feng Xu. Occlusionfusion: Occlusion-aware motion estimation for real-time dynamic 3d reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1736–1745, 2022. 2",
+            "[24] Jia-Wei Liu, Yan-Pei Cao, Weijia Mao, Wenqiao Zhang, David Junhao Zhang, Jussi Keppo, Ying Shan, Xiaohu Qie, and Mike Zheng Shou. Devrf: Fast deformable voxel radiance fields for dynamic scenes. arXiv preprint arXiv:2205.15723, 2022. 3"
+        ],
+        "bbox": [
+            84,
+            114,
+            468,
+            170
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "603",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[25] Lingjie Liu, Weipeng Xu, Michael Zollhoefer, Hyeongwoo Kim, Florian Bernard, Marc Habermann, Wenping Wang, and Christian Theobalt. Neural rendering and reenactment of human actor videos. ACM Transactions on Graphics (TOG), 38(5):1–14, 2019. 2",
+            "[26] Stephen Lombardi, Tomas Simon, Jason Saragih, Gabriel Schwartz, Andreas Lehrmann, and Yaser Sheikh. Neural volumes: Learning dynamic renderable volumes from images. ACM Trans. Graph., 38(4):65:1–65:14, July 2019. 2",
+            "[27] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J. Black. Smpl: A skinned multiperson linear model. ACM Trans. Graph., 34(6):248:1– 248:16, Oct. 2015. 2, 3, 5, 6",
+            "[28] Haimin Luo, Teng Xu, Yuheng Jiang, Chenglin Zhou, Qiwei Qiu, Yingliang Zhang, Wei Yang, Lan Xu, and Jingyi Yu. Artemis: Articulated neural pets with appearance and motion synthesis. ACM Trans. Graph., 41(4), jul 2022. 1",
+            "[29] Ben Mildenhall, Pratul P. Srinivasan, Matthew Tancik, Jonathan T. Barron, Ravi Ramamoorthi, and Ren Ng. Nerf: Representing scenes as neural radiance fields for view synthesis. In Andrea Vedaldi, Horst Bischof, Thomas Brox, and Jan-Michael Frahm, editors, Computer Vision – ECCV 2020, pages 405–421, Cham, 2020. Springer International Publishing. 1",
+            "[30] Thomas Muller, Alex Evans, Christoph Schied, and Alexan-¨ der Keller. Instant neural graphics primitives with a multiresolution hash encoding. ACM Trans. Graph., 41(4):102:1– 102:15, July 2022. 1, 2, 3, 5, 6, 8",
+            "[31] Armin Mustafa, Hansung Kim, and Adrian Hilton. 4d match trees for non-rigid surface alignment. In European Conference on Computer Vision, pages 213–229. Springer, 2016. 5",
+            "[32] Richard A Newcombe, Dieter Fox, and Steven M Seitz. Dynamicfusion: Reconstruction and tracking of non-rigid scenes in real-time. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 343–352, 2015. 1, 2, 3, 4",
+            "[33] Michael Oechsle, Songyou Peng, and Andreas Geiger. Unisurf: Unifying neural implicit surfaces and radiance fields for multi-view reconstruction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 5589–5599, 2021. 2",
+            "[34] Jeong Joon Park, Peter Florence, Julian Straub, Richard Newcombe, and Steven Lovegrove. Deepsdf: Learning continuous signed distance functions for shape representation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2019. 2",
+            "[35] Keunhong Park, Utkarsh Sinha, Jonathan T Barron, Sofien Bouaziz, Dan B Goldman, Steven M Seitz, and Ricardo Martin-Brualla. Nerfies: Deformable neural radiance fields. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 5865–5874, 2021. 3, 5",
+            "[36] Keunhong Park, Utkarsh Sinha, Peter Hedman, Jonathan T. Barron, Sofien Bouaziz, Dan B Goldman, Ricardo Martin-Brualla, and Steven M. Seitz. Hypernerf: A higherdimensional representation for topologically varying neural radiance fields. ACM Trans. Graph., 40(6), dec 2021. 3, 5",
+            "[37] Sida Peng, Yuanqing Zhang, Yinghao Xu, Qianqian Wang, Qing Shuai, Hujun Bao, and Xiaowei Zhou. Neural body: Implicit neural representations with structured latent codes for novel view synthesis of dynamic humans. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9054–9063, 2021. 5, 6, 7",
+            "[38] Albert Pumarola, Enric Corona, Gerard Pons-Moll, and Francesc Moreno-Noguer. D-nerf: Neural radiance fields for dynamic scenes. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 10318–10327, 2021. 2, 5",
+            "[39] Sara Fridovich-Keil and Alex Yu, Matthew Tancik, Qinhong Chen, Benjamin Recht, and Angjoo Kanazawa. Plenoxels: Radiance fields without neural networks. In CVPR, 2022. 2",
+            "[40] Ruizhi Shao, Hongwen Zhang, He Zhang, Mingjia Chen, Yanpei Cao, Tao Yu, and Yebin Liu. Doublefield: Bridging the neural surface and radiance fields for high-fidelity human reconstruction and rendering. In CVPR, 2022. 2",
+            "[41] Miroslava Slavcheva, Maximilian Baust, Daniel Cremers, and Slobodan Ilic. Killingfusion: Non-rigid 3d reconstruction without correspondences. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 1386–1395, 2017. 1, 2",
+            "[42] Miroslava Slavcheva, Maximilian Baust, and Slobodan Ilic. Sobolevfusion: 3d reconstruction of scenes undergoing free non-rigid motion. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 2646–2655, 2018. 2",
+            "[43] Zhuo Su, Lan Xu, Zerong Zheng, Tao Yu, Yebin Liu, and Lu Fang. Robustfusion: Human volumetric capture with datadriven visual cues using a rgbd camera. In Andrea Vedaldi, Horst Bischof, Thomas Brox, and Jan-Michael Frahm, editors, Computer Vision – ECCV 2020, pages 246–264, Cham, 2020. Springer International Publishing. 1, 2",
+            "[44] Zhuo Su, Lan Xu, Dawei Zhong, Zhong Li, Fan Deng, Shuxue Quan, and Lu Fang. Robustfusion: Robust volumetric performance reconstruction under human-object interactions from monocular rgbd stream. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2022. 1, 2, 3, 4, 6, 7",
+            "[45] Robert W Sumner, Johannes Schmid, and Mark Pauly. Embedded deformation for shape manipulation. ACM Transactions on Graphics (TOG), 26(3):80, 2007. 2, 3",
+            "[46] Guoxing Sun, Xin Chen, Yizhang Chen, Anqi Pang, Pei Lin, Yuheng Jiang, Lan Xu, Jingya Wang, and Jingyi Yu. Neural free-viewpoint performance rendering under complex human-object interactions. In Proceedings of the 29th ACM International Conference on Multimedia, 2021. 1",
+            "[47] Xin Suo, Yuheng Jiang, Pei Lin, Yingliang Zhang, Minye Wu, Kaiwen Guo, and Lan Xu. Neuralhumanfvv: Realtime neural volumetric human performance rendering using rgb cameras. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6226– 6237, 2021. 1",
+            "[48] Xin Suo, Minye Wu, Yanshun Zhang, Yingliang Zhang, Lan Xu, Qiang Hu, and Jingyi Yu. Neural3d: Light-weight neural portrait scanning via context-aware correspondence learning."
+        ],
+        "bbox": [
+            78,
+            93,
+            470,
+            160
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "604",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "In Proceedings of the 28th ACM International Conference on Multimedia, pages 3651–3660, 2020. 2",
+            "[49] Justus Thies, Michael Zollhofer, and Matthias Nießner. De-¨ ferred neural rendering: Image synthesis using neural textures. ACM Transactions on Graphics (TOG), 38(4):1–12, 2019. 2",
+            "[50] Edgar Tretschk, Ayush Tewari, Vladislav Golyanik, Michael Zollhofer, Christoph Lassner, and Christian Theobalt. Non-¨ rigid neural radiance fields: Reconstruction and novel view synthesis of a dynamic scene from monocular video. In IEEE International Conference on Computer Vision (ICCV). IEEE, 2021. 1, 2, 5",
+            "[51] Liao Wang, Jiakai Zhang, Xinhang Liu, Fuqiang Zhao, Yanshun Zhang, Yingliang Zhang, Minye Wu, Jingyi Yu, and Lan Xu. Fourier plenoctrees for dynamic radiance field rendering in real-time. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 13524–13534, 2022. 1",
+            "[52] Peng Wang, Lingjie Liu, Yuan Liu, Christian Theobalt, Taku Komura, and Wenping Wang. Neus: Learning neural implicit surfaces by volume rendering for multi-view reconstruction. NeurIPS, 2021. 2, 8",
+            "[53] Xi Wang, Gen Li, Yen-Ling Kuo, Muhammed Kocabas, Emre Aksan, and Otmar Hilliges. Reconstructing actionconditioned human-object interactions using commonsense knowledge priors. In International Conference on 3D Vision (3DV), 2022. 1",
+            "[54] Zirui Wang, Shuda Li, Henry Howard-Jenkins, Victor Prisacariu, and Min Chen. Flownet3d++: Geometric losses for deep scene flow estimation. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV), March 2020. 2",
+            "[55] Chung-Yi Weng, Brian Curless, Pratul P. Srinivasan, Jonathan T. Barron, and Ira Kemelmacher-Shlizerman. HumanNeRF: Free-viewpoint rendering of moving people from monocular video. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 16210–16220, June 2022. 1, 5",
+            "[56] Minye Wu, Yuehao Wang, Qiang Hu, and Jingyi Yu. Multi-view neural human rendering. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 2",
+            "[57] Xianghui Xie, Bharat Lal Bhatnagar, and Gerard Pons-Moll. Chore: Contact, human and object reconstruction from a single rgb image. In European Conference on Computer Vision (ECCV). Springer, October 2022. 1",
+            "[58] Lan Xu, Wei Cheng, Kaiwen Guo, Lei Han, Yebin Liu, and Lu Fang. Flyfusion: Realtime dynamic scene reconstruction using a flying depth camera. IEEE transactions on visualization and computer graphics, 27(1):68–82, 2019. 1",
+            "[59] Lan Xu, Zhuo Su, Lei Han, Tao Yu, Yebin Liu, and Lu Fang. Unstructuredfusion: realtime 4d geometry and texture reconstruction using commercial rgbd cameras. IEEE transactions on pattern analysis and machine intelligence, 42(10):2508– 2522, 2019. 1, 2, 3",
+            "[60] Jae Shin Yoon, Duygu Ceylan, Tuanfeng Y Wang, Jingwan Lu, Jimei Yang, Zhixin Shu, and Hyun Soo Park. Learning",
+            "motion-dependent appearance for high-fidelity rendering of dynamic humans from a single camera. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 3407–3417, 2022. 1",
+            "[61] Alex Yu, Ruilong Li, Matthew Tancik, Hao Li, Ren Ng, and Angjoo Kanazawa. Plenoctrees for real-time rendering of neural radiance fields. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 5752– 5761, 2021. 2",
+            "[62] Tao Yu, Kaiwen Guo, Feng Xu, Yuan Dong, Zhaoqi Su, Jianhui Zhao, Jianguo Li, Qionghai Dai, and Yebin Liu. Bodyfusion: Real-time capture of human motion and surface geometry using a single depth camera. In The IEEE International Conference on Computer Vision (ICCV). ACM, October 2017. 2",
+            "[63] Tao Yu, Zerong Zheng, Kaiwen Guo, Pengpeng Liu, Qionghai Dai, and Yebin Liu. Function4d: Real-time human volumetric capture from very sparse consumer rgbd sensors. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5746–5756, 2021. 1, 2",
+            "[64] Tao Yu, Zerong Zheng, Kaiwen Guo, Jianhui Zhao, Qionghai Dai, Hao Li, Gerard Pons-Moll, and Yebin Liu. Doublefusion: Real-time capture of human performances with inner body shapes from a single depth sensor. Transactions on Pattern Analysis and Machine Intelligence (TPAMI), 2019. 1, 2, 3, 4",
+            "[65] Jason Y. Zhang, Sam Pepose, Hanbyul Joo, Deva Ramanan, Jitendra Malik, and Angjoo Kanazawa. Perceiving 3d human-object spatial arrangements from a single image in the wild. In European Conference on Computer Vision (ECCV), 2020. 1",
+            "[66] Tianshu Zhang, Buzhen Huang, and Yangang Wang. Objectoccluded human shape and pose estimation from a single color image. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7376– 7385, 2020. 1",
+            "[67] Fuqiang Zhao, Yuheng Jiang, Kaixin Yao, Jiakai Zhang, Liao Wang, Haizhao Dai, Yuhui Zhong, Yingliang Zhang, Minye Wu, Lan Xu, and Jingyi Yu. Human performance modeling and rendering via neural animated mesh. ACM Trans. Graph., 41(6), nov 2022. 1",
+            "[68] Fuqiang Zhao, Wei Yang, Jiakai Zhang, Pei Lin, Yingliang Zhang, Jingyi Yu, and Lan Xu. Humannerf: Efficiently generated human radiance field from sparse inputs. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7743–7753, 2022. 3, 6, 7",
+            "[69] Zerong Zheng, Han Huang, Tao Yu, Hongwen Zhang, Yandong Guo, and Yebin Liu. Structured local radiance fields for human avatar modeling. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 15893–15903, 2022.",
+            "[70] Zerong Zheng, Tao Yu, Hao Li, Kaiwen Guo, Qionghai Dai, Lu Fang, and Yebin Liu. Hybridfusion: Real-time performance capture using a single depth sensor and sparse imus. In European Conference on Computer Vision (ECCV), Sept 2018. 2"
+        ],
+        "bbox": [
+            109,
+            93,
+            468,
+            119
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "605",
+        "bbox": [
+            485,
+            945,
+            511,
+            957
+        ],
+        "page_idx": 10
+    }
+]

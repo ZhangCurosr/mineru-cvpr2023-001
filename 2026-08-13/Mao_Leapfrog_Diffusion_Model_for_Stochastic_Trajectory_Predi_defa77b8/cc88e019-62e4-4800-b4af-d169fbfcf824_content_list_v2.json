@@ -1,0 +1,4042 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Leapfrog Diffusion Model for Stochastic Trajectory Prediction"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                169,
+                128,
+                799,
+                152
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Weibo Mao<sup>1</sup>, Chenxin Xu<sup>1</sup>, Qi Zhu<sup>1</sup>, Siheng Chen<sup>1,2**</sup>, Yanfeng Wang<sup>2,1</sup>, <sup>1</sup>Shanghai Jiao Tong University, <sup>2</sup>Shanghai AI Laboratory"
+                    }
+                ]
+            },
+            "bbox": [
+                199,
+                180,
+                769,
+                217
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "{kirino.mao,xcxwakaka,georgezhu,sihengc,wangyanfeng}@sjtu.edu.cn"
+                    }
+                ]
+            },
+            "bbox": [
+                199,
+                219,
+                767,
+                233
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                267,
+                313,
+                285
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To model the indeterminacy ofhuman behaviors, stochastic trajectory prediction requires a sophisticated multi-modal distribution offuture trajectories. Emerging diffusion models have revealed their tremendous representation capacities in numerous generation tasks, showing potentialfor stochastic trajectory prediction. However, expensive time consumption prevents diffusion models from real-time prediction, since a large number of denoising steps are required to assure sufficient representation ability. To resolve the dilemma, we present LEapfrog Diffusion model (LED), a novel diffusionbased trajectory prediction model, which provides real-time, precise, and diverse predictions. The core of the proposed LED is to leverage a trainable leapfrog initializer to directly learn an expressive multi-modal distribution offuture trajectories, which skips a large number of denoising steps, significantly accelerating inference speed. Moreover, the leapfrog initializer is trained to appropriately allocate correlated samples to provide a diversity ofpredictedfuture trajectories, significantly improving prediction performances. Extensive experiments onfour real-world datasets, including NBA/NFL/SDD/ETH-UCY, show that LED consistently improves performance and achieves 23.7%/21.9% ADE/FDE improvement on NFL. The proposed LED also speeds up the inference 19.3/30.8/24.3/25.1 times compared to the standard diffusion model on NBA/NFL/SDD/ETH-UCY, satisfying real-time inference needs. Code is available at https: //github.com/MediaBrain-SJTU/LED."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                300,
+                472,
+                710
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                741,
+                209,
+                757
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Trajectory prediction aims to predict the future trajectories for one or multiple interacting agents conditioned on their past movements. This task plays a significant role in numerous applications, such as autonomous driving [24], drones [10], surveillance systems [45], human-robot interaction systems [5], and interactive robotics [20]. Recently, lots of fascinating research progresses have been made from many aspects, including temporal encoding [6, 13, 46, 53], interaction modeling [1, 15, 18, 43, 49], and rasterized prediction [11, 12, 26, 48]. In practice, to capture multiple possibilities of future trajectories, a real-world prediction system needs to produce multiple future trajectories. This leads to the emergence of stochastic trajectory prediction, aiming to precisely model the distribution of future trajectories."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                767,
+                472,
+                875
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/d60fdf9e5869e7df7febd3d67fecf51ab28f1ded29f78cd6e5970e814b382765.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Leapfrog diffusion model uses the leapfrog initializer to estimate the denoised distribution and substitute a long sequence of traditional denoising steps, accelerating inference and maintaining representation capacity."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                265,
+                890,
+                398
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                474,
+                895,
+                580
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Previous works have proposed a series of deep generative models for stochastic trajectory prediction. For example, [15, 18] exploit the generator adversarial networks (GANs) to model the future trajectory distribution; [27, 38, 49] consider the conditional variational autoencoders (CVAEs) structure; and [3] uses the conditional normalizing flow to relax the Gaussian prior in CVAEs and learn more representative priors. Recently, with the great success in image generation [17, 33] and audio synthesis [4, 21], denoising diffusion probabilistic models have been applied to time-series analysis and trajectory prediction, and show promising prediction performances [14, 44]. Compared to many other generative models, diffusion models have advantages in stable training and modeling sophisticated distributions through sufficient denoising steps [8]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                582,
+                897,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "However, there are two critical problems in diffusion models for stochastic trajectory prediction. First, the real-time inference is time-consuming [14]. To ensure the representation ability and generate high-quality samples, an adequate number of denoising steps are required in standard diffusion models, which costs more computational time. For example, experiments show that on the NBA dataset, diffusion models need about 100 denoising steps to achieve decent prediction performances, which would take ∼886ms to predict; while the next frame comes every 200ms. Second, as mentioned in [2], a limited number of independent and identically distributed samples might not be able to capture sufficient modalities in the underlying distribution of a generative model. Empirically, a few independent sampled trajectories could miss some important future possibilities due to the lack of appropriate sample allocation, significantly deteriorating prediction performances."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                809,
+                897,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                235,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "*Corresponding author."
+                    }
+                ]
+            },
+            "bbox": [
+                94,
+                887,
+                223,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5517"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                258
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this work, we propose leapfrog diffusion model (LED), a novel diffusion-based trajectory prediction model, which significantly accelerates the inference speed and enables adaptive and appropriate allocations of multiple correlated predictions, providing sufficient diversity in predictions. The core idea of the proposed LED is to learn a rough, yet sufficiently expressive distribution to initialize denoised future trajectories; instead of using a plain Gaussian distribution as in standard diffusion models. Specifically, our forward diffusion process is the same as standard diffusion models, which assures that the ultimate representation ability is pristine; while in the reverse denoising process, we leverage a powerful initializer to produce correlated diverse samples and leapfrog or skip a large number of denoising steps; and then, use only a few denoising steps to refine the distribution."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                258,
+                472,
+                486
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To implement such a leapfrog initializer, we consider a reparameterization to alleviate the learning burden. We disassemble a denoised distribution into three parts: mean trajectory, variance, and sample positions under the normalized distribution. To estimate these three, we design three corresponding trainable modules, each of which leverages both a social encoder and a temporal encoder to learn the social-temporal features and produce accurate estimation. Furthermore, all the sample positions are simultaneously generated based on the same social-temporal features, enabling appropriate sample allocations to provide diversity."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                487,
+                472,
+                654
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To evaluate the effectiveness of the proposed method, we conduct experiments on four trajectory prediction datasets: NBA, NFL Football Dataset, Standford Drones Dataset, and ETH-UCY. The quantitative results show we outperform the previous methods and achieve state-of-the-art performance. Specifically, compared to MID [14], the proposed leapfrog diffusion model reduces the average prediction time from ∼886ms to ∼46ms on the NBA dataset, while achieving a 15.6%/13.4% ADE/FDE improvement."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                655,
+                472,
+                790
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The main contributions are concluded as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                96,
+                791,
+                424,
+                806
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We propose a novel LEapfrog Diffusion model (LED), which is a denoising-diffusion-based stochastic trajectory prediction model. It achieves precise and diverse predictions with fast inference speed."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                470,
+                869
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We propose a novel trainable leapfrog initializer to directly model sophisticated denoised distributions, accelerating inference speed, and adaptively allocating the sample diversity, improving prediction performance."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                871,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                92,
+                892,
+                122
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We conduct extensive experiments on four datasets including NBA, NFL, SDD, and ETH-UCY. Results show that i) our approach consistently achieves state-of-the-art performance on all datasets; and ii) our method speeds up the inference by around 20 times compared to the standard diffusion model, satisfying real-time prediction needs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                122,
+                893,
+                213
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                226,
+                643,
+                242
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Trajectory prediction. Early works on trajectory prediction focus on a deterministic approach by exploring force models [16, 30], RNNs [1, 32, 47], and frequency analysis [28, 29]. For example, [16] models an agent’s behavior with attractive and repulsive forces and builds the force equations for prediction. To capture the multi-modalities and model future distribution, recent works start to focus on stochastic trajectory prediction and have proposed a series of deep generative models. Generative Adversarial Network (GAN) structures [7,9,15,18,22,36,42] are proposed to generate multiple future trajectory distribution. [23,27,38,49,51] use the Variational Auto-Encoder (VAE) structure and learn the distribution through variational inference. [3] relaxes the Gaussian prior and proposes to use the normalizing flow. Heatmap [11, 12, 26] is used for modeling future trajectories distribution on rasterized images. In this work, we propose a new diffusion-based model for trajectory prediction. Compared to previous generative models, our method has a large representation capacity and can model sophisticated trajectory distributions by using a number of diffusion steps. We also enable the correlation between samples to adaptively adjust sample diversity, improving prediction performance."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                251,
+                897,
+                584
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Denoising diffusion probabilistic models. Denoising diffusion probabilistic models (diffusion models) [17,39,41] have recently achieved significant results in image generation [8, 33] and audio synthesis [4, 21]. The idea of diffusion models is first proposed by DPM [39], which imitates the diffusion process in non-equilibrium statistical physics and reconstructs the data distribution using the denoising model. Later, [35,44] propose diffusion models, combining with the seq-to-seq models, for probabilistic time series forecasting. MID [14] is the first to build diffusion models for trajectory prediction in modeling the indeterminacy variation process."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                584,
+                895,
+                751
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The standard diffusion models use hundreds of denoising steps, preventing these models from real-time applications. To accelerate the sampling process, DDIM [40] first predicts the original data and then estimates the direction to the next expected timestamp based on the non-Markov process. PD [37] applies the knowledge distillation on the denoising steps with a deterministic diffusion sampler, which will be repeated for times to accelerate the sampling. All these fast sampling methods start denoising from noise inputs, which are randomly and independently initialized. In this work, we use a trainable leapfrog initializer to initialize a sufficiently expressive distribution, which replaces a large number of former denoising steps for much faster inference speed."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                750,
+                897,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5518"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                137
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Background"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                151,
+                205,
+                169
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Problem Formulation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                178,
+                281,
+                193
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Trajectory prediction aims to predict an agent’s future trajectory based on the past trajectories of itself and surrounding agents. For a to-be-predicted agent, let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\textbf { X } } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ \\mathbf { x } ^ { - T _ { \\mathrm { p } } + \\bar { 1 } } , \\mathbf { x } ^ { - T _ { \\mathrm { p } } + 2 } , \\mathbf { \\epsilon } . \\mathbf { \\epsilon } . , \\mathbf { x } ^ { 0 } ] \\in \\mathbb { R } ^ { \\bar { T } _ { \\mathrm { p } } \\times 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the observed past trajectory over "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { \\mathrm { p } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "timestamps where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } ^ { t } \\in \\mathbb { R } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "records the 2D spatial coordinate at timestamp t. Let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { N }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the neighbouring agent set and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathbb X } _ { \\mathcal { N } } = [ { \\bf X } _ { \\mathcal { N } _ { 1 } } , { \\bf \\dot { X } } _ { \\mathcal { N } _ { 2 } } , \\cdot \\cdot \\cdot , { \\bf X } _ { \\mathcal { N } _ { L } } ] \\in \\mathbb { R } ^ { L \\times T _ { \\mathrm { p } } \\times \\frac { \\mathbf { v } } { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the past trajectories of neighbours, where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\bar { X } } _ { \\mathcal { N } _ { \\ell } } \\in \\mathbb { R } ^ { T _ { \\mathrm { p } } \\times 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the trajectory of the ℓth neighbour. The corresponding ground-truth future trajectory for the to-be-predicted agent is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { \\bar { Y } } = [ \\mathbf { y } ^ { 1 } , \\mathbf { y } ^ { 2 } , \\dots , \\mathbf { y } ^ { T _ { \\mathrm { f } } } ] \\in \\mathbb { R } ^ { \\bar { T } _ { \\mathrm { f } } \\times 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "over T timestamps, where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { y } ^ { t } \\in \\mathbb { R } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the 2D coordinate at future timestamp t."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                202,
+                470,
+                382
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Because of the indeterminacy of future trajectories, it is usually more reliable to predict more than one trajectory to capture multiple possibilities. Here we consider stochastic trajectory prediction, which predicts the distribution of a future trajectory, instead of a single future trajectory. The goal of stochastic trajectory prediction is to train a prediction model "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g _ { \\boldsymbol { \\theta } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with parameters θ to generate a distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } _ { \\theta } = g _ { \\theta } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Based on this distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { P } } _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we can draw K samples, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { Y } } = \\{ \\widehat { \\mathbf { Y } } _ { 1 } , \\widehat { \\mathbf { Y } } _ { 2 } , \\ldots , \\widehat { \\mathbf { Y } } _ { K } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", so that at least one sample is close to the ground-truth future trajectory. The overall learning problem is"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                383,
+                470,
+                551
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\boldsymbol { \\theta } ^ { * } = \\operatorname* { m i n } _ { \\boldsymbol { \\theta } } \\operatorname* { m i n } _ { \\widehat { \\mathbf { Y } } _ { i } \\in \\widehat { \\mathcal { V } } } D ( \\widehat { \\mathbf { Y } } _ { i } , \\mathbf { Y } ) , \\mathrm { s . t . } \\widehat { \\mathcal { V } } \\sim \\mathcal { P } _ { \\boldsymbol { \\theta } } .\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/33242f52ad9f0abbfbf5a4eafb173cc18b97b36eb16398ed7c3231119336e344.jpg"
+                }
+            },
+            "bbox": [
+                127,
+                553,
+                416,
+                580
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Diffusion Model for Trajectory Prediction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                590,
+                434,
+                607
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Here we present a standard diffusion model for trajectory prediction, which lays a foundation for the proposed method. The core idea is to learn and refine a sophisticated underlying distribution of trajectories through cascading a series of simple denoising steps. To implement this, a diffusion model performs a forward diffusion process to intentionally add a series of noises to a ground-truth future trajectory; and then, it uses a conditional denoising process to recover the future trajectory from noise inputs conditioned on past trajectories."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                614,
+                472,
+                751
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Mathematically, let X and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbb { X } _ { \\mathcal { N } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the past trajectories of the ego agent and the neighboring agents, respectively, and Y be the future trajectory of the ego agent. The diffusion model for trajectory prediction works as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                752,
+                470,
+                811
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\mathbf { Y } ^ { 0 } = \\mathbf { Y } , } \\end{array}\\tag{2a}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/2ab2ad9e6affbde71dff6b70c9e7ae92504d03ff383388c3f9ca711296c55269.jpg"
+                }
+            },
+            "bbox": [
+                93,
+                813,
+                160,
+                829
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "{ \\bf Y } ^ { \\gamma } = f _ { \\mathrm { d i f f u s e } } ( { \\bf Y } ^ { \\gamma - 1 } ) , ~ \\gamma = 1 , \\cdot \\cdot \\cdot , \\Gamma ,",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/65bc40672b4909925fc01203ea8e9ed49b7137b624d514b845c995fcd4a6217e.jpg"
+                }
+            },
+            "bbox": [
+                91,
+                833,
+                343,
+                851
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "{ \\widehat { \\mathbf { Y } } } _ { k } ^ { \\Gamma } \\stackrel { i . i . d } { \\sim } { \\mathcal { P } } ( { \\widehat { \\mathbf { Y } } } ^ { \\Gamma } ) = { \\mathcal { N } } ( { \\widehat { \\mathbf { Y } } } ^ { \\Gamma } ; \\mathbf { 0 } , \\mathbf { I } ) , { \\mathrm { s a m p l e ~ } } K { \\mathrm { ~ t i m e s } } ,\\tag{2b}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d5c9a5acc22dc9509653efda3eac5231e620d7a7f8921b6bf4e72c1cc2ade7f2.jpg"
+                }
+            },
+            "bbox": [
+                89,
+                854,
+                429,
+                875
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "(2c)"
+                    }
+                ]
+            },
+            "bbox": [
+                441,
+                859,
+                467,
+                872
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma } = f _ { \\mathrm { d e n o i s e } } ( \\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 } , \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } ) , \\ \\gamma = \\Gamma - 1 , \\cdot \\cdot \\cdot , 0 ,\\tag{2d}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/3ea8e76f461f33b560de3d23ee46a90c13957ca4248f3637c4c84d3414c445f5.jpg"
+                }
+            },
+            "bbox": [
+                91,
+                877,
+                408,
+                897
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Y } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the noisy trajectory at the γth diffusion step and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the kth sample of denoised trajectory at the γth denoising step. The final K predicted trajectories are "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\bf y } ="
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\{ \\widehat { \\mathbf { Y } } _ { 1 } ^ { 0 } , \\widehat { \\mathbf { Y } } _ { 2 } ^ { 0 } , \\ldots , \\widehat { \\mathbf { Y } } _ { K } ^ { 0 } \\}"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                92,
+                892,
+                155
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Step (2a) initializes the diffused trajectory; Step (2b) uses a forward diffusion operation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { d i f f u s e } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to successively add noises to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Y } ^ { \\gamma - 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and obtain the diffused trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Y } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Step (2c) draws K independent and identically distributed samples to initialize denoised trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\Gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from a normal distribution; and Step (2d) iteratively applies a denoising operation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { d e n o i s e } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to obtain the denoised trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "conditioned on past trajectories X, X<sub>N</sub>. Note that i) Steps (2a) and (2b) correspond to the forward diffusion process and are not used in inference; ii) During training, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Y } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is naturally the supervision for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "at the γth step. Conceptually, each denoising step is the reverse of the diffusion step, and each pair of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Y } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "shares the same underlying distribution."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                155,
+                893,
+                351
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The standard diffusion model is expressively powerful in learning sophisticated distributions and has achieved great success in many generation tasks. However, the task of motion prediction requires real-time inference but the running time of a diffusion model is constrained by the large number of denoising steps. Meanwhile, less denoising steps usually cause a weaker representation ability of future distributions. To achieve higher efficiency while preserving a promising representation ability, we propose leapfrog diffusion model, which uses a trainable initializer to capture sophisticated distributions and substitute a large number of denoising steps."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                352,
+                895,
+                518
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Leapfrog Diffusion Model"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                531,
+                743,
+                549
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. System Architecture"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                556,
+                694,
+                571
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we propose the leapfrog diffusion model. Here leapfrog means that a large number of small denoising steps can be replaced by a single, yet powerful leapfrog initializer, which can significantly accelerate the inference speed without losing representation ability. Let X and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbb { X } _ { \\mathcal { N } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the past trajectories of the ego agent and its neighboring agents, and Y be the future trajectory of the ego agent. Denote τ as the leapfrog step. The overall procedure of the proposed leapfrog diffusion model is formulated as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                580,
+                893,
+                718
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\mathbf { Y } ^ { 0 } = \\mathbf { Y } , } \\end{array}\\tag{3a}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/3e34617e0fce04ab517c98d741b916e4836df97b857ddf08d06c250dfddc23d1.jpg"
+                }
+            },
+            "bbox": [
+                516,
+                723,
+                586,
+                739
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "{ \\bf Y } ^ { \\gamma } = f _ { \\mathrm { d i f f u s e } } ( { \\bf Y } ^ { \\gamma - 1 } ) , ~ \\gamma = 1 , \\cdot \\cdot \\cdot , \\Gamma ,\\tag{3b}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/414a07531cf72fb8fc11e0bde42f104be89f61fb0d12a5174c34a00b3b91f29f.jpg"
+                }
+            },
+            "bbox": [
+                516,
+                744,
+                769,
+                762
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\widehat { y } ^ { \\tau } \\stackrel { K } { \\sim } \\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } ) = f _ { \\mathrm { L S G } } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } ) , } \\end{array}\\tag{3c}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/40ca562c7a4efd1ab17ce78c49cb44efc9676478ee4a95635c90620e4b7d2be7.jpg"
+                }
+            },
+            "bbox": [
+                516,
+                766,
+                732,
+                786
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma } = f _ { \\mathrm { d e n o i s e } } ( \\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 } , \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } ) , \\mathbf { \\Omega } \\gamma = \\tau - 1 , \\cdots , 0 .\\tag{3d}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/68254e4d57c7ddd911ac4261cdad2a6c30f8d54366f0bbbb49cacdd5ff178061.jpg"
+                }
+            },
+            "bbox": [
+                516,
+                787,
+                848,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Compared to the standard diffusion model (2), the main difference lies in Step (3c). The standard diffusion initializes the Γth denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\Gamma } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by a plain normal distribution (2c) and requires a lot of denoising steps to enrich the expressiveness of the denoised distribution; while in Step (3c), we propose a novel leapfrog initializer "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { L S G } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to directly model the τth denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which is hypothetically equivalent to the output of executing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\Gamma - \\tau )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denoising steps (2d). We then draw samples from the distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and obtain K future trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } } ^ { \\tau } = \\{ \\widehat { \\mathbf { Y } } _ { 1 } ^ { \\tau } , \\widehat { \\mathbf { Y } } _ { 2 } ^ { \\tau } , \\ldots , \\widehat { \\mathbf { Y } } _ { K } ^ { \\tau } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\overset { K } { \\sim }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in (3d) means K samples are dependent to intentionally allocate appropriate sample diversity. Then, in Step (3d), we only need to apply the remaining τ denoising steps for each trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to obtain the final prediction "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { Y } } = \\{ \\widehat { \\mathbf { Y } } _ { 1 } ^ { 0 } , \\widehat { \\mathbf { Y } } _ { 2 } ^ { 0 } , \\ldots , \\widehat { \\mathbf { Y } } _ { K } ^ { 0 } \\}"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                810,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5519"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/5b9c021135eb2371ae8192836e705316cdf852bd52b6ddb9145fe9e54a83e580.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Proposed leapfrog diffusion model (LED) in inference phase. The red agent is the to-be-predicted agent. LED first predicts K initialized trajectories at τth denoised step through a trainable leapfrog initializer. Then, followed by a few denoising steps, LED obtains the final predictions. In leapfrog initializer, LED learns statistics and generates correlated samples with the reparameterization."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                114,
+                54,
+                861,
+                204
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                260,
+                470,
+                406
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Note that i) the proposed leapfrog diffusion model reduces the denoising steps from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Gamma \\ \\mathrm { t o } \\ \\tau ( \\ll \\Gamma )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in Step (3d) as the leapfrog initializer directly provides the trajectories at denoising step τ , accelerating the inference; ii) instead of taking independent and identically distributed samples in Step (2c), the proposed leapfrog initializer generates K trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\widehat { \\mathcal { V } } } ^ { \\tau }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "simultaneously in Step (3c), allowing K samples to be aware of each other; and iii) the standard diffusion model and the proposed leapfrog diffusion model share the same forward diffusion process, assuring that the representation capacity is not reduced."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                406,
+                472,
+                574
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Leapfrog Initializer"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                587,
+                266,
+                603
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We now dive into the design details of the proposed leapfrog initializer, which leapfrogs "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\Gamma - \\tau )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "denoising steps. In leapfrog initializer, we model the τth denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "through learning models. However, it is nontrivial for a learning model to directly capture the sophisticated distribution, which usually causes unstable training. To ease the learning burden of the model, we disassemble the distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { \\bar { P } } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "into three representative parts: the mean, global variance and sample prediction. For each part, we design trainable modules correspondingly. Mathematically, let X and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbb { X } _ { \\mathcal { N } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the past trajectories of the ego agent and the neighboring agents, respectively. The proposed leapfrog initializer generates K samples as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                612,
+                472,
+                810
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l r } & { \\mu _ { \\boldsymbol { \\theta } } = f _ { \\mu } ( \\mathbf { X } , \\mathbb { X } _ { N } ) \\in \\mathbb { R } ^ { T _ { \\mathrm { f } } \\times 2 } , } \\\\ & { \\sigma _ { \\boldsymbol { \\theta } } = f _ { \\sigma } ( \\mathbf { X } , \\mathbb { X } _ { N } ) \\in \\mathbb { R } , } \\\\ & { \\widehat { \\mathbb { S } } _ { \\boldsymbol { \\theta } } = [ \\widehat { \\mathbf { S } } _ { \\boldsymbol { \\theta } , 1 } , \\cdots , \\widehat { \\mathbf { S } } _ { \\boldsymbol { \\theta } , K } ] = f _ { \\widehat { \\mathbb { S } } } ( \\mathbf { X } , \\mathbb { X } _ { N } , \\sigma _ { \\boldsymbol { \\theta } } ) \\in \\mathbb { R } ^ { T _ { \\mathrm { f } } \\times 2 \\times K } , } \\\\ & { \\widehat { \\mathbf { Y } } _ { k } ^ { \\tau } = \\mu _ { \\boldsymbol { \\theta } } + \\sigma _ { \\boldsymbol { \\theta } } \\cdot \\widehat { \\mathbf { S } } _ { \\boldsymbol { \\theta } , k } \\in \\mathbb { R } ^ { T _ { \\mathrm { f } } \\times 2 } , } & { ( 4 , } \\end{array}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/fa5b3b92c9ddc76df8ad76ca7a08f5880e74efcf404bcf9f74ec0b4032340cd7.jpg"
+                }
+            },
+            "bbox": [
+                107,
+                821,
+                468,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot ) , f _ { \\sigma } ( \\cdot ) , f _ { \\widehat { \\mathbb { S } } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are three trainable modules, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu _ { \\boldsymbol { \\theta } } , \\sigma _ { \\boldsymbol { \\theta } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are the mean and standard deviation of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", respectively, and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { S } } _ { \\theta , k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the normalized positions for the kth sample."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                260,
+                892,
+                310
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To be specific, the mean estimate module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "infers the mean trajectory of the τth denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { P } } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with past trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The mean trajectory µ is shared across all the K samples. The variance estimate module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\sigma } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "infers the standard deviation of the τth denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { P } } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", reflecting the overall uncertainty of the trajectory, which is also shared across all the K samples. The sample prediction module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\widehat { \\mathbb { S } } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "takes the past trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and the predicted uncertainty "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as the input and predicts K normalized positions where each "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { S } } _ { \\theta , k } \\in \\mathbb { R } ^ { T _ { \\mathrm { f } } \\times 2 }"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                310,
+                893,
+                467
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Note that i) the reparameterization in Eq. (4) allows us to avoid learning a raw sophisticated distribution, making the training much easier; and ii) K normalized predictions are generated simultaneously from the same underlying feature, assuring appropriately allocated trajectories with variance estimation and better capturing the multi-modalities."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                465,
+                893,
+                556
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To implement the three trainable modules: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot ) , f _ { \\sigma } ( \\cdot )"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\widehat { \\mathbb { S } } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we consider a similar network design: a social encoder to capture social influence, a temporal encoder to learn temporal embedding, and an aggregation layer to fuse both social and temporal information; see Figure 2. Here we take the mean estimation module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as an example. The mean trajectory is obtained as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                556,
+                893,
+                662
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { e } _ { \\mu _ { \\theta } } ^ { \\mathrm { s o c i a l } } = \\mathrm { s o f t m a x } \\Big ( \\frac { f _ { \\mathrm { q } } ( \\mathbf { X } ) f _ { \\mathrm { k } } ( \\mathbb { X } _ { \\mathcal { N } } ) ^ { \\mathsf { T } } } { \\sqrt { d } } \\Big ) f _ { \\mathrm { v } } ( \\mathbb { X } _ { \\mathcal { N } } ) ,\\tag{5a}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/caedfd3b2e43da0203e736e4b06a5381262f9ea16607be98142108496d97e9a9.jpg"
+                }
+            },
+            "bbox": [
+                526,
+                667,
+                839,
+                700
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { { \\bf e } _ { \\mu _ { \\theta } } ^ { \\mathrm { t e m p } } = f _ { \\mathrm { G R U } } ( f _ { \\mathrm { c o n v 1 D } } ( { \\bf X } ) ) , } \\end{array}\\tag{5b}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/27b3e75106ac5616667d57d05e0c5412445dec2279f150635eadf1f7490c2a47.jpg"
+                }
+            },
+            "bbox": [
+                526,
+                703,
+                725,
+                722
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mu _ { \\boldsymbol \\theta } = f _ { \\mathrm { f u s i o n } } ( [ { \\bf e } _ { \\mu _ { \\boldsymbol \\theta } } ^ { \\mathrm { s o c i a l } } : { \\bf e } _ { \\mu _ { \\boldsymbol \\theta } } ^ { \\mathrm { t e m p } } ] ) .\\tag{5c}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1daa179c33825c8b839f8d228891542a1af7d409c353787167fda2142e15d902.jpg"
+                }
+            },
+            "bbox": [
+                526,
+                724,
+                732,
+                743
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Step (5a) obtains the social embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { e } _ { \\mu _ { \\theta } } ^ { \\mathrm { s o c i a l } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "based on the multi-head attention with d the embedding dimension and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { q } } ( \\cdot ) , f _ { \\mathrm { k } } ( \\cdot ) , f _ { \\mathrm { v } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the query/key/value embedding functions. Step (5b) obtains the temporal embedding through the feature encoder "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { c o n v 1 D } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", mapping the raw coordinates into the high-dimensional feature, followed by the gated recurrent units "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { G R U } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", capturing the temporal dependence in the high dimensional sequence. Step (5c) concatenates both social and temporal embeddings and uses a multi-layer perceptron "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { f u s i o n } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to obtain the final mean estimation. Note that the sample prediction module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\widehat { \\mathbb { S } } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "also takes the estimated standard deviation as the input, working as"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                748,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5520"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                90,
+                472,
+                122
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } & { { \\mathbf { e } } _ { \\widehat { \\mathbb { S } } _ { \\theta } } ^ { \\sigma } = f _ { \\mathrm { e n c o d e } } ( \\sigma _ { \\theta } ) , } \\\\ & { \\widehat { \\mathbb { S } } _ { \\theta } = f _ { \\mathrm { f u s i o n } } ( [ { \\mathbf { e } } _ { \\widehat { \\mathbb { S } } _ { \\theta } } ^ { \\mathrm { s o c i a l } } : { \\mathbf { e } } _ { \\widehat { \\mathbb { S } } _ { \\theta } } ^ { \\mathrm { t e m p } } : { \\mathbf { e } } _ { \\widehat { \\mathbb { S } } _ { \\theta } } ^ { \\sigma } ] ) , } \\end{array}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/690ba1adff4de472ac65c36c095698d8ffac81237fc92ef7d643dd8bf9fad637.jpg"
+                }
+            },
+            "bbox": [
+                150,
+                131,
+                393,
+                176
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where an encoder "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { e n c o d e } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "operates on the estimated variance "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and generates high dimensional embedding "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { e } _ { \\widehat { \\mathbb { S } } _ { \\theta } } ^ { \\sigma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". By this, the variance estimation also involves in the sample prediction process, instead of just scaling these prediction."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                185,
+                470,
+                248
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "After obtaining K samples "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } } ^ { \\tau } = \\{ \\mathbf { \\widehat { Y } } _ { 1 } ^ { \\tau } , \\mathbf { \\widehat { Y } } _ { 2 } ^ { \\tau } , \\ldots , \\mathbf { \\widehat { Y } } _ { K } ^ { \\tau } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "from leapfrog initializer, we execute the remaining τ denoising steps to iteratively refine those predicted trajectories (3d)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                247,
+                470,
+                295
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Denoising Module"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                303,
+                253,
+                319
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Here we elaborate the design of a denoising module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { d e n o i s e } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which denoises the trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "conditioned on past trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In a denoising module, two parts are trainable: a transformer-based context encoder "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { c o n t e x t } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to learn a social-temporal embedding and a noise estimation module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\epsilon } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to estimate the noise to reduce. Mathematically, the γth denoising step works as follows,"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                327,
+                472,
+                434
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { C } = f _ { \\mathrm { c o n t e x t } } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } ) ,\\tag{6a}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d8b913070b6858bfba4bf52f72075c23c8e7c8d41c48fa00a671981a2c4782ae.jpg"
+                }
+            },
+            "bbox": [
+                102,
+                446,
+                259,
+                463
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { \\epsilon _ { \\theta } ^ { \\gamma } = f _ { \\epsilon } ( \\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 } , { \\mathbf { C } } , \\gamma + 1 ) , } \\end{array}\\tag{6b}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/4ef349bbcd7391201215025a915eccfb7569c5d9247de9f8c96eb1c71794aabb.jpg"
+                }
+            },
+            "bbox": [
+                102,
+                467,
+                284,
+                486
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma } = \\frac { 1 } { \\sqrt { \\alpha _ { \\gamma } } } ( \\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 } - \\frac { 1 - \\alpha _ { \\gamma } } { \\sqrt { 1 - \\bar { \\alpha } _ { \\gamma } } } \\mathbf { \\epsilon } _ { \\theta } ^ { \\gamma } ) + \\sqrt { 1 - \\alpha _ { \\gamma } } \\mathbf { z } ,\\tag{6c}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/fcaf1c7a59390f6a9635ba2b12b31230f40380db247690ea05a9c064f8c8b9a3.jpg"
+                }
+            },
+            "bbox": [
+                102,
+                488,
+                416,
+                522
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\alpha _ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\bar { \\alpha } _ { \\gamma } = \\prod _ { i = 1 } ^ { \\gamma } \\alpha _ { i } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are parameters in the diffusion process and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { z } \\sim \\mathcal { N } ( \\mathbf { z } ; \\mathbf { 0 } , \\mathbf { I } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a noise. Step (6a) uses a context encoder "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { c o n t e x t } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on past trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to obtain the context condition C, which shares a similar structure to mean estimation module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "; Step (6b) estimates the noise "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\epsilon _ { \\theta } ^ { \\gamma }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the noisy trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "through noise estimation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\epsilon } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "implemented by multi-layer perceptions with the context C; Step (6c) provides a standard denoising step [17]; see more details in the supplementary material."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                525,
+                470,
+                665
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.4. Training Objective"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                672,
+                259,
+                689
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To train a leapfrog diffusion model, we consider a twostage training strategy, where the first stage trains a denoising module and the second stage focuses on a leapfrog initializer. The reason to use two stages is because the training of leapfrog initializer is more stable given fixed distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", avoiding non-convergent training."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                695,
+                472,
+                787
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Concretely, the first stage trains a denoising module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { d e n o i s e } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in Step (3d) based on a standard training schedule of a diffusion model [14, 17] through noise estimation loss:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                786,
+                470,
+                833
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { \\mathrm { N E } } = \\| \\epsilon - f _ { \\epsilon } ( \\mathbf { Y } ^ { \\gamma + 1 } , f _ { \\mathrm { c o n t e x t } } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } ) , \\gamma + 1 ) \\| _ { 2 } ,",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/6c8c9296c5e3a63d73715c05fb43f9ff508fa9865537f1fa2c74761ba988ef11.jpg"
+                }
+            },
+            "bbox": [
+                83,
+                843,
+                428,
+                859
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma \\sim \\mathrm { U } \\{ 1 , 2 , \\cdot \\cdot \\cdot , \\Gamma \\} , \\epsilon \\sim \\mathcal { N } ( \\epsilon ; \\mathbf { 0 } , \\mathbf { I } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and the diffused trajectory "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf Y } ^ { \\gamma + 1 } = \\sqrt { \\bar { \\alpha } _ { \\gamma } } { \\bf Y } ^ { 0 } + \\sqrt { 1 - \\bar { \\alpha } _ { \\gamma } } \\epsilon"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We then back-"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 1 Leapfrog Diffusion Model in Inference Input: Observed trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { X } , \\mathbb { X } _ { \\mathbf { \\mathcal { N } } } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", Leapfrog step τ Output: Predicted trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "1: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu _ { \\theta } = f _ { \\mu } ( { \\mathbf { X } } , { \\mathbb { X } } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "\\triangleright Mean estimation 2: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta } = f _ { \\sigma } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "\\triangleright Variance estimation 3: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbb { S } } _ { \\theta } = f _ { \\widehat { \\mathbb { S } } } ( \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } , \\sigma _ { \\theta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "\\triangleright Sample prediction 4: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\tau } = \\mu _ { \\theta } + \\sigma _ { \\theta } \\cdot \\widehat { \\mathbf { S } } _ { \\theta , k } , k = 1 , \\cdot \\cdot \\cdot , K \\triangleright"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Reparameterization 5: for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma = \\tau - 1 , . . . , 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "do 6: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma } = f _ { \\mathrm { d e n o i s e } } ( \\widehat { \\mathbf { Y } } _ { k } ^ { \\gamma + 1 } , \\mathbf { X } , \\mathbb { X } _ { \\mathcal { N } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "\\triangleright Denoising step 7: end for 8: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } } = \\widehat { \\mathcal { V } } ^ { 0 } = \\{ \\widehat { \\mathbf { Y } } _ { 1 } ^ { 0 } , \\cdot \\cdot \\cdot , \\widehat { \\mathbf { Y } } _ { K } ^ { 0 } \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "9: return "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } }"
+                    }
+                ],
+                "algorithm_footnote": []
+            },
+            "bbox": [
+                498,
+                89,
+                893,
+                303
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "propagate this loss and train the parameters in the context encoder "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mathrm { c o n t e x t } } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and the noise estimation module "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\epsilon } ( \\cdot )"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                329,
+                892,
+                359
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the second stage, we optimize a leapfrog diffusion model with a trainable leapfrog initializer and frozen denois ing modules. For each sample, the loss function is"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                358,
+                893,
+                405
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r c l } { \\mathcal { L } } & { = } & { \\mathcal { L } _ { \\mathrm { d i s t a n c e } } + \\mathcal { L } _ { \\mathrm { u n c e r t a i n t y } } } \\\\ & { = } & { w \\cdot \\underset { k } { \\operatorname* { m i n } } \\ : \\lVert \\mathbf { Y } - \\widehat { \\mathbf { Y } } _ { k } \\rVert _ { 2 } + \\Big ( \\frac { \\sum _ { k } \\ : \\lVert \\mathbf { Y } - \\widehat { \\mathbf { Y } } _ { k } \\rVert _ { 2 } } { \\sigma _ { \\theta } ^ { 2 } K } + \\log \\sigma _ { \\theta } ^ { 2 } \\Big ) , } \\end{array}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/83d4957da029d0182bb231e68aace4d71f8baaf556074ab2155f76a8843c7ec5.jpg"
+                }
+            },
+            "bbox": [
+                500,
+                416,
+                890,
+                470
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "w \\in \\mathbb { R }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a hyperparameter weight. The first term constrains the minimum distance in K predictions. Intuitively, if a leapfrog initializer generates high-quality estimations for distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", then one of the K predictions in "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathcal { V } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "should be close to the ground-truth trajectory Y. The second term normalizes the variance estimation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in reparameterization (4) through an uncertainty loss, balancing the prediction diversity and mean accuracy. Note that the variance estimation controls the dispersion of the predictions, bridging scenery complexity and prediction diversity. The first part "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\frac { \\sum _ { k } \\| \\dot { \\mathbf { Y } } - \\widehat { \\mathbf { Y } } _ { k } \\| _ { 2 } } { \\sigma _ { \\theta } ^ { 2 } K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "makes the value of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "proportional to the complexity of the scenario. The second part log "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a regulariser used to avoid a trivial solution for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { \\theta } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", i.e., generating high variance for all predictions."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                481,
+                893,
+                703
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Technically, we can also explicitly supervise the estimation of leapfrog initializer in stage two, since the distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be denoised from a normal distribution. For the explicit supervision, we draw "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M \\gg K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "samples from "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\Gamma } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "under the normal distribution and iteratively denoise these samples through Step (2d) until we get expected denoised trajectories "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\widehat { \\mathbf { Y } } ^ { \\bar { \\tau } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". And then, we calculate the statistics of the denoised distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\widehat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using these M samples, serving as explicit supervisions for mean estimation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\mu } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and variance estimation "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\sigma } ( \\cdot )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". However, since "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau \\ll \\Gamma ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we need to run "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\Gamma - \\tau ) \\approx \\Gamma \\cdot"
+                    },
+                    {
+                        "type": "text",
+                        "content": "-steps denoising for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "M \\gg K"
+                    },
+                    {
+                        "type": "text",
+                        "content": "samples to get statistics, resulting in unacceptable time and storage consumption for training "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathrm { e . g . } \\sim 6"
+                    },
+                    {
+                        "type": "text",
+                        "content": "days per epoch on NBA"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                703,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5521"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                514,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/6ec5dda466c26af3e1102cc62fadc01c8101e9892081aa47ad2d1bb9d7e6576c.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Comparison with baseline models on NBA dataset. min "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { \\ A D E _ { 2 0 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "/minFDE<sub>20</sub> (meters) are reported. Bold/underlined fonts represent the best/second-best result. Compared to the previous SOTA method, MID, our method achieves a 15.6%/13.4% ADE/FDE improvement."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Time</td><td>Social- GAN [15]</td><td>STGAT [19]</td><td>Social- STGCNN [31]</td><td>PECNet [27]</td><td>STAR [52]</td><td>Trajectron++ [38]</td><td>MemoNet [50]</td><td>NPSN [2]</td><td>GroupNet [49]</td><td>MID [14]</td><td>Ours</td></tr><tr><td>1.0s</td><td>CVPR&#x27;18 0.41/0.62</td><td>ICCV&#x27;19 0.35/0.51</td><td>CVPR&#x27;20</td><td>ECCV&#x27;20</td><td>ECCV&#x27;20</td><td>ECCV&#x27;20</td><td>CVPR&#x27;22</td><td>CVPR&#x27;22</td><td>CVPR&#x27;22</td><td>CVPR&#x27;22</td><td></td></tr><tr><td>2.0s</td><td></td><td></td><td>0.34/0.48</td><td>0.40/0.71</td><td>0.43/0.66</td><td>0.30/0.38</td><td>0.38/0.56</td><td>0.35/0.58</td><td>0.26/0.34</td><td>0.28/0.37</td><td>0.18/0.27</td></tr><tr><td>3.0s</td><td>0.81/1.32</td><td>0.73/1.10</td><td>0.71/0.94</td><td>0.83/1.61</td><td>0.75/1.24</td><td>0.59/0.82</td><td>0.71/1.14</td><td>0.68/1.23</td><td>0.49/0.70</td><td>0.51/0.72</td><td>0.37/0.56</td></tr><tr><td>Total(4.0s)</td><td>1.19/1.94 1.59/2.41</td><td>1.04/1.75 1.40/2.18</td><td>1.09/1.77 1.53/2.26</td><td>1.27/2.44 1.69/2.95</td><td>1.03/1.51 1.13/2.01</td><td>0.85/1.24 1.15/1.57</td><td>1.00/1.57 1.25/1.47</td><td>1.01/1.76 1.31/1.79</td><td>0.73/1.02 0.96/1.30</td><td>0.71/0.98 0.96/1.27</td><td>0.58/0.84 0.81/1.10</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                102,
+                883,
+                193
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/1f0c2afa9baaed268f2d5b89c0d9e99987e4436b9421728c2b28894d212eee7a.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Comparison with baseline models on NFL dataset. minADE<sub>20</sub>/minFDE<sub>20</sub> (meters) are reported. Bold/underlined fonts represent the best/second-best result. Compared to the previous SOTA method, MID, our method achieves a 23.7%/21.9% improvement."
+                    }
+                ],
+                "table_footnote": [
+                    {
+                        "type": "text",
+                        "content": "dataset). We thus do not use explicit supervision."
+                    }
+                ],
+                "html": "<table><tr><td>Time</td><td>Social- GAN [15]</td><td>STGAT [19]</td><td>Social- STGCNN [31]</td><td>PECNet [27]</td><td>STAR [52]</td><td>Trajectron++ LB-EBM [38]</td><td>[34]</td><td>NPSN [2]</td><td> $\\stackrel { \\mathrm { G r o u p N e t } } { \\left[ 4 9 \\right] }$ </td><td>MID [14]</td><td>Ours</td></tr><tr><td>1.0s</td><td>CVPR&#x27;18</td><td>ICCV&#x27;19</td><td>CVPR&#x27;20</td><td>ECCV&#x27;20</td><td>ECCV&#x27;20</td><td>ECCV&#x27;20</td><td>CVPR’21</td><td>CVPR&#x27;22</td><td>CVPR&#x27;22</td><td>CVPR&#x27;22</td><td></td></tr><tr><td>2.0s</td><td>0.37/0.68</td><td>0.35/0.64</td><td>0.45/0.64</td><td>0.52/0.97</td><td>0.49/0.84</td><td>0.41/0.65</td><td>0.75/1.05</td><td>0.43/0.64</td><td>0.32/0.57</td><td>0.30/0.58</td><td>0.21/0.34</td></tr><tr><td></td><td>0.83/1.53</td><td>0.82/1.60</td><td>1.06/1.87</td><td>1.19/2.47</td><td>1.02/1.84</td><td>0.93/1.65</td><td>1.26/2.28</td><td>0.83/1.52</td><td>0.73/1.39</td><td>0.71/1.31</td><td>0.49/0.91</td></tr><tr><td>Total(3.2s)</td><td>1.44/2.51</td><td>1.39/2.48</td><td>1.82/3.18</td><td>1.99/3.84</td><td>1.51/2.97</td><td>1.54/2.58</td><td>1.90/3.25</td><td>1.32/2.27</td><td>1.21/2.15</td><td>1.14/1.92</td><td>0.87/1.50</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                224,
+                880,
+                303
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.5. Inference Phase"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                343,
+                236,
+                359
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "During the inference, instead of the Γ-steps’ denoising, leapfrog diffusion model only takes τ -steps, accelerating the inference. To be specific, we first generate K correlated samples to model the distribution "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { P } ( \\hat { \\mathbf { Y } } ^ { \\tau } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using the trained leapfrog initializer. Then, these samples will be fed into the denoising process and iteratively fine-tuned to produce the final predictions; see Algorithm 1."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                367,
+                472,
+                474
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                487,
+                210,
+                505
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.1. Datasets"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                512,
+                181,
+                529
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We evaluate our method on four trajectory prediction datasets, including two sports datasets (NBA SportVU Dataset, NFL Football Dataset) and two pedestrian datasets (Stanford Drone Dataset, ETH-UCY)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                536,
+                470,
+                597
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "NBA SportVU Dataset (NBA): NBA trajectory dataset is collected by NBA using the SportVU tracking system, which records the trajectories of the 10 players and the ball in real basketball games. In this task, we predict the future 4.0s (20 frames) using the 2.0s (10 frames) past trajectory."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                597,
+                470,
+                672
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "NFL Football Dataset (NFL): NFL Football Dataset records the position of every player on the field during each play in the 2017 year. We predict the 22 players’ (11 players per team) and the ball’s future 3.2s (16 frames) trajectory using the historical 1.6s (8 frames) trajectory."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                672,
+                470,
+                748
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Stanford Drone Dataset (SDD): SDD is a large-scale pedestrian dataset collected from a university campus in bird’s eye view. Following previous works [27, 50], we use the standard train-test split and predict the future 4.8s (12 frames) using 3.2s (8 frames) past."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                748,
+                470,
+                824
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "ETH-UCY: ETH-UCY dataset contains 5 subsets: ETH, HOTEL, UNIV, ZARA1, and ZARA2, containing various motion scenes. We use same segment length of 8s as SDD following previous works [18, 27] and use the leave-one-out approach with four sets for training and a left set for testing."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                824,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.2. Implementation Details"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                498,
+                318,
+                717,
+                333
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the leapfrog diffusion model, we set the diffusion step "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Gamma = 1 0 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for all four datasets and the leapfrog step "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau = 5"
+                    },
+                    {
+                        "type": "text",
+                        "content": "on the NBA dataset. In the leapfrog initializer, we build a transformer-based social encoder where the feed-forward dimension is set to 256, the number of heads is 2, and 2 encoder layers are applied; we apply the temporal encoder with 1D convolution kernel being 3, and output channel setting to 32, and we also build a GRU with the hidden size of 256. In the denoising module, we apply the same parameters transformer to extract the context information, and we build the core denoising module with a hidden size of 256. To train the leapfrog diffusion model, we train the denoising module for 100 epochs with an initial learning rate of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 ^ { - 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and decay to half every 16 epochs. With a frozen denoising module, we then train the leapfrog initializer for 200 epochs with an initial learning rate of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 ^ { - 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", decaying by 0.9 every 32 epochs. We set weight parameter "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "w _ { 1 } = 5 0"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to emphasize the distance loss. The entire framework is trained with the Adam optimizer on one GTX-3090 GPU. All models are implemented with PyTorch 1.7.1. See more details in the supplementary material."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                340,
+                895,
+                659
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.3. Comparison with SOTA Methods"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                665,
+                794,
+                681
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We measure the performance of different trajectory prediction methods using two metrics: "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { m i n A D E } _ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and min "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { F D E } _ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", following previous work [27, 49]. 1) min "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { A D E } _ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "calculates the minimum time-averaged distance among K predictions and the ground-truth future trajectory; 2) "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { m i n F D E } _ { K }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "measures the minimum distance among the K predicted endpoints and the ground-truth endpoints. We calculate these two metrics at different timestamps on sports datasets to better evaluate the performance."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                689,
+                895,
+                825
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "NBA dataset. We compare our method with the current 10 state-of-the-art prediction methods at different timestamps; see Table 1. We see that i) our method significantly outperforms all baselines in ADE and FDE at all timestamps. Our method reduces the ADE/FDE at 4.0s from 0.96/1.27 to 0.81/1.10 compared to the current state-of-the-art methods, MID, achieving 15.6%/13.4% improvement; and ii) performance improvement over previous methods increases with timestamps, reflecting the proposed method can capture more sophisticated distributions at further timestamps."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                825,
+                897,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5522"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/8b0b3a0e4379cfc967beca883295cdd26180b7278de6f782e63a8a0bab595f66.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Comparison with baseline models on SDD dataset. minADE<sub>20</sub>/minFDE<sub>20</sub> (meters) are reported. Bold/underlined fonts represent the best/second-best result. Our method achieves the best performance in ADE/FDE. <sup>∗</sup> represents the reproduced results from open source."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Time</td><td rowspan=\"2\">Social- GAN [15] CVPR&#x27;18</td><td rowspan=\"2\">SOPHIE [36] CVPR&#x27;19</td><td rowspan=\"2\">Trajectron++ [38] ECCV&#x27;20</td><td rowspan=\"2\">NMMP [18] CVPR&#x27;20</td><td rowspan=\"2\"> $\\overline { { \\mathrm { E v o l v e . } } }$  Graph [25] NIPS&#x27;20</td><td rowspan=\"2\">PECNet [27] ECCV&#x27;20</td><td rowspan=\"2\">MemoNet [50] CVPR&#x27;22</td><td rowspan=\"2\">NPSN [2] CVPR&#x27;22</td><td rowspan=\"2\">GroupNet [49] CVPR&#x27;22</td><td rowspan=\"2\"> $\\mathrm { M I D ^ { * } \\ [ 1 4 ] }$  CVPR&#x27;22</td><td rowspan=\"2\">Ours</td></tr><tr><td></td></tr><tr><td>4.8s</td><td>27.23/41.44</td><td>16.27/29.38</td><td>19.30/32.70</td><td>14.67/26.72</td><td>13.90/22.90</td><td>9.96/15.88</td><td>8.56/12.66</td><td>8.56/11.85</td><td>9.31/16.11</td><td></td><td>9.73/15.32 8.48/11.66</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                78,
+                102,
+                887,
+                156
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/a530f07616fd49e2d3d51cf711e007f39e39155c2dc01047bf84f8557b4da4e2.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Comparison with baseline models on ETH-UCY dataset. min "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathrm { A D E _ { 2 0 } / m i n F D E _ { 2 0 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(meters) are reported. Bold/underlined fonts represent the best/second-best result. In most subsets, our method achieves the best or second-best performance in ADE/FDE."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\">Subset</td><td>Social- GAN [15]</td><td>NMMP [18]</td><td>STAR [52]</td><td>PECNet [27]</td><td>Trajectron++</td><td></td><td>Agentformer MemoNet</td><td>NPSN [2]</td><td>GroupNet</td><td>MID [14]</td><td>Ours</td></tr><tr><td>CVPR&#x27;18</td><td>CVPR&#x27;20</td><td>ECCV&#x27;20</td><td>ECCV&#x27;20</td><td>[38] ECCV&#x27;20</td><td>[53] ICCV’21</td><td>[50] CVPR&#x27;22</td><td>CVPR&#x27;22</td><td> $[ 4 9 ]$  CVPR&#x27;22</td><td>CVPR&#x27;22</td><td></td></tr><tr><td>ETH</td><td>0.87/1.62</td><td>0.61/1.08</td><td>0.36/0.65</td><td>0.54/0.87</td><td>0.61/1.02</td><td>0.45/0.75</td><td>0.40/0.61</td><td>0.40/0.76</td><td>0.46/0.73</td><td>0.39/0.66</td><td>0.39/0.58</td></tr><tr><td>Hotel</td><td>0.67/1.37</td><td>0.33/0.63</td><td>0.17/0.36</td><td>0.18/0.24</td><td>0.19/0.28</td><td>0.14/0.22</td><td>0.11/0.17</td><td>0.12/0.18</td><td>0.15/0.25</td><td>0.13/0.22</td><td>0.11/0.17</td></tr><tr><td>Univ</td><td>0.76/1.52</td><td>0.52/1.11</td><td>0.31/0.62</td><td>0.35/0.60</td><td>0.30/0.54</td><td>0.25/0.45</td><td>0.24/0.43</td><td>0.22/0.41</td><td>0.26/0.49</td><td>0.22/0.45</td><td>0.26/0.43</td></tr><tr><td>Zara1</td><td>0.35/0.68</td><td>0.32/0.66</td><td>0.29/0.52</td><td>0.22/0.39</td><td>0.24/0.42</td><td>0.18/0.30</td><td>0.18/0.32</td><td>0.17/0.31</td><td>0.21/0.39</td><td>0.17/0.30</td><td>0.18/0.26</td></tr><tr><td>Zara2</td><td>0.42/0.84</td><td>0.43/0.85</td><td>0.22/0.46</td><td>0.17/0.30</td><td>0.18/0.32</td><td>0.14/0.24</td><td>0.14/0.24</td><td>0.12/0.24</td><td>0.17/0.33</td><td>0.13/0.27</td><td>0.13/0.22</td></tr><tr><td>AVG</td><td>0.61/1.21</td><td>0.41/0.82</td><td>0.26/0.53</td><td>0.29/0.48</td><td>0.30/0.51</td><td>0.23/0.39</td><td>0.21/0.35</td><td>0.21/0.38</td><td>0.25/0.44</td><td>0.21/0.38</td><td>0.21/0.33</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                88,
+                188,
+                874,
+                304
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/297330b5e17ddf552265c21550c28590746e84daa0e8322dd6443113cae8db45.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Ablation of leapfrog initializer in the leapfrog diffusion model on NFL with various prediction numbers K. Each module in the leapfrog initializer is beneficial."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>µθ</td><td>Mean Variance σθ</td><td>Sample  ${ \\widehat { \\mathbb { S } } } _ { \\theta }$ </td><td> $K = 2$ </td><td>K=4</td></tr><tr><td> $\\checkmark$ </td><td></td><td>correlated</td><td> $\\overline { { 2 . 0 4 { \\pm } 0 . 1 8 / 4 . 0 8 { \\pm } 0 . 4 8 } }$ </td><td> $1 . 6 3 { \\scriptstyle \\pm 0 . 1 3 } / 3 . 0 5 { \\scriptstyle \\pm 0 . 1 6 }$ </td></tr><tr><td></td><td> $\\checkmark$ </td><td>correlated</td><td> $1 . 9 5 { \\scriptstyle \\pm 0 . 0 8 } / 3 . 9 0 { \\scriptstyle \\pm 0 . 2 2 }$ </td><td> $1 . 4 9 { \\scriptstyle \\pm 0 . 0 1 / 2 . 8 6 \\pm 0 . 0 2 }$ </td></tr><tr><td> $\\checkmark$ </td><td>√</td><td>i.i.d</td><td> $2 . 3 6 { \\pm } 0 . 1 3 / 4 . 3 1 { \\pm } 0 . 2 2$ </td><td> $1 . 9 0 { \\scriptstyle \\pm 0 . 0 7 } / 3 . 3 1 { \\scriptstyle \\pm 0 . 0 5 }$ </td></tr><tr><td> $\\checkmark$ </td><td> $\\checkmark$ </td><td>correlated</td><td> $\\mathbf { 1 . 8 4 { \\scriptstyle \\pm 0 . 0 5 } } / 3 . 6 \\mathbf { 1 } { \\scriptstyle \\pm 0 . 1 1 }$ </td><td> $1 . 4 7 { \\scriptstyle \\pm 0 . 0 1 / 2 . 8 3 \\scriptstyle \\pm 0 . 0 2 }$ </td></tr><tr><td></td><td>Mean Variance</td><td>Sample</td><td> $K { = } 8$ </td><td>K=20</td></tr><tr><td> $\\mu _ { \\theta }$ </td><td> $\\sigma _ { \\theta }$ </td><td> ${ \\widehat { \\mathbb { S } } } _ { \\theta }$ </td><td></td><td></td></tr><tr><td> $\\checkmark$ </td><td></td><td>correlated</td><td> $\\overline { { 1 . 2 5 \\pm 0 . 0 2 / 2 . 3 1 \\pm 0 . 0 4 } }$ </td><td> $\\overline { { 0 . 9 9 { \\scriptstyle \\pm 0 . 0 3 } / 1 . 6 8 { \\scriptstyle \\pm 0 . 0 4 } } }$ </td></tr><tr><td></td><td> $\\checkmark$ </td><td>correlated</td><td> $1 . 2 3 { \\scriptstyle \\pm 0 . 0 1 / 2 . 2 0 \\pm 0 . 0 1 }$ </td><td> $0 . 9 5 { \\scriptstyle \\pm 0 . 0 1 } / 1 . 5 4 { \\scriptstyle \\pm 0 . 0 2 }$ </td></tr><tr><td></td><td> $\\checkmark$ </td><td>i.i.d</td><td> $1 . 5 1 { \\scriptstyle \\pm 0 . 0 4 / 2 . 6 7 \\scriptstyle \\pm 0 . 0 7 }$ </td><td> $1 . 1 8 { \\scriptstyle \\pm 0 . 0 2 } / 1 . 9 0 { \\scriptstyle \\pm 0 . 0 3 }$ </td></tr><tr><td> $\\checkmark$ </td><td> $\\checkmark$ </td><td>correlated</td><td> $\\mathbf { 1 . 1 8 { \\scriptstyle \\pm 0 . 0 1 } } / 2 . \\mathbf { 1 9 } { \\scriptstyle \\pm 0 . 0 1 }$ </td><td> $\\mathbf { 0 . 8 9 { \\scriptstyle \\pm 0 . 0 1 } } / 1 . 5 1 { \\scriptstyle \\pm 0 . 0 2 }$ </td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                83,
+                357,
+                455,
+                511
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                532,
+                472,
+                608
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "NFL dataset. We compare our method with the current 10 state-of-the-art prediction methods at different timestamps; see Table 2. We see that our model significantly outperforms all baselines in ADE and FDE at all timestamps. Our method reduces the ADE/FDE at 3.2s from 1.14/1.92 to 0.87/1.50 compared to the current state-of-the-art methods, MID, achieving 23.7%/21.9% improvement."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                609,
+                472,
+                715
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "SDD dataset. We compare our method with the current 10 state-of-the-art prediction methods; see Table 3. We see that our method reduces FDE from 11.85 to 11.66 compared to the current state-of-the-art method, NPSN. Notably, the original MID [14] uses a different protocol from all the other methods, we update its code for a fair comparison."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                717,
+                470,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "ETH-UCY dataset. We compare our method with 10 state-of-the-art prediction methods; see Table 4. We see that i) our method reduces FDE from 0.35 to 0.33 compared to the current state-of-the-art method, MemoNet, achieving a 5.7% improvement; and ii) our method achieves the best or second best to the best performance on most of the subsets."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/b856bf9caec67689161de9b267e408251ea0e93a60e5b42eff9d4813404161ac.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 6. Different steps "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\Gamma / \\tau"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the standard/leapfrog diffusion model on NBA. τ = 5 provides the best performance."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>Steps</td><td>1.0s</td><td>2.0s</td><td> $3 . 0 \\mathrm { s }$ </td><td>Total(4.0s)</td><td>Inference (ms)</td></tr><tr><td rowspan=\"4\">Standard Diffusion (Γ)</td><td>10</td><td>0.45/0.51</td><td>0.98/1.55</td><td>1.62/2.56</td><td>2.21/2.77</td><td>~87</td></tr><tr><td>50</td><td>0.26/0.36</td><td>0.56/0.91</td><td>0.89/1.42</td><td>1.21/1.73</td><td>~446</td></tr><tr><td>100</td><td>0.21/0.28</td><td>0.44/0.64</td><td>0.69/0.95</td><td>0.94/1.21</td><td>~886</td></tr><tr><td>200</td><td>0.21/0.29</td><td>0.44/0.65</td><td>0.69/0.97</td><td>0.94/1.21</td><td>&gt;1s</td></tr><tr><td rowspan=\"3\">Leapfrog Diffusion (τ)</td><td>500</td><td>0.21/0.30</td><td>0.45/0.68</td><td>0.70/0.99</td><td>0.95/1.23</td><td>&gt;1s</td></tr><tr><td>3</td><td>0.20/0.31</td><td>0.40/0.62</td><td>0.62/0.88</td><td>0.84/1.10</td><td>~30</td></tr><tr><td>5 10</td><td>0.18/0.27 0.17/0.27</td><td>0.37/0.56 0.37/0.58</td><td>0.58/0.84 0.59/0.85</td><td>0.81/1.10 0.82/1.08</td><td>~46 ~89</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                501,
+                344,
+                901,
+                468
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.4. Ablation Studies"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                493,
+                665,
+                508
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Effect of components in leapfrog initializer. We explore the effect of three key components in leapfrog initializer, including mean estimation, variance estimation, and sample prediction. Table 5 presents the results with mean and variance based on 5 experimental trials. We see that i) the leapfrog initializer achieves stable results with better performance even when prediction number K is small; and ii) the proposed mean estimation, variance estimation, and sample prediction all contribute to promoting prediction accuracy."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                523,
+                895,
+                662
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Effect of leapfrog step τ. Table 6 reports the influence of different leapfrog steps in LED. We see that i) under similar inference time, our method significantly outperforms the standard diffusion model with better representation ability; ii) when τ is too small, leapfrog initializer targets to learn more sophisticated distribution, causing worse prediction performance; and iii) when τ is too large, leapfrog initializer has already captured the denoised distribution, encountering performance bottleneck and wasting inference time."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                667,
+                895,
+                805
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Comparison to other fast sampling methods. Table 7 compares the performance of our method and the other two fast sampling methods: PD [37] and DDIM [40]. We see that our method significantly outperforms two fast sampling methods under similar inference time since the proposed LED promotes the correlation between predictions."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                810,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5523"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Past trajectory Mean estimation Our prediction Ground-truth"
+                    }
+                ]
+            },
+            "bbox": [
+                83,
+                607,
+                457,
+                617
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/fe56e4d436e03c5036fd7b5fcc1e92c6b35f262780e86df36c37f69456d7dc55.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "(a) PECNet"
+                    }
+                ]
+            },
+            "bbox": [
+                89,
+                77,
+                285,
+                243
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/0cddb833d1e463f705cdfde588652ea2235901488768ddc9b7d7ae11060bb162.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "(b) GroupNet"
+                    }
+                ]
+            },
+            "bbox": [
+                287,
+                77,
+                482,
+                242
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/6911af7d505bf540ef17b8affd837efbc958efd7302ea90eb1063d2502fe289f.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "(c) Ours"
+                    }
+                ]
+            },
+            "bbox": [
+                485,
+                77,
+                679,
+                242
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/500cb602b3fa630c7ef0ad489bd0ea62b7fdcd510c9f2c38a1ab1a367690f838.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Visualization comparison on NBA. We compare the best-of-20 predictions by our method and two previous methods. Our method generates a more precise trajectory prediction. (Light color: past trajectory; blue/red/green color: two teams and the basketball.)"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                681,
+                77,
+                877,
+                243
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/fee261b46d2c9c55cabb97b785e246b49eea36298ccf73eabb191cbd8e885166.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 7. Comparison to other fast sampling methods on NBA. η = 1 in DDIM. Our method achieves the best performance."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>1.0s</td><td>2.0s</td><td>3.0s</td><td>Total(4.0s)</td><td>Inference (ms)</td></tr><tr><td>PD (K=1)</td><td>0.20/0.33</td><td>0.45/0.75</td><td>0.72/1.13</td><td>0.98/1.39</td><td>~452</td></tr><tr><td>PD (K=2)</td><td>0.21/0.34</td><td>0.46/0.78</td><td>0.73/1.15</td><td>0.98/1.41</td><td>~230</td></tr><tr><td>PD (K=3)</td><td>0.23/0.37</td><td>0.48/0.79</td><td>0.73/1.15</td><td>0.98/1.43</td><td>~121</td></tr><tr><td>PD (K=4)</td><td>0.25/0.38</td><td>0.50/0.80</td><td>0.75/1.16</td><td>0.99/1.44</td><td>~64</td></tr><tr><td>DDIM (S=2)</td><td>0.20/0.29</td><td>0.42/0.65</td><td>0.66/0.96</td><td>0.91/1.21</td><td>~530</td></tr><tr><td>DDIM (S=10)</td><td>0.22/0.32</td><td>0.44/0.71</td><td>0.69/1.04</td><td>0.93/1.31</td><td>~107</td></tr><tr><td>DDIM (S=20)</td><td>0.24/0.35</td><td>0.49/0.81</td><td>0.76/1.21</td><td>1.02/1.51</td><td>~54</td></tr><tr><td>Ours</td><td>0.18/0.27</td><td>0.37/0.56</td><td>0.58/0.84</td><td>0.81/1.10</td><td>~46</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                78,
+                320,
+                467,
+                443
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/87f7a47940fe9c7e12f9e4af31a5e3ecb3a2935dd0e7826c5b7e745326c8f52d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Mean and variance estimation in leapfrog initializer on NBA with K=20. The estimated variance can reflect the scene complexity of the current agent and produce diverse predictions."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                83,
+                450,
+                457,
+                611
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5.5. Qualitative Results"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                669,
+                261,
+                684
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Visualization of predicted trajectory. Figure 3 compares the predicted trajectories of two baselines PECNet and GroupNet, our LED (Ours), and the ground-truth (GT) trajectories on the NBA dataset. We see that our method produces more accurate predictions than the previous methods."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                689,
+                472,
+                763
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Visualization of estimated mean and variance. Figure 4 illustrates the mean and variance estimation in the leapfrog initializer under four scenes on the NBA dataset. We see that the variance estimation can well describe the scene complexity for the current agent by the learned variance, showing the rationality of our variance estimation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                765,
+                470,
+                854
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Visualization of different sampling mechanisms. Figure 5 compares two sampling mechanisms: I.I.D sampling and correlated sampling in the leapfrog initializer. We see"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                854,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f27d3db2ea50b16150741a054c8c016087f4781488950aff9cd18457effa2615.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Comparison between I.I.D and correlated sampling mechanisms in NFL with K=4. Correlated samples appropriately capture multi-modalities, significantly improving prediction performances. that the proposed correlated sampling can appropriately allocate sample diversity and capture more modalities when the number of trials K is small."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                290,
+                880,
+                440
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                545,
+                619,
+                561
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This paper proposes the leapfrog diffusion model (LED), a diffusion-based trajectory prediction model, which signif icantly accelerates the overall inference speed and enables appropriate allocations of multiple correlated predictions. During the inference, LED directly models and samples from the denoised distribution through a novel leapfrog initializer with reparameterization. Extensive experiments show that our method achieves state-of-the-art performance on four real-world datasets and satisfies real-time inference needs."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                568,
+                895,
+                703
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Limitation and future work. This work achieves inference acceleration for trajectory prediction tasks partially because the dimension of trajectory data is relatively small and the corresponding distribution is much easier to learn compared with those of image/video data. A possible future work is to explore diffusion models and fast sampling methods for higher-dimensional tasks."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                704,
+                895,
+                810
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgements"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                821,
+                668,
+                838
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This research is partially supported by National Natural Science Foundation of China under Grant 62171276 and the Science and Technology Commission of Shanghai Municipal under Grant 21511100900 and 22DZ2229005."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                839,
+                893,
+                900
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5524"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Alexandre Alahi, Kratarth Goel, Vignesh Ramanathan, Alexandre Robicquet, Li Fei-Fei, and Silvio Savarese. Social lstm: Human trajectory prediction in crowded spaces. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 961–971, 2016. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Inhwan Bae, Jin-Hwi Park, and Hae-Gon Jeon. Nonprobability sampling network for stochastic human trajectory prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6477–6487, 2022. 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Apratim Bhattacharyya, Michael Hanselmann, Mario Fritz, Bernt Schiele, and Christoph-Nikolas Straehle. Conditional flow variational autoencoders for structured sequence prediction. arXiv preprint arXiv:1908.09008, 2019. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Nanxin Chen, Yu Zhang, Heiga Zen, Ron J Weiss, Mohammad Norouzi, and William Chan. Wavegrad: Estimating gradients for waveform generation. In International Conference on Learning Representations, 2020. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Yujiao Cheng, Liting Sun, Changliu Liu, and Masayoshi Tomizuka. Towards efficient human-robot collaboration with robust plan recognition and trajectory prediction. IEEE Robotics and Automation Letters, 5(2):2602–2609, 2020. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, and Yoshua Bengio. Empirical evaluation of gated recurrent neural networks on sequence modeling. arXiv preprint arXiv:1412.3555, 2014. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Patrick Dendorfer, Sven Elflein, and Laura Leal-Taixé. Mggan: A multi-generator model preventing out-of-distribution samples in pedestrian trajectory prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 13158–13167, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Prafulla Dhariwal and Alexander Nichol. Diffusion models beat gans on image synthesis. Advances in Neural Information Processing Systems, 34:8780–8794, 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Liangji Fang, Qinhong Jiang, Jianping Shi, and Bolei Zhou. Tpnet: Trajectory proposal network for motion prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6797–6806, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Dario Floreano and Robert J Wood. Science, technology and the future of small autonomous drones. Nature, 521(7553):460–466, 2015. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Thomas Gilles, Stefano Sabatini, Dzmitry Tsishkou, Bogdan Stanciulescu, and Fabien Moutarde. Home: Heatmap output for future motion estimation. In 2021 IEEE International Intelligent Transportation Systems Conference, pages 500– 507, 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Thomas Gilles, Stefano Sabatini, Dzmitry Tsishkou, Bogdan Stanciulescu, and Fabien Moutarde. Gohome: Graph-oriented heatmap output for future motion estimation. In International Conference on Robotics and Automation, pages 9107–9114, 2022. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Francesco Giuliari, Irtiza Hasan, Marco Cristani, and Fabio Galasso. Transformer networks for trajectory forecasting. In International Conference on Pattern Recognition, pages 10335–10342. IEEE, 2021. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Tianpei Gu, Guangyi Chen, Junlong Li, Chunze Lin, Yongming Rao, Jie Zhou, and Jiwen Lu. Stochastic trajectory prediction via motion indeterminacy diffusion. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 17113–17122, 2022. 1, 2, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Agrim Gupta, Justin Johnson, Li Fei-Fei, Silvio Savarese, and Alexandre Alahi. Social gan: Socially acceptable trajectories with generative adversarial networks. In Proceedings ofthe IEEE Conference on Computer Vision and Pattern Recognition, pages 2255–2264, 2018. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Dirk Helbing and Peter Molnar. Social force model for pedestrian dynamics. Physical review E, 51(5):4282, 1995. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. In Advances in Neural Information Processing Systems, volume 33, pages 6840–6851, 2020. 1, 2, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Yue Hu, Siheng Chen, Ya Zhang, and Xiao Gu. Collaborative motion prediction via neural motion message passing. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6319–6328, 2020. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Yingfan Huang, Huikun Bi, Zhaoxin Li, Tianlu Mao, and Zhaoqi Wang. Stgat: Modeling spatial-temporal interactions for human trajectory prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 6272–6281, 2019. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Takayuki Kanda, Hiroshi Ishiguro, Tetsuo Ono, Michita Imai, and Ryohei Nakatsu. Development and evaluation of an interactive humanoid robot\" robovie\". In IEEE International Conference on Robotics and Automation, pages 1848–1855, 2002. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Zhifeng Kong, Wei Ping, Jiaji Huang, Kexin Zhao, and Bryan Catanzaro. Diffwave: A versatile diffusion model for audio synthesis. In International Conference on Learning Repre sentations, 2020. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Vineet Kosaraju, Amir Sadeghian, Roberto Martín-Martín, Ian Reid, Hamid Rezatofighi, and Silvio Savarese. Socialbigat: Multimodal trajectory forecasting using bicycle-gan and graph attention networks. In Advances in Neural Information Processing Systems, volume 32, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Mihee Lee, Samuel S Sohn, Seonghyeon Moon, Sejong Yoon, Mubbasir Kapadia, and Vladimir Pavlovic. Muse-vae: Multiscale vae for environment-aware long term trajectory prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 2221–2230, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Jesse Levinson, Jake Askeland, Jan Becker, Jennifer Dolson, David Held, Soeren Kammel, J Zico Kolter, Dirk Langer, Oliver Pink, Vaughan Pratt, et al. Towards fully autonomous driving: Systems and algorithms. In IEEE Intelligent Vehicles symposium, pages 163–168. IEEE, 2011. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Jiachen Li, Fan Yang, Masayoshi Tomizuka, and Chiho Choi. Evolvegraph: Multi-agent trajectory prediction with dynamic relational reasoning. In Proceedings ofthe Neural Information Processing Systems, 2020. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Karttikeya Mangalam, Yang An, Harshayu Girase, and Jitendra Malik. From goals, waypoints & paths to long term human trajectory forecasting. In Proceedings ofthe IEEE/CVF"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                116,
+                470,
+                185
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5525"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "International Conference on Computer Vision, pages 15233– 15242, 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Karttikeya Mangalam, Harshayu Girase, Shreyas Agarwal, Kuan-Hui Lee, Ehsan Adeli, Jitendra Malik, and Adrien Gaidon. It is not the journey but the destination: Endpoint conditioned trajectory prediction. In European Conference on Computer Vision, pages 759–776, 2020. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Wei Mao, Miaomiao Liu, and Mathieu Salzmann. History repeats itself: Human motion prediction via motion attention. In European Conference on Computer Vision, pages 474–489, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Wei Mao, Miaomiao Liu, Mathieu Salzmann, and Hongdong Li. Learning trajectory dependencies for human motion prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9489–9497, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Ramin Mehran, Alexis Oyama, and Mubarak Shah. Abnormal crowd behavior detection using social force model. In 2009 IEEE Conference on Computer Vision and Pattern Recognition, pages 935–942. IEEE, 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Abduallah Mohamed, Kun Qian, Mohamed Elhoseiny, and Christian Claudel. Social-stgcnn: A social spatio-temporal graph convolutional neural network for human trajectory prediction. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 14424–14432, 2020. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Jeremy Morton, Tim A Wheeler, and Mykel J Kochenderfer. Analysis of recurrent neural networks for probabilistic modeling of driver behavior. IEEE Transactions on Intelligent Transportation Systems, 18(5):1289–1298, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In International Conference on Machine Learning, pages 8162–8171, 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Bo Pang, Tianyang Zhao, Xu Xie, and Ying Nian Wu. Trajectory prediction with latent belief energy-based model. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11814–11824, 2021. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Kashif Rasul, Calvin Seward, Ingmar Schuster, and Roland Vollgraf. Autoregressive denoising diffusion models for multivariate probabilistic time series forecasting. In International Conference on Machine Learning, pages 8857–8868, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Amir Sadeghian, Vineet Kosaraju, Ali Sadeghian, Noriaki Hirose, Hamid Rezatofighi, and Silvio Savarese. Sophie: An attentive gan for predicting paths compliant to social and physical constraints. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1349–1358, 2019. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Tim Salimans and Jonathan Ho. Progressive distillation for fast sampling of diffusion models. In International Conference on Learning Representations, 2021. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Tim Salzmann, Boris Ivanovic, Punarjay Chakravarty, and Marco Pavone. Trajectron++: Dynamically-feasible trajectory forecasting with heterogeneous data. In European Conference on Computer Vision, pages 683–700, 2020. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Jascha Sohl-Dickstein, Eric Weiss, Niru Maheswaranathan, and Surya Ganguli. Deep unsupervised learning using nonequilibrium thermodynamics. In International Conference on Machine Learning, pages 2256–2265, 2015. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. In International Conference on Learning Representations, 2020. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Yang Song and Stefano Ermon. Generative modeling by estimating gradients of the data distribution. In Advances in Neural Information Processing Systems, volume 32, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Hao Sun, Zhiqun Zhao, and Zhihai He. Reciprocal learning networks for human trajectory prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7416–7425, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Bohan Tang, Yiqi Zhong, Ulrich Neumann, Gang Wang, Ya Zhang, and Siheng Chen. Collaborative uncertainty in multiagent trajectory forecasting. Advances in Neural Information Processing Systems, 34, 2021. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Yusuke Tashiro, Jiaming Song, Yang Song, and Stefano Ermon. Csdi: Conditional score-based diffusion models for probabilistic time series imputation. In Advances in Neural Information Processing Systems, pages 24804–24816, 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Maria Valera and Sergio A Velastin. Intelligent distributed surveillance systems: a review. IEE Proceedings-Vision, Image and Signal Processing, 152(2):192–204, 2005. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems, 2017. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Anirudh Vemula, Katharina Muelling, and Jean Oh. Social attention: Modeling attention in human crowds. In 2018 IEEE international Conference on Robotics and Automation, pages 4601–4607, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Pengxiang Wu, Siheng Chen, and Dimitris N Metaxas. Motionnet: Joint perception and motion prediction for autonomous driving based on bird’s eye view maps. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 11385–11395, 2020. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Chenxin Xu, Maosen Li, Zhenyang Ni, Ya Zhang, and Siheng Chen. Groupnet: Multiscale hypergraph neural networks for trajectory prediction with relational reasoning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6498–6507, 2022. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Chenxin Xu, Weibo Mao, Wenjun Zhang, and Siheng Chen. Remember intentions: Retrospective-memory-based trajectory prediction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6488– 6497, 2022. 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Chenxin Xu, Yuxi Wei, Bohan Tang, Sheng Yin, Ya Zhang, and Siheng Chen. Dynamic-group-aware networks for multiagent trajectory prediction with relational reasoning. arXiv preprint arXiv:2206.13114, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Cunjun Yu, Xiao Ma, Jiawei Ren, Haiyu Zhao, and Shuai Yi. Spatio-temporal graph transformer networks for pedestrian trajectory prediction. In European Conference on Computer Vision, pages 507–523, 2020. 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Ye Yuan, Xinshuo Weng, Yanglan Ou, and Kris M Kitani. Agentformer: Agent-aware transformers for socio-temporal multi-agent forecasting. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9813– 9823, 2021. 1, 7"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                109,
+                93,
+                470,
+                119
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "5526"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ]
+]
