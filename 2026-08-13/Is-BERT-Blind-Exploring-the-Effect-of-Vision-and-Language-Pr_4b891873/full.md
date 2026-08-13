@@ -1,0 +1,361 @@
+# Is BERT Blind? Exploring the Effect of Vision-and-Language Pretraining on Visual Language Understanding
+
+Morris Alper<sup>∗</sup>, Michael Fiman<sup>∗</sup>, Hadar Averbuch-Elor Tel Aviv University
+
+Alex gave Riley a present Alex gave Riley an ultimatum How concrete are the words present and ultimatum?  
+![](images/0b3df4a097f3e7076fc9642f0a1d5847bfaeb5206552e3621ebb571aebfeaa6b.jpg)
+
+![](images/87aa101893ffa3329a64f1fc6e474200a68383973e277b6c5fb1ac9fc7638231.jpg)
+
+![](images/728d06e94992b54360372c7ada14963af1c4672a12ee883bde98cf017e57fe38.jpg)
+
+![](images/41510b66728f6f1c1ea02951b193e359e08c4d672d2b63f89f56bf7ea29d5acd.jpg)
+
+Figure 1. In this paper, we propose a suite of visual language understanding tasks for probing the visual reasoning capabilities of text encoder models. While we consider text-only tasks (i.e., processing only the textual descriptions above without associated imagery), we argue that they require visual imagination to complete and can thus benefit from vision-and-language pretraining. For instance, consider the words present and ultimatum. A simple online query (that considers only freely-available images) roughly yields a coherent set of images for the more concrete word (namely present), while the latter cannot be uniquely depicted. Likewise, selecting the most natural color or shape descriptors in cloze contexts as shown in the two examples on the right requires implicit knowledge of the appearance of the referent under consideration (ocean and corn chip respectively).
+
+## Abstract
+
+Most humans use visual imagination to understand and reason about language, but models such as BERT reason about language using knowledge acquired during text-only pretraining. In this work, we investigate whether visionand-language pretraining can improve performance on textonly tasks that involve implicit visual reasoning, focusing primarily on zero-shot probing methods. We propose a suite of visual language understanding (VLU) tasks for probing the visual reasoning abilities of text encoder models, as well as various non-visual natural language understanding (NLU) tasks for comparison. We also contribute a novel zero-shot knowledge probing method, Stroop probing, for applying models such as CLIP to text-only tasks without needing a prediction head such as the masked language modelling head of models like BERT. We show that SOTA multimodally trained text encoders outperform unimodally trained text encoders on the VLU tasks while being underperformed by them on the NLU tasks, lending new context to previously mixed results regarding the NLU capabilities ofmultimodal models. We conclude that exposure to images during pretraining affords inherent visual reasoning knowl-
+
+edge that is reflected in language-only tasks that require implicit visual reasoning. Ourfindings bear importance in the broader context of multimodal learning, providing principled guidelines for the choice of text encoders used in such contexts<sup>1</sup>.
+
+## 1. Introduction
+
+Humans are multimodal learners. We communicate with each other about things that we have experienced and knowledge we have gained using our senses—most commonly including sight as well as hearing, touch, smell, and taste. Our communication channel is limited to a single modality—spoken language, signed language, or text—but a reader or listener is expected to use his or her imagination to visualize and reason about the content being described. In general, language is used to describe scenes, events, and images; the words used to describe these are used to conjure up a visual impression in the listener. Therefore, it is natural to consider the types of visual reasoning used in understanding language, and to ask how well we can currently model them with computational methods.
+
+Consider, for instance, the questions in Figure 1. Concreteness is typically correlated with how well a concept can be visually imagined. For example, a concrete word such as present often has a unique visual representation. In addition, common associations such as ocean→blue (color) and corn chip→triangle (shape) reflect properties of an imagined visual representation of the item in question. These properties may be difficult to infer from text alone without prior knowledge gained from visual input; for instance, a number of studies have investigated the partial ability of blind English speakers to predict color associations and how it differs from the intuition of sighted speakers<sup>2</sup> [40, 50, 51, 54, 65].
+
+There has been a wealth of recent research vision-andlanguage (V&L) tasks involving both text and image data, and the use of vision-language pretraining (VLP) to create models that are able to reason jointly about both of these modalities together [11, 12, 29, 35]. Notable in this regard is CLIP [46], consisting of paired text and image encoders jointly trained on a contrastive objective, that learns to align text and image embeddings in a shared semantic space. On the other hand, text encoder models such as BERT [14] learn to reason about text in a unimodal vacuum, with knowledge derived from pretraining tasks that only involve textual data.
+
+Prior work has investigated the performance of multimodally trained text encoders on various natural language understanding (NLU) tasks with mixed results, sometimes finding that they are outperformed by unimodal models [22] and at other times suggesting improved performance [69]. However, these works fine-tune the models under consideration on NLU tasks before evaluation, making it difficult to disentangle the effects of multimodal pretraining and finetuning configuration on the observed performance. Additionally, these works do not address the distinction between NLU tasks requiring implicit visual reasoning and ones that are purely non-visual. We refer to natural language inference involving implicit visual reasoning as visual language understanding (VLU) and propose a suite of VLU tasks that may be used to evaluate visual reasoning capabilities of pretrained text encoders, focusing primarily on zero-shot methods.
+
+We compare multimodally trained text encoders such as that of CLIP to BERT and other unimodally trained text encoders, evaluating their performance on our suite of VLU tasks. We evaluate these models in without modifying their internal weights in order to probe their knowledge obtained during pretraining. A key design aspect of these tests is the probing method used to evaluate knowledge. Previous work has probed the knowledge of BERT and similar models using a masked language modelling (MLM) paradigm [43, 48], but this cannot be directly applied to CLIP since it was not pretrained with MLM. We therefore propose a new zero-shot probing method that we term Stroop probing. This is based on the psychological Stroop effect [39] (described in Section 3.2), which suggests that salient items should have a stronger interference effect on the representation of their context.
+
+Strikingly, we find that the multimodally trained text encoders under consideration outperform unimodally trained text encoders on VLU tasks, both when comparing to much larger encoders as well as ones of comparable size. We also compare these models on baseline NLU tasks that do not involve visual reasoning and find that models such as CLIP underperform on these tasks, demonstrating that they do not have a global advantage on NLU tasks. We conclude that exposure to images during pretraining improves performance on text-only tasks that require visual reasoning. Furthermore, our findings isolate the effect of the text component of multimodal models for tasks such as text to image generation, providing principled guidelines for understanding the knowledge that such models inject into downstream vision tasks.
+
+## 2. Related Work
+
+Building models to create text embeddings for a large range of language tasks has been broadly explored over the past several years. In our work we compare two types of transformer-based models which encode these types of embeddings: those trained on text-only data (unimodally trained), and those exposed to both text and image data during training (multimodally trained).
+
+Since the introduction of the self-attention-based transformer architecture by Vaswani et al. [66], transformers have become the predominant architecture for tasks involving textual data. Devlin et al. [14] introduce BERT, a transformer model encoding contextual information for each token in an input sequence in a bidirectional manner. They suggest a self-supervised pretraining method to compute contextual feature representations of textual data, via masked language modelling and next sentence prediction objectives. This pretrained model can then be applied to other downstream tasks by end-to-end fine-tuning. Subsequently, various other text encoder transformers have been proposed, such as RoBERTa [37], DistilBERT [49], and ERNIE [60, 61]. While these models differ on some architectural details and on precise pretraining objectives, they all share the basic transformer architecture and the use of denoising pretraining objectives. In particular, they are all trained on unimodal data, meaning that they are only exposed to text during training.
+
+In contrast to unimodally trained text encoders, V&L models have been exposed to both text and image data during training. These models are typically used for tasks that require joint reasoning on text and images, such as visual question answering, grounding referring expressions, and vision-language retrieval [11, 16]. Fusion encoder models such as LXMERT [62], UNITER [12], ViLT [29], and ALBEF [35] output a fused representation of text and image data, while dual encoder models like CLIP [46] and ALIGN [24] consist of dual text and image encoder models that are jointly trained to produce embeddings in a shared semantic space. FLAVA, a vision-and-language model introduced recently by Singh et al. [58], also includes dual text and image encoders, and is trained on both multimodal objectives involving the alignment of images and text, as well as unimodal objectives. In this work we focus on the text encoder component of dual encoder models, since it may be used after V&L pretraining for text-only tasks.
+
+Various works have explored the use of multimodal learning to benefit text understanding. Most related to our work is the very recent study of Zhang et al. [72] which investigates the use of unimodal and multimodal models for understanding visual commonsense in text. Their analysis follows a line of related work investigating the contribution of multimodal learning to visual commonsense knowledge in text, since such knowledge is typically not written explicitly in text but is abundantly present in visual information [32, 36, 67]. Unlike Zhang et al. [72] who only evaluate CLIP with an added set of task-specific learned weights, we are able to probe CLIP and other similar models in the strictly zero-shot setting via our novel Stroop probing method. This allows for directly evaluating properties learned by the models, independent of differences that result, for instance, from specific training configurations. In addition, we also study performance on both visual and nonvisual NLU tasks in order to provide a controlled benchmark.
+
+Other works have investigated the use of multimodal learning for NLU in various contexts. Bruni et al. [7] propose an architecture for integrating text and image-based distributional information to improve performance on tasks where meaning is grounded in perception. Kiela and Bottou [27] show that integrating features extracted from images using CNN with skip-gram representation vectors improves performance on semantic similarity datasets. Lazaridou et al. [33] train visual representations extracted using CNNs together with skip-gram embeddings to integrate visual and textual information performing well in both semantic and vision tasks. Kiela et al. [28] train a sentence embedding model using grounded information extracted from image features by attempting to predict the image features. These embeddings improve performance on various NLP tasks in comparison to text only embeddings. They show that using this method for a dataset consisting mainly of abstract words is likely to less benefit from grounding information. Shi et al. [55] show that a syntactic parser can benefit from seeing images during training; however, it was later shown that the model mostly relies on noun concreteness (which we also elaborate on in our work) rather than more complex syntactic reasoning [31]. The use of images for PCFG induction is also investigated by Jin & Schuler [25].
+
+Along with the rise in visibility of jointly trained V&L transformer models, a number of works have explored the use of these models for text-only tasks, with mixed results. Using terms coined by Sileo et al. [57], these can be broadly split into associative grounding and transfer grounding approaches. Associative grounding uses retrieval methods to associate particular images with related texts; Kiros et al. [30] and Tan & Bansal [63] show that associative grounding methods may improve performance on various text-only NLU benchmark tasks. Transfer grounding applies V&L models directly to text-only input, disregarding the vision component of the model during inference. Wang et al. [69] apply this to weakly-supervised V&L models to outperform BERT on various text-only tasks from the GLUE benchmark. On the other hand, Iki & Aizawa [22] find that V&L-pretrained text encoders have similar or inferior results on NLU tasks including tasks from GLUE. Likewise, Cao et al. [9] find that although visually-aligned text encoders perform well on semantic linguistic probing tasks, BERT still outperforms them.
+
+As discussed above, some prior works suggest that multimodal pretraining aids text understanding while other works show that it can lead to degradation. Our work provides new context for these seemingly contradictory results, allowing them to be reassessed in the new context of visual vs. non-visual natural language understanding.
+
+## 3. Experimental Setup
+
+## 3.1. Models Used
+
+For evaluating unimodally trained text encoders, we use BERT [14], RoBERTa [37], DistilBERT and Distil-RoBERTa [49], which are all trained with text-only MLM objectives. We also include results for Sentence-BERT (SBERT) [47], since its output embeddings are trained to have meaningful cosine similarity scores and thus bear more similarity to other models evaluated with Stroop proving. Results on multimodally trained text encoders are reported for CLIP [46] and FLAVA [58]; for these models we use only the text encoder with pretrained weights and discard the other subcomponents. Our tests include checkpoints from both OpenAI and the OpenCLIP open-source implementation of CLIP [13,23]. Details of the checkpoints used for each model are listed in the supplementary material.
+
+The text encoders of the multimodally trained models range in size from 63M (CLIP) to 109M (FLAVA) parameters. We compare to both comparably small unimodally trained text encoders such as DistilBERT (66M parameters) as well as much larger text encoders such as BERT-large (340M). See the supplementary material for an exhaustive list of sizes of the models under consideration.
+
+We use each model with frozen pretrained weights. Our subsequent tests probe the contents of the feature vectors extracted by these models. For MLM probing, we also use the model’s MLM head for prediction. In cases where MLM can be used we have found it to outperform Stroop probing; in such cases we report results for MLM probing here and for Stroop probing in the supplementary material.
+
+## 3.2. Probing Methods
+
+In order to probe the inherent knowledge of our models, we use the knowledge probing methods described below. The probing methods that follow are strictly zero-shot; in the supplementary material we analyze the use of linear classifiers trained on our models’ frozen embeddings (“linear probing”).
+
+Masked language modelling (MLM). BERT and our other unimodally trained models were all pretrained with MLM objectives and hence can be used for zero-shot prediction of tokens in a masked context. Given a text including a [MASK] token and a set of k possible completions $C =$ $\{ c _ { 1 } , c _ { 2 } , \cdots , c _ { k } \}$ , a MLM assigns probabilities $p _ { 1 } , \cdots , p _ { k }$ to each corresponding token. We use arg max<sub>i</sub> p<sub>i</sub> as the model’s prediction. Previous works have found that BERT and other MLM can be probed for innate knowledge with this method [43, 48].
+
+Stroop probing (SP). We propose another zero-shot probing method to extract knowledge from models based on the pooled embeddings that they extract. Consider a masked text $t _ { m }$ and possible completions $c \in C .$ and let $t _ { c }$ be the text with c inserted in the mask location. Given a text encoder M, we calculate pooled embeddings $v _ { m } =$ $M ( t _ { m } )$ and $v _ { c } = M ( t _ { c } )$ and unit-normalize them to $\hat { v } _ { m } =$ $v _ { m } / \lVert v _ { m } \rVert$ and $\hat { v } _ { c } ~ = ~ v _ { c } / \| v _ { c } \|$ . Stroop probing considers the cosine similarity scores $s _ { c } : = \hat { v } _ { m } \cdot \hat { v } _ { c }$ These can be used either directly for regression (as in the concreteness task below), or for categorical prediction by selecting $c ^ { * } = \arg \operatorname* { m a x } _ { c } s _ { c }$
+
+The intuition behind Stroop probing is that items which are more surprising, incongruous, or salient in the given context may have a stronger interference effect on the encoding of the surrounding text. This is analogous to the Stroop effect in human psychology. When presented with congruent and incongruent stimuli such as color words printed in the same or differing colors (e.g. “red” printed in blue), readers take significantly longer on average to read the incongruent stimuli, a phenomenon known as the Stroop effect [39]<sup>3</sup>. We use Stroop probing for multiple tasks, including predicting color associations, as described below.
+
+## 3.3. Prompts Used
+
+For each task, we test the probing methods above on a wide variety of prompts in order to show the robustness of the described phenomena. In our results below we report the maximum metric value for each model over all of the prompts, since this represents a rough bound on our ability to extract intrinsic knowledge from the models under consideration. A full list of prompts used for each task and an analysis of model performance across prompts are provided in the supplementary material.
+
+In some cases our prompt contains an empty slot, which we indicate below as [<sub>\*</sub>]. Some models under consideration have a dedicated mask token, but for those such as CLIP that do not, we insert a fixed token in this slot, detailed further in the supplementary material.
+
+## 4. VLU Tasks
+
+We present three VLU tasks to probe the ability of our models to understand language with implied visual context: concreteness prediction (Section 4.1), color association prediction (Section 4.2) and shape association prediction (Section 4.3). Note that each of these tasks is performed on text alone, but requires visual reasoning to complete.
+
+## 4.1. Concreteness Prediction
+
+Task description. Words and phrases can be roughly classified as either concrete or abstract. A concrete concept is something that can be pointed to or directly sensed, while abstract concepts refer to things that cannot be easily visualized [53]. This can be conceptualized on a scale, ranging from the most abstract to the most concrete. Psychological research suggests that concrete words are easier for humans to understand and remember than abstract words [53]. Similarly, it has been shown that concreteness correlates with the learnability of visual concepts for machine learning models [18], and that MLM pretraining of V&L models may be improved by preferentially masking concrete words [4].
+
+Because concreteness is a property of text that is tightly coupled with the visual domain, we consider concreteness prediction to be a VLU task, requiring some knowledge of the visual content of language to complete. We note that this task has been addressed in various previous works [10, 18, 20, 21, 45]. In contrast to these approaches, our unsupervised concreteness estimation procedure evaluates the concreteness of a word or phrase in a given textual context, rather than being limited to a fixed set of lexical items or discrete categories in a dataset.
+
+Experimental details. We probe our models for the concreteness of words in context by using a cloze task paradigm with Stroop probing. For example, using the prompt $t _ { m } =$ “I see the $[ \star ] ^ { \prime \prime }$ and testing word ⟨w⟩, we insert the word into the prompt to obtain $t _ { w } = { ^ { \ast } I }$ see the $\langle w \rangle ^ { \prime \prime }$ , and use cosine similarity score $s _ { w }$ between embeddings of $t _ { m }$ and $t _ { w }$ as the regression output. All prompts used are listed in the supplementary material.
+
+We test our approach on the dataset introduced by Brysbaert et al. [8]. This dataset contains 39,954 English unigrams and bigrams along with human-labelled concreteness scores on a scale from 1 (abstract) to 5 (concrete), averaged over annotators. We only use the unigram nouns from this list, totaling 14,562 items. Note that unlike prior concreteness prediction techniques that train supervised models on this dataset [10], we perform zero-shot prediction on this task with no supervised training, using the dataset for testing only.
+
+Also note that we do not report results for DistilBERT or DistilRoBERTa since the checkpoints used do not contain a trained pooling layer, which is required for Stroop probing.
+
+Evaluation metrics. We report absolute values of Pearson, Spearman, and Kendall correlations between the predicted concreteness and ground truth scores (|ρ|, |r<sub>s</sub>|, and |τ | respectively).
+
+## 4.2. Color Association Prediction
+
+Task description. Some concepts are highly associated with particular colors—for example, the word banana is highly associated with the color yellow, while a word like child does not have a strong color association. These color associations have been widely studied in experimental psychology and neuroscience [3,5]. We propose a task of color association prediction – given a noun (or noun phrase) ⟨w⟩, identify the color with which ⟨w⟩ is normally associated.
+
+Experimental details. To probe our models for color associations, we use the MLM and SP methods described above. In particular, we conceive of this task as categorical prediction over a set of basic color words C. For example, using the prompt “A picture ofa $\mathinner { \langle { \star } \jmath \ \langle { w } \rangle } ^ { \ \prime \prime }$ where ⟨w⟩ is the item being tested, our probing methods search for the most suitable color to place in the [<sub>\*</sub>] slot. All prompts tested are listed in the supplementary material. For MLM probing, we predict the color $c \in C$ with the highest predicted probability in the [<sub>\*</sub>] slot of the prompt. For SP, we predict $c ^ { * } = \arg \operatorname* { m a x } s _ { c }$ using similarity scores as defined above.
+
+To test this method on our chosen text encoders, we use two datasets. The Color Terms Dataset (CTD) [6] provides a list of 52 concrete words and their color. The Natural-Color Dataset (NCD) of fruit images [2] is a colorization task containing images of 20 types of fruits and vegetables paired with colors. We use the provided list of fruits and colors as a fixed set of words with strong color associations, discarding the image data. For the latter, we filter objects with the color label purple as this label contains multiple WordPiece tokens and thus is not directly comparable with MLM probing for models such as BERT. This results in 15 unique fruits and vegetables. For each model, we calculate color predictions using the probing methods described above out of the set: {red, orange, yellow, green, blue, black, white, grey, brown}.
+
+Evaluation metrics. We report categorical accuracy of predictions on the CTD and NCD datasets (acc<sub>CTD</sub> and acc<sub>NCD</sub>) relative to the ground truth color labels.
+
+## 4.3. Shape Association Prediction
+
+Task description. Another salient visual feature of language is the association between concrete nouns or noun phrases and particular shapes. For example, the nouns wheel and compass have a circular association, while pyramid and corn chip have a triangular association. Shape associations have been studied in the psychological literature in contexts such as child language acquisition [70] and semantic memory representation [68]. Building on this line of research, we propose the task of shape association prediction – given a noun (or noun phrase) ⟨w⟩, identify the basic shape that is most associated with ⟨w⟩. Because the space of possible shapes is complex and difficult to categorize unambiguously, we restrict ⟨w⟩ under consideration to nouns associated with a few basic shapes, as described below.
+
+Experimental details. We construct the ShapeIt benchmark for shape associations<sup>4</sup>. This contains 109 items total, each consisting of a noun or noun phrase along with the basic shape most associated with it from the set {rectangle, circle, triangle}. The benchmark was constructed by performing a user study requiring users to choose a shape associated with a given word, and selecting for only those words which were consistently classified by the users. Data collection methods used in constructing this benchmark are detailed in the supplementary material, along with further analysis of its contents. Probing methods used for this task are equivalent to the color associa tion prediction task. Prompts used for probing include “A [<sub>\*</sub>] shaped ⟨w⟩” where ⟨w⟩ is the shape associated word; the full list of prompts used is detailed in the supplementary material. We use both shape nouns (e.g. circle) and associated adjectives (e.g. circular) and report the highest accuracy achieved between these two settings.
+
+Evaluation metric. We report categorical accuracy of predictions (acc) relative to the ground truth shape labels.
+
+## 5. Non-visual NLU Tasks
+
+We also present three non-visual NLU tasks to serve as a baseline comparison for our models:
+
+## 5.1. Factual Knowledge Probing
+
+Task description. It has been observed that language models have an emergent knowledge base property, in which they may be probed for factual knowledge about the world [43, 48]. Various works on probing BERT and other language models for commonsense world knowledge have found that they show an impressive ability to memorize knowledge, although they may be deficient in applying this knowledge to reasoning about the physical world [15]. In this task, we probe our models for fine-grained factual knowledge via a cloze test, where an empty slot must be filled in with a word. We test on factual knowledge about geographical locations since this requires factual knowledge that does not explicitly rely on visual reasoning.
+
+Experimental details. For this task, we use the Comparative Question Completion dataset introduced by [71]. This consists of questions in which one of a pair of coordinated elements is masked; the target is the masked phrase. Specifically, we use the cities dataset which masks the names of geopolitical entities such as cities and countries. Example sentences from the dataset include: which country has more part timejobs new zealand or [<sub>\*</sub>]? (the correct answer being australia) and which is older saudi arabia or [<sub>\*</sub>]? (the correct answer being persia). The original dataset has 1,187 questions with 447 unique locations as answers. In order to fit the general method of masking tasks, we filter masked phrases with more than one token (e.g. the west coast) similar to the protocol presented in the original paper. As this results in an extremely limited set of candidates for MLM models such as RoBERTa that use Byte Pair Encoding tokenization, we restrict the MLM models under comparison to BERT and DistilBERT. The filtered dataset contains 825 questions with 216 unique locations.
+
+We treat this task as a categorical classification task, choosing only from the set of unique locations given in the dataset per sample, and evaluating how often the correct target is chosen. We use MLM probing and Stroop probing for categorical prediction as described above. Similarly to our other tasks, the intuition is that more surprising completions should have a larger interference effect on the text’s encoding, if the relevant information is encoded in the embedding.
+
+Evaluation metrics. We report recall at one and five (R@1, R@5), measuring how often the ground truth answer is found among the model’s top one or five predicted candidates.
+
+## 5.2. Language Proficiency Probing
+
+Task description. In order to evaluate our models’ intrinsic knowledge of general language usage, we consider the task of reconstructing English text in order to produce naturalsounding language. Multiple-choice cloze tests are commonly used in language assessment tasks for students to evaluate their proficiency [1,59,64]. Similarly, a model with a good grasp of English language usage should be able to fill in missing words in cloze contexts to produce fluent English. This requires grammatical and semantic knowledge, but in general, it is not directly related to visual reasoning when applied to arbitrary masked contexts. As noted by Trace [64], cloze tasks may evaluate global reading comprehension or local contextual information in the cloze context; we focus on the latter case and refer to this task applied to our models as language proficiency probing.
+
+Experimental details. To evaluate language proficiency, we use the Children’s Book Test (CBT) cloze dataset provided by Meta research [19], consisting of book passages with accompanying masked sentences and possible mask completions. We discard the book passages and only consider the sentences and completions, to focus on the task of reconstructing well-formed text. Completions are grouped by part of speech (POS); we use the noun (N), verb (V), and preposition (P) groups and discard the named entity groups since the latter require long-distance context to predict while N, V, and P can often be inferred from local sentential context. In total, each of the N, V, and P groups contains 2,500 sentences with 10 possible completions each. We filter out long sentences since our multimodally trained models have shorter expected input lengths. After filtering we are left with 1,588 noun, 1,747 verb, and 2,382 preposition completion sentences. In addition, we only use sentences that have a one-word token answer for all tokenizers. For example, one sentence from the V group is I [<sub>\*</sub>] not a fellow; I am a young lady! and the set of possible completions is {am, born, find, picking, pricked, said, sat, seems, streamed, thinking}. We use MLM and Stroop probing to evaluate our models on this data.
+
+Evaluation metrics. We report categorical accuracy per POS group (acc<sub>V</sub>, acc<sub>N</sub>, and acc<sub>P</sub>), measuring how often the ground truth answer is selected in each of these groups.
+
+## 5.3. Sentiment Analysis
+
+Task description. Sentiment analysis refers to the task of predicting speaker emotion or affect, a well-studied problem in natural language processing [26, 34, 44]. We focus on sentiment analysis in text as a subset of text classification. Since text describing the same visual scene may have a positive or negative sentiment (This cake is delicious vs.
+
+This cake tastes bad), we consider this task to be a nonvisual NLU task.
+
+Experimental details. For this task, we use the IMDB movie review dataset consisting of 50K movie reviews with binary sentiment labels (positive/negative) [38]. In order to provide a fairer comparison between models rather than biasing towards models trained on longer texts, we use only a single random sentence from each review in the IMDB dataset. In addition, we filter long sentences which are too long for multimodal encoders leaving 42,567 examples. Using only a single sentence makes this task more challenging since the randomly chosen sentence is not guaranteed to contain sufficient context for understanding the review’s sentiment, but we find that significantly better than random performance is achievable, as seen in the results section. We also differ from the more common learned sentiment analysis paradigm by using strictly zero-shot prediction via engineered prompts. For example, one prompt used is “sentiment expressed for the movie is [<sub>\*</sub>]. ⟨s⟩”, where ⟨s⟩ indicates the sentence chosen from the initial review, and [<sub>\*</sub>] may be filled with one of {good, bad}. We apply MLM and Stroop probing for binary prediction, and report categorical accuracy achieved for each model.
+
+Evaluation metric. We report categorical accuracy of predictions (acc) relative to the ground truth sentiment labels.
+
+## 6. Results and Discussion
+
+Results for the tasks described above are provided in Table 1. For tasks with multiple prompts the listed metrics are the maximum over prompts, providing a rough upper bound on each model’s ability to perform the task in question. Further analysis of performance by prompt, as well as SP results for models shown here with MLM, are provided in the supplementary materials.
+
+As seen in these results, multimodally trained models consistently outperform unimodally trained models on VLU tasks, including both comparably sized and much larger text encoders, while generally underperforming them on nonvisual NLU tasks. This is further illustrated by qualitative analysis of the results in various tasks.
+
+Figure 2 shows the results of concreteness prediction for CLIP and BERT. Nouns predicted as most concrete by CLIP, for example bench and chalk, that can be clearly visualized, while nouns predicted as least concrete (i.e., abstract) such as story and name, do not have a clear visual representation. In comparison, BERT’s predictions are significantly noisier, with nouns such as seed and jelly predicted as abstract.
+
+Figures 3 and 4 shows color and shape association predictions of BERT-base and CLIP on samples from the relevant datasets. Without having access to the associated images, the CLIP text encoder usually predicts the correct
+
+snowman s i n k l i a r bench l e t t u c e c h a l k mailman s p l i n t e r couch p i n e c o n e BERT CLIP Most concrete
+
+s e e d f r i e n d   
+j e l l y s t o r y   
+c a s h name   
+l i g h t n i n g t h a n k s   
+pudding fun BERT CLIP Most abstract
+
+Figure 2. Basic nouns selected as most (and least) concrete using BERT-base and CLIP, according the method described in Section 4.1. As these illustrate, concreteness can be reasonably predicted from CLIP text embeddings, whereas this knowledge is not readily accessible for the unimodally trained text encoders.  
+![](images/ed64c8bd5fbe9cf16ed89d227cc4493f0300e5ec36e03371208528ad416d45aa.jpg)  
+BERT CLIP
+
+![](images/ebaaa617349ee2879f61cabaac372c256d5437ba74e041d2fbb9a25c5df021ee.jpg)  
+green green
+
+![](images/d8734349db3a59953c9e7bcb099341e85c6d7e65f5f4879a1cb020541858a2d0.jpg)  
+green orange  
+red yellow
+
+![](images/3e84ee8ff5b751e82c36119cf1b382ca7f7ec41a468250c8ab3b66d3a5332f0b.jpg)
+
+![](images/20606cfe265451ab2d7e510e1496bd6040381fc63aa7f40004b5905a87594330.jpg)  
+red red  
+white brown
+
+Figure 3. Examples of color prediction results on NCD dataset. Depicted above are examples of results for predicting colors from the NCD dataset using MLM for BERT-base and Stroop probing for CLIP. We emphasize that the model only receives as input the name of the fruit or vegetable without the given image.  
+![](images/ce2e7b00e57c51a2d23eb86f58d25ac6c9c0e98712c318a37eb5a4676c5d8b2d.jpg)  
+Item BERT CLIP  
+pill triangle circle
+
+![](images/572847f4a26d135e5856e72984ef79dd6a05c9ea26b3cd80bd1298c704e596b2.jpg)  
+saucer rectangle circle
+
+![](images/17ae31e4f6a3ecd083f46e07430c6951017aa92f5a47b6db8b980e2964798f87.jpg)  
+prism triangle triangle
+
+![](images/8d3c004861bd3b811fd7986b2d067ce46b31f927760efc25b884e838f0199b82.jpg)  
+notebook circle rectangle
+
+Figure 4. Examples of shape prediction results on ShapeIt benchmark. Depicted above are examples of results for predicting shapes from the ShapeIt benchmark using MLM for BERTbase and Stroop probing for CLIP. Images are for illustration only, but during probing the model only receives the name of the item.
+
+matching between the given item and its correct shape or color, while BERT fails in most cases. Our results suggest that these associations are more consistently encoded by multimodally trained encoders. Furthermore, qualitative analysis of the misclassifications of CLIP, OpenCLIP and FLAVA on color association prediction reveals that these are mostly due to ambiguities in the dataset itself; see the supplementary materials for details.
+
+Performance on non-visual NLU tasks, shown on the right side of Table 1, demonstrates that our results are not an artifact of our probing methodology providing a global advantage to multimodally trained models, nor are these models uniformly better at language-related tasks. We also see that the non-visual tasks are highly solveable, with BERTlarge and RoBERTa-large achieving high performance on all tasks despite the challenging zero-shot regime and limited information in the task inputs (ambiguity in cloze contexts for factual probing, lack of textual textual context for proficiency probing and randomly-chosen sentences for sentiment analysis). Despite this, the multimodally trained models show near-random performance.
+
+<table><tr><td rowspan="2">Metric</td><td colspan="3">Concreteness</td><td colspan="2">Color</td><td rowspan="2">Shape</td><td colspan="2">Knowledge</td><td colspan="3">Proficiency</td><td rowspan="2">Sent.</td></tr><tr><td>|ρ|</td><td>|rs|</td><td>|τ|</td><td>aCCCTD</td><td>aCCNCD</td><td>R@1</td><td>R@5</td><td>accv</td><td>acCN</td><td>accp</td></tr><tr><td>Unimodal</td><td></td><td></td><td></td><td></td><td></td><td>acc</td><td></td><td></td><td></td><td></td><td></td><td>acc</td></tr><tr><td>BERT-base</td><td>0.414</td><td>0.416</td><td>0.283</td><td>0.353</td><td>0.400</td><td>0.559</td><td>0.198</td><td>0.522</td><td>0.898</td><td>0.753</td><td>0.893</td><td>0.618</td></tr><tr><td>BERT-large</td><td>0.348</td><td>0.355</td><td>0.239</td><td>0.490</td><td>0.467</td><td>0.587</td><td>0.231</td><td>0.541</td><td>0.914</td><td>0.779</td><td>0.905</td><td>0.625</td></tr><tr><td>DistilBERT</td><td></td><td></td><td></td><td>0.333</td><td>0.400</td><td>0.587</td><td>0.148</td><td>0.479</td><td>0.864</td><td>0.709</td><td>0.814</td><td>0.637</td></tr><tr><td>RoBERTa-base</td><td>0.433</td><td>0.404</td><td>0.275</td><td>0.431</td><td>0.333</td><td>0.431</td><td></td><td></td><td>0.877</td><td>0.718</td><td>0.881</td><td>0.666</td></tr><tr><td>RoBERTa-large</td><td>0.345</td><td>0.374</td><td>0.253</td><td>0.471</td><td>0.400</td><td>0.431</td><td></td><td></td><td>0.898</td><td>0.765</td><td>0.916</td><td>0.703</td></tr><tr><td>DistilRoBERTa</td><td></td><td></td><td></td><td>0.411</td><td>0.333</td><td>0.431</td><td></td><td></td><td>0.804</td><td>0.664</td><td>0.756</td><td>0.635</td></tr><tr><td>ERNIE</td><td>0.461</td><td>0.496</td><td>0.338</td><td>0.196</td><td>0.333</td><td>0.449</td><td>0.001</td><td>0.006</td><td>0.064</td><td>0.051</td><td>0.086</td><td>0.582</td></tr><tr><td>ERNIE-large</td><td>0.358</td><td>0.353</td><td>0.233</td><td>0.216</td><td>0.267</td><td>0.458</td><td>0.006</td><td>0.022</td><td>0.209</td><td>0.241</td><td>0.280</td><td>0.674</td></tr><tr><td>SBERT</td><td>0.338</td><td>0.337</td><td>0.228</td><td>0.198</td><td>0.067</td><td>0.513</td><td>0.013</td><td>0.141</td><td>0.237</td><td>0.158</td><td>0.126</td><td>0.554</td></tr><tr><td>V&amp;L</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>CLIP</td><td>0.603</td><td>0.624</td><td>0.437</td><td>0.843</td><td>0.800</td><td>0.798</td><td>0.009</td><td>0.118</td><td>0.134</td><td>0.133</td><td>0.126</td><td>0.560</td></tr><tr><td>OpenCLIP</td><td>0.634</td><td>0.643</td><td>0.432</td><td>0.941</td><td>0.800</td><td>0.853</td><td>0.009</td><td>0.121</td><td>0.211</td><td>0.135</td><td>0.123</td><td>0.560</td></tr><tr><td>FLAVA</td><td>0.608</td><td>0.665</td><td>0.449</td><td>0.882</td><td>0.800</td><td>0.798</td><td>0.020</td><td>0.138</td><td>0.116</td><td>0.118</td><td>0.139</td><td>0.519</td></tr></table>
+
+Table 1. Results on VLU (left) and non-visual NLU (right) tasks: concreteness prediction, color and shape association prediction, factual knowledge probing, language proficiency probing, and sentiment analysis (Sent.) respectively. For tasks other than concreteness prediction, MLM probing is used for models supporting it (BERT, DistilBERT, RoBERTa, DistilRoBERTa); SP is used elsewhere. The definition of each metric is defined in the relevant task definition in Sections 4-5. DistilBERT and DistilRoBERTa do not have concreteness results due to the pooling layer issue mentioned in Section 4.1, and RoBERTa and DistilRoBERTa do not have results for factual knowledge probing due to the tokenization issue mentioned in Section 5.1. As these results show, V&L models yield superior performance on visual tasks, while underperforming unimodally trained models on non-visual NLU tasks.
+
+We note a direct connection to the original Stroop effect in the field of human psychology. Follow-up works to the first Stroop effect demonstration have found it to apply to various types of stimuli, such as color-congruent and incongruent objects (e.g. a yellow banana vs. a purple banana) [41]. Our results, also including color congruence of objects, strengthen the motivation for using Stroop probing applied to tasks involving visual congruence or saliency.
+
+We also note a connection between our results and the reporting bias effect, in which commonsense properties are less likely to be explicitly stated than incongruent properties (e.g. a (yellow) banana vs. a blue banana). Reporting bias in text has been studied in the context of color associations [42] and in more general contexts [17, 56]. As the multimodally trained models under consideration were trained on paired image-caption data, the distribution of text in image captions differs somewhat from the text used for training models such as BERT. In the supplementary material, we provide an analysis of reporting bias in the LAION dataset [52], the training data for the OpenCLIP model included in our tests. These results provide evidence that the improvement in performance seen from V&L training cannot primarily be attributed to a lack of reporting bias in image caption texts, and emphasizes the significance of the visual modality in these models’ language understanding.
+
+## 7. Conclusion
+
+We propose a suite of visual language understanding tasks along with non-visual natural language understanding tasks to probe the effect of V&L pretraining on such reasoning capabilities of text encoder models. We introduce Stroop probing as a zero-shot knowledge proving method for evaluating the innate knowledge of text encoders. We also show that exposure to V&L data in pretraining improves the performance of text encoder models on VLU tasks, even though they may underperform unimodally trained text encoders on non-visual NLU tasks. Beyond text-only tasks, these results bear importance in the broader context of multimodal learning, in which the isolated contribution of text encoders has previously been underexplored. Our findings suggest that multimodal pretraining has a significant effect on the knowledge represented by the text encoder component of multimodal models, facilitating in establishing best practices for the design and training of text encoders used in such contexts.
+
+Acknowledgements. We thank Noriyuki Kojima and Gabriel Stanovsky for their helpful feedback.
+
+## References
+
+[1] J Charles Alderson. The cloze procedure and proficiency in english as a foreign language. TESOL quarterly, pages 219– 227, 1979. 6
+
+[2] Saeed Anwar, Muhammad Tahir, Chongyi Li, Ajmal Mian, Fahad Shahbaz Khan, and Abdul Wahab Muzaffar. Image colorization: A survey and dataset. arXiv preprint arXiv:2008.10774, 2020. 5
+
+[3] Michael M Bannert and Andreas Bartels. Decoding the yellow of a gray banana. Current Biology, 23(22):2268–2272, 2013. 5
+
+[4] Yonatan Bitton, Gabriel Stanovsky, Michael Elhadad, and Roy Schwartz. Data efficient masked language modeling for vision and language. arXiv preprint arXiv:2109.02040, 2021. 4
+
+[5] Ines Bramˆ ao, Alexandra Reis, Karl Magnus Petersson, and˜ Lu´ıs Fa´ısca. The role of color information on object recognition: A review and meta-analysis. Acta psychologica, 138(1):244–253, 2011. 5
+
+[6] Elia Bruni, Gemma Boleda, Marco Baroni, and Nam-Khanh Tran. Distributional semantics in technicolor. In Proceedings of the 50th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 136–145, 2012. 5
+
+[7] Elia Bruni, Nam-Khanh Tran, and Marco Baroni. Multimodal distributional semantics. Journal of artificial intelligence research, 49:1–47, 2014. 3
+
+[8] Marc Brysbaert, Amy Beth Warriner, and Victor Kuperman. Concreteness ratings for 40 thousand generally known english word lemmas. Behavior research methods, 46(3):904– 911, 2014. 5
+
+[9] Jize Cao, Zhe Gan, Yu Cheng, Licheng Yu, Yen-Chun Chen, and Jingjing Liu. Behind the scene: Revealing the secrets of pre-trained vision-and-language models. In European Conference on Computer Vision, pages 565–580. Springer, 2020. 3
+
+[10] Jean Charbonnier and Christian Wartena. Predicting word concreteness and imagery. In Proceedings of the 13th International Conference on Computational Semantics-Long Papers, pages 176–187. Association for Computational Linguistics, 2019. 4, 5
+
+[11] Feilong Chen, Duzhen Zhang, Minglun Han, Xiuyi Chen, Jing Shi, Shuang Xu, and Bo Xu. Vlp: A survey on visionlanguage pre-training. arXiv preprint arXiv:2202.09061, 2022. 2, 3
+
+[12] Yen-Chun Chen, Linjie Li, Licheng Yu, Ahmed El Kholy, Faisal Ahmed, Zhe Gan, Yu Cheng, and Jingjing Liu. Uniter: Universal image-text representation learning. In European conference on computer vision, pages 104–120. Springer, 2020. 2, 3
+
+[13] Mehdi Cherti, Romain Beaumont, Ross Wightman, Mitchell Wortsman, Gabriel Ilharco, Cade Gordon, Christoph Schuhmann, Ludwig Schmidt, and Jenia Jitsev. Reproducible scaling laws for contrastive language-image learning. arXiv preprint arXiv:2212.07143, 2022. 3
+
+[14] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional
+
+transformers for language understanding. arXiv preprint arXiv:1810.04805, 2018. 2, 3
+
+[15] Maxwell Forbes, Ari Holtzman, and Yejin Choi. Do neural language representations learn physical commonsense? arXiv preprint arXiv:1908.02899, 2019. 6
+
+[16] Zhe Gan, Linjie Li, Chunyuan Li, Lijuan Wang, Zicheng Liu, and Jianfeng Gao. Vision-language pre-training: Basics, recent advances, and future trends. arXiv preprint arXiv:2210.09263, 2022. 3
+
+[17] Jonathan Gordon and Benjamin Van Durme. Reporting bias and knowledge acquisition. In Proceedings ofthe 2013 workshop on Automated knowledge base construction, pages 25– 30, 2013. 8
+
+[18] Jack Hessel, David Mimno, and Lillian Lee. Quantifying the visual concreteness of words and topics in multimodal datasets. arXiv preprint arXiv:1804.06786, 2018. 4
+
+[19] Felix Hill, Antoine Bordes, Sumit Chopra, and Jason Weston. The goldilocks principle: Reading children’s books with explicit memory representations. arXiv preprint arXiv:1511.02301, 2015. 6
+
+[20] Felix Hill and Anna Korhonen. Learning abstract concept embeddings from multi-modal data: Since you probably can’t see what i mean. In Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 255–265, 2014. 4
+
+[21] Felix Hill, Roi Reichart, and Anna Korhonen. Multi-modal models for concrete and abstract concept meaning. Transactions of the Association for Computational Linguistics, 2:285–296, 2014. 4
+
+[22] Taichi Iki and Akiko Aizawa. Effect of visual extensions on natural language understanding in vision-and-language models. arXiv preprint arXiv:2104.08066, 2021. 2, 3
+
+[23] Gabriel Ilharco, Mitchell Wortsman, Ross Wightman, Cade Gordon, Nicholas Carlini, Rohan Taori, Achal Dave, Vaishaal Shankar, Hongseok Namkoong, John Miller, Hannaneh Hajishirzi, Ali Farhadi, and Ludwig Schmidt. Openclip, July 2021. 3
+
+[24] Chao Jia, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham, Quoc Le, Yun-Hsuan Sung, Zhen Li, and Tom Duerig. Scaling up visual and vision-language representation learning with noisy text supervision. In International Conference on Machine Learning, pages 4904–4916. PMLR, 2021. 3
+
+[25] Lifeng Jin and William Schuler. Grounded pcfg induction with images. In Proceedings of the 1st Conference of the Asia-Pacific Chapter of the Association for Computational Linguistics and the 10th International Joint Conference on Natural Language Processing, 2020. 3
+
+[26] Dan Jurafsky and James H Martin. Speech and language processing (3rd draft ed.), 2023. Chapter 4. Naive Bayes and Sentiment Classification. 6
+
+[27] Douwe Kiela and Leon Bottou. Learning image embed-´ dings using convolutional neural networks for improved multi-modal semantics. In Proceedings of the 2014 Conference on empirical methods in natural language processing (EMNLP), pages 36–45, 2014. 3
+
+[28] Douwe Kiela, Alexis Conneau, Allan Jabri, and Maximilian Nickel. Learning visually grounded sentence representations. arXiv preprint arXiv:1707.06320, 2017. 3
+
+[29] Wonjae Kim, Bokyung Son, and Ildoo Kim. Vilt: Visionand-language transformer without convolution or region supervision. In International Conference on Machine Learning, pages 5583–5594. PMLR, 2021. 2, 3
+
+[30] Jamie Kiros, William Chan, and Geoffrey Hinton. Illustrative language understanding: Large-scale visual grounding with image search. In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 922–933, 2018. 3
+
+[31] Noriyuki Kojima, Hadar Averbuch-Elor, Alexander M Rush, and Yoav Artzi. What is learned in visually grounded neural syntax acquisition. arXiv preprint arXiv:2005.01678, 2020. 3
+
+[32] Satwik Kottur, Ramakrishna Vedantam, Jose MF Moura, and´ Devi Parikh. Visual word2vec (vis-w2v): Learning visually grounded word embeddings using abstract scenes. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 4985–4994, 2016. 3
+
+[33] Angeliki Lazaridou, Nghia The Pham, and Marco Baroni. Combining language and vision with a multimodal skipgram model. arXiv preprint arXiv:1501.02598, 2015. 3
+
+[34] Jiwei Li and Eduard Hovy. Reflections on sentiment/opinion analysis. In A practical guide to sentiment analysis, pages 41–59. Springer, 2017. 6
+
+[35] Junnan Li, Ramprasaath Selvaraju, Akhilesh Gotmare, Shafiq Joty, Caiming Xiong, and Steven Chu Hong Hoi. Align before fuse: Vision and language representation learning with momentum distillation. Advances in neural information processing systems, 34:9694–9705, 2021. 2, 3
+
+[36] Xiao Lin and Devi Parikh. Don’t just listen, use your imagination: Leveraging visual common sense for non-visual tasks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 2984–2993, 2015. 3
+
+[37] Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692, 2019. 2, 3
+
+[38] Andrew Maas, Raymond E Daly, Peter T Pham, Dan Huang, Andrew Y Ng, and Christopher Potts. Learning word vectors for sentiment analysis. In Proceedings of the 49th annual meeting of the association for computational linguistics: Human language technologies, pages 142–150, 2011. 7
+
+[39] Colin M MacLeod. Half a century of research on the stroop effect: an integrative review. Psychological bulletin, 109(2):163, 1991. 2, 4
+
+[40] Gloria Strauss Marmor. Age at onset of blindness and the development of the semantics of color names. Journal of experimental child psychology, 25(2):267–278, 1978. 2
+
+[41] Galit Naor-Raz, Michael J Tarr, and Daniel Kersten. Is color an intrinsic property of object representation? Perception, 32(6):667–680, 2003. 8
+
+[42] Cory Paik, Stephane Aroca-Ouellette, Alessandro Roncone,´ and Katharina Kann. The world of an octopus: How reporting bias influences a language model’s perception of color. arXiv preprint arXiv:2110.08182, 2021. 8
+
+[43] Fabio Petroni, Tim Rocktaschel, Patrick Lewis, Anton¨ Bakhtin, Yuxiang Wu, Alexander H Miller, and Sebastian Riedel. Language models as knowledge bases? arXiv preprint arXiv:1909.01066, 2019. 2, 4, 6
+
+[44] Soujanya Poria, Devamanyu Hazarika, Navonil Majumder, and Rada Mihalcea. Beneath the tip of the iceberg: Current challenges and new directions in sentiment analysis research. IEEE Transactions on Affective Computing, 2020. 6
+
+[45] Ella Rabinovich, Benjamin Sznajder, Artem Spector, Ilya Shnayderman, Ranit Aharonov, David Konopnicki, and Noam Slonim. Learning concept abstractness using weak supervision. arXiv preprint arXiv:1809.01285, 2018. 4
+
+[46] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International Conference on Machine Learning, pages 8748–8763. PMLR, 2021. 2, 3
+
+[47] Nils Reimers and Iryna Gurevych. Sentence-bert: Sentence embeddings using siamese bert-networks. arXiv preprint arXiv:1908.10084, 2019. 3
+
+[48] Anna Rogers, Olga Kovaleva, and Anna Rumshisky. A primer in bertology: What we know about how bert works. Transactions of the Association for Computational Linguistics, 8:842–866, 2020. 2, 4, 6
+
+[49] Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. Distilbert, a distilled version of bert: smaller, faster, cheaper and lighter. arXiv preprint arXiv:1910.01108, 2019. 2, 3
+
+[50] Armin Saysani, Michael C Corballis, and Paul M Corballis. Colour envisioned: Concepts of colour in the blind and sighted. Visual cognition, 26(5):382–392, 2018. 2
+
+[51] Armin Saysani, Michael C Corballis, and Paul M Corballis. Seeing colour through language: colour knowledge in the blind and sighted. Visual Cognition, 29(1):63–71, 2021. 2
+
+[52] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. arXiv preprint arXiv:2210.08402, 2022. 8
+
+[53] Paula J Schwanenflugel. Why are abstract concepts hard to understand? In The psychology of word meanings, pages 235–262. Psychology Press, 2013. 4
+
+[54] Roger N Shepard and Lynn A Cooper. Representation of colors in the blind, color-blind, and normally sighted. Psychological science, 3(2):97–104, 1992. 2
+
+[55] Haoyue Shi, Jiayuan Mao, Kevin Gimpel, and Karen Livescu. Visually grounded neural syntax acquisition. arXiv preprint arXiv:1906.02890, 2019. 3
+
+[56] Vered Shwartz and Yejin Choi. Do neural language models overcome reporting bias? In Proceedings of the 28th International Conference on Computational Linguistics, pages 6863–6870, 2020. 8
+
+[57] Damien Sileo. Visual grounding strategies for text-only natural language processing. arXiv preprint arXiv:2103.13942, 2021. 3
+
+[58] Amanpreet Singh, Ronghang Hu, Vedanuj Goswami, Guillaume Couairon, Wojciech Galuba, Marcus Rohrbach, and Douwe Kiela. Flava: A foundational language and vision alignment model. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 15638–15650, 2022. 3
+
+[59] Joseph Bartow Stubbs and G Richard Tucker. The cloze test as a measure of english proficiency. The Modern Language Journal, 58(5/6):239–241, 1974. 6
+
+[60] Yu Sun, Shuohuan Wang, Yukun Li, Shikun Feng, Xuyi Chen, Han Zhang, Xin Tian, Danxiang Zhu, Hao Tian, and Hua Wu. Ernie: Enhanced representation through knowledge integration. arXiv preprint arXiv:1904.09223, 2019. 2
+
+[61] Yu Sun, Shuohuan Wang, Yukun Li, Shikun Feng, Hao Tian, Hua Wu, and Haifeng Wang. Ernie 2.0: A continual pretraining framework for language understanding. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 34, pages 8968–8975, 2020. 2
+
+[62] Hao Tan and Mohit Bansal. Lxmert: Learning crossmodality encoder representations from transformers. arXiv preprint arXiv:1908.07490, 2019. 3
+
+[63] Hao Tan and Mohit Bansal. Vokenization: Improving language understanding with contextualized, visual-grounded supervision. arXiv preprint arXiv:2010.06775, 2020. 3
+
+[64] Jonathan Trace. Clozing the gap: How far do cloze items measure? Language Testing, 37(2):235–253, 2020. 6
+
+[65] Jeroen van Paridon, Qiawen Liu, and Gary Lupyan. How do blind people know that blue is cold? distributional semantics encode color-adjective associations. In Proceedings of the Annual Meeting ofthe Cognitive Science Society, volume 43, 2021. 2
+
+[66] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems, 30, 2017. 2
+
+[67] Ramakrishna Vedantam, Xiao Lin, Tanmay Batra, C Lawrence Zitnick, and Devi Parikh. Learning common sense through visual abstraction. In Proceedings of the IEEE international conference on computer vision, pages 2542–2550, 2015. 3
+
+[68] Brian N Verdine, Kelsey R Lucca, Roberta M Golinkoff, Kathryn Hirsh-Pasek, and Nora S Newcombe. The shape of things: The origin of young children’s knowledge of the names and properties of geometric forms. Journal of Cognition and Development, 17(1):142–161, 2016. 5
+
+[69] Zirui Wang, Jiahui Yu, Adams Wei Yu, Zihang Dai, Yulia Tsvetkov, and Yuan Cao. Simvlm: Simple visual language model pretraining with weak supervision. arXiv preprint arXiv:2108.10904, 2021. 2, 3
+
+[70] Eiling Yee, Stacy Huffstetler, and Sharon L Thompson-Schill. Function follows form: activation of shape and function features during object identification. Journal of Experimental Psychology: General, 140(3):348, 2011. 5
+
+[71] Avishai Zagoury, Einat Minkov, Idan Szpektor, and William W Cohen. What’s the best place for an ai conference, vancouver or : Why completing comparative questions is difficult. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 35, pages 14292–14300, 2021. 6
+
+[72] Chenyu Zhang, Benjamin Van Durme, Zhuowan Li, and Elias Stengel-Eskin. Visual commonsense in pretrained unimodal and multimodal models. arXiv preprint arXiv:2205.01850, 2022. 3
