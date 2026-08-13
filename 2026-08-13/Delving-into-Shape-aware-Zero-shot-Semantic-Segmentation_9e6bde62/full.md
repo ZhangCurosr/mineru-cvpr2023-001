@@ -1,0 +1,361 @@
+# Delving into Shape-aware Zero-shot Semantic Segmentation
+
+Xinyu Liu<sup>1,2</sup>, Beiwen Tian<sup>2,4</sup>, Zhen Wang<sup>3</sup>, Rui Wang<sup>3</sup>, Kehua Sheng<sup>3</sup>, Bo Zhang<sup>3</sup>, Hao Zhao<sup>2</sup>, Guyue Zhou<sup>2</sup> <sup>1</sup>Xidian University <sup>3</sup>Didi Chuxing <sup>2</sup>Institute for AI Industry Research (AIR), Tsinghua University <sup>4</sup>Department of Computer Science and Technology, Tsinghua University liuxinyu@stu.xidian.edu.cn, zhaohao@air.tsinghua.edu.cn
+
+## Abstract
+
+Thanks to the impressive progress of large-scale visionlanguage pretraining, recent recognition models can classify arbitrary objects in a zero-shot and open-set manner, with a surprisingly high accuracy. However, translating this success to semantic segmentation is not trivial, because this dense prediction task requires not only accurate semantic understanding but also fine shape delineation and existing vision-language models are trained with image-level language descriptions. To bridge this gap, we pursue shapeaware zero-shot semantic segmentation in this study. Inspired by classical spectral methods in the image segmentation literature, we propose to leverage the eigen vectors of Laplacian matrices constructed with self-supervised pixelwisefeatures to promote shape-awareness. Despite that this simple and effective technique does not make use of the masks of seen classes at all, we demonstrate that it outperforms a state-of-the-art shape-aware formulation that aligns ground truth and predicted edges during training. We also delve into the performance gains achieved on different datasets using different backbones and draw several interesting and conclusive observations: the benefits ofpromoting shape-awareness highly relates to mask compactness and language embedding locality. Finally, our method sets new state-of-the-art performance for zero-shot semantic segmentation on both Pascal and COCO, with significant margins. Code and models will be accessed at SAZS.
+
+## 1. Introduction
+
+Semantic segmentation has been an established research area for some time now, which aims to predict the categories of an input image in a pixel-wise manner. In real-world applications including autonomous driving [17], medical diagnosis [31,46] and robot vision and navigation [9,63], an accurate semantic segmentation module provides a pixel-wise understanding of the input image and is crucial for subsequent tasks (like decision making or treatment selection).
+
+![](images/5585bf7ddd1812d3d0589b8f3b1b93b8addfb5e2dd12438abdacb444a5d85703.jpg)  
+Figure 1. Without retraining, SAZS is able to precisely segments both seen and unseen objects in the zero-shot setting, largely outperforming a strong baseline. \* denotes unseen categories during training).
+
+Despite that significant progress has been made in the field of semantic segmentation [6,7,32,49,52,54,57,59,61], most existing methods focus on the closed-set setting in which dense prediction is performed on the same set of categories in training and testing time. Thus, methods that are trained and perform well in the closed-set setting may fail when applied to the open world, as pixels of unseen objects in the open world are likely to be assigned categories that are seen during training, causing catastrophic consequences in safety-critical applications such as autonomous driving [62]. Straightforward solutions include fine-tuning or retraining the existing neural networks, but it is impractical to enumerate unlimited unseen categories during retraining, let along large quantities of time and efforts needed.
+
+More recent works [4, 14, 24, 27, 40] address this issue by shifting to the zero-shot setting, in which the methods are evaluated with semantic categories that are unseen during training. While large-scale pre-trained visual-language models such as CLIP [41] or ALIGN [18] shed light on the potential of solving zero-shot tasks with priors contained in large-scale pre-trained model, how to perform dense prediction task in this setting is still under-explored. One recent approach by Li et.al. [24] closes the gap by leveraging the shared embedding space for languages and images, but fails to effectively segment regions with fine shape delineation. If the segmented shape of the target object is not accurate, it will be a big safety hazard in practical applications, such as in autonomous driving.
+
+Inspired by the classical spectral methods and their intrinsic capability of enhancing shapeawareness, we propose a novel Shape-Aware Zero-Shot semantic segmentation framework (SAZS) to address the task of zero-shot semantic segmentation. Firstly, the framework enforces vision-language alignment on the training set using known categories, which exploits rich language priors in the largescale pre-trained vision-language model CLIP [41]. Meanwhile, the framework also jointly enforces the boundary of predicted semantic regions to be aligned with that of the ground truth regions. Lastly, we leverage the eigenvectors of Laplacian of affinity matrices that is constructed by features learned in a self-supervised manner, to decompose inputs into eigensegments. They are then fused with learningbased predictions from the trained model. The fusion outputs are taken as the final predictions of the framework.
+
+As illustrated in Fig. 1, compared with [24], the predictions of our approach are better aligned with the shapes of objects. We also demonstrate the effectiveness of our approach with elaborate experiments on PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup>, the results of which show that our method outperforms former state-of-the-arts [4, 24, 36, 37, 51, 53] by large margins. By examining a) the correlation between shape compactness of target object and IoU and b) the correlation between the language embedding locality and IoU, we discover the large impacts on the performance brought by the distribution of language anchors and object shapes. Via extensive analyses, we demonstrate the effectiveness and generalization of SAZS framework’s shape perception for segmenting semantic categories in the open world.
+
+## 2. Related works
+
+## 2.1. Zero-Shot Semantic Segmentation
+
+The main goal of the zero-shot semantic segmentation task(ZSS) is to perform pixel-wise predictions for objects that are unseen during training. Recent works on ZSS have seen two main branches: the generative methods and the discriminative methods.
+
+The generative methods [4, 14, 27] produce synthesized features for unseen categories. ZS3Net [4] utilizes a generative model to create a visual representation of objects that were not present in the training data. This is achieved by leveraging pre-trained word embeddings. CaGNet [14] highlights the impact of contextual information on pixellevel features through a network learning to generate specific contextual pixel-level features. In CSRI [27], constraints are introduced to the generation of unseen visual features by exploiting the structural relationships between seen and unseen categories.
+
+As for the discriminative methods, SPNet [53] leverages similarities between known categories to transfer learned representations to other unknown categories. Baek et al. [2] employ visual and semantic encoders to learn a joint embedding space with the semantic encoder converting the semantic features into semantic prototypes. Naoki et al. [21] introduce variational mapping by projecting the class embeddings from the semantic to the visual space. Lv et al. [33] present a transductive approach using target images to mitigate the prediction bias towards seen categories. LSeg [24] proposes a language-driven ZSS model, mapping pixels and names of labels into a shared embedding space for pixelwise dense prediction.
+
+Though much pioneering efforts have been spent, the dense prediction task requires fine shape delineation while most existing vision-language models are trained with image-level language descriptions. How to effectively address these problems is the focus of our work.
+
+## 2.2. Shape-aware Segmentation
+
+Shape awareness is beneficial to dense prediction tasks. Most of the semantic segmentation methods [6, 32, 44, 52] cannot preserve object shapes since they only focus on feature discriminativeness but ignore proximity between central and other positions.
+
+Meanwhile, SGSNet [58] takes a hierarchical approach to aggregating the global context when modeling longrange dependencies, considering feature similarity and proximity to preserve object shapes. ShapeMask [22] refines the coarse shapes into instance-level masks. The shape priors provide powerful clues for prediction. Gated-SCNN [48] proposes a two-stream architecture for semantic segmentation that explicitly captures shape information as a separate processing branch. The key point is to enable the interactive flow of information between the two networks, allowing the shape stream to focus on learning and processing of edge information. Liu et al. [30] construct the spatial propagation networks for learning the affinity matrix. The affinity matrix allows a tractable modeling of the dense, global pairwise relationships of pixels.
+
+## 2.3. Spectral Methods for Segmentation
+
+Among different segmentation schemes, spectral methods for clustering employ the eigenvectors of a matrix derived from the distance between points, which have been successfully used in many applications. Shi et al. [47] regard image segmentation as a graph partitioning problem, which proposes a novel global criterion, the normalized cut, to segment the image. Soft segmentations [1] are generated automatically by fusing high-level and low-level image features in a graph structure. The purpose of constructing this graph is to enable the corresponding Laplacian matrix and its eigenvectors to reveal semantic objects and soft transitions between objects. In our work, we utilize the eigensegments obtained by self-supervised spectral decomposition with the network outputs as the framework’s predictions to avoid the bias of the learning-based model on the training set and further improve shape-awareness.
+
+![](images/47cf002c8a5bc8583d84a5a7092cb79064357c4a15a4707183f7c459df567dbc.jpg)  
+Figure 2. The overview of SAZS framework. SAZS addresses the task of zero-shot semantic segmentation, which aims to segment the test set image $V _ { \mathrm { t e s t } }$ by open-set categories without additional training of the network. During training, (A) the input image $V _ { \mathrm { t r a i n } }$ is transformed into pixel-wise visual embeddings which are aligned with the text embeddings of training categories $T _ { \mathrm { t r a i n } } .$ , according to the ground-truth semantic maps $M _ { \mathrm { g t } }$ . The text embeddings are obtained by the pre-trained text encoder of CLIP [41] and serve as optimization anchors of the CLIP feature space. (B) In order to aggregate shape priors contained in the input image, SAZS jointly trains on the constraint task of boundary detection by comparing the ground-truth boundaries and the predictions of boundary heads of the visual encoder. (C) During inference, in order to reduce the domain gap between seen and unseen categories, SAZS fuses the pixel-wise predictions of the neural networks with eigensegments obtained by non-learning-based spectral analysis. Note that, modules marked with the lock icon are pre-trained and not optimized during training of SAZS.
+
+## 2.4. Vision-Language Modeling
+
+An extensive group of works have investigated the zeroshot semantic segmentation task. The key idea behind many of these works is to exploit priors encoded in pretrained word embeddings to generalize to unseen classes and achieve dense predictions [4,14,16,19,21,24,26–28,38, 53, 60], such as word2vec [35], GloVe [39] or BERT [10]. CLIP [41] has recently demonstrated impressive zero-shot generalization in various image-level classification tasks. As a result, several works have since exploited the visionlanguage embedding space learned by CLIP [41] to enhance dense prediction capabilities [24, 43, 55]. CLIP develops contrastive learning with a large-capacity language and visual feature encoder to train extremely robust models for zero-shot image classification. But the performance of large-scale pre-trained vision encoders transferred to pixellevel classification work is unsatisfactory. Unfortunately, the direct utilization of the extracted image-level visionlanguage features ignores the discrepancy between imagelevel and the pixle-level dense predicition task, the latter of which is the focus of our work. According to our study, the shape-aware prior and supervision can bridge this discrepancy and get more accurate segmentation results.
+
+## 3. Methods
+
+The goal of zero-shot semantic segmentation is to extend semantic segmentation task to the unseen categories other than those in the training datasets. One potential approach to introduce extra priors is to leverage pre-trained vision-language models, yet most of these models focus on the image-level prediction and fail to transfer to dense prediction tasks.
+
+To this end, we propose a novel method named Shape-Aware Zero-Shot Semantic Segmentation (SAZS). This approach leverages the rich language priors contained in the pre-trained CLIP [41] model, while also exploiting the proximity between local regions to perform the boundary detection task with constraints. Meanwhile, we utilize spectral decomposition of self-supervised visual features to improve our approach’s sensitivity to shape, and integrate this with pixel-wise prediction.
+
+The overall pipeline of our methods is depicted in Fig. 2. The input image is first transformed by an image encoder into pixel-wise embeddings, which are then aligned with precomputed text embeddings obtained by the text encoder of pre-trained CLIP model (Part A in Fig. 2). Meanwhile, an extra head in the image encoder is used to predict the boundaries in patches, which are optimized towards the ground-truth edges obtained from segmentation ground truths (Part B in Fig. 2). In addition, we further exploit proximity of local regions during inference by decomposing the image by spectral analysis and fusing the output eigensegments with class-agnostic segmentation results (Part C in Fig. 2).
+
+In the following section, we first formally define the addressed task and introduce the notations in Sec. 3.1. Then we describe the loss designs for the vision-language alignment and boundary prediction in Sec. 3.2 and Sec. 3.3, respectively. The inference pipeline involving spectral decomposition of the proposed affinity matrix is introduced in Sec. 3.4.
+
+## 3.1. Task Definition
+
+Following HSNet [36], we denote the training set by $\begin{array} { r c l } { { \mathcal D } _ { \mathrm { t r a i n } } } & { { = } } & { { \{ ( I , M , S ) \} } } \end{array}$ and testing set by $\begin{array} { r l } { \mathcal { D } _ { \mathrm { t e s t } } } & { { } = } \end{array}$ $\{ ( I , M , { \mathcal { U } } ) \}$ , where $I \in \dot { \mathbb { R } } ^ { H \times W \times 3 }$ and $M \in \mathsf { \Gamma } \mathbb { R } ^ { H \times W \times C }$ denote an input image and the corresponding ground-truth semantic mask with digit encoding. $s$ denotes the set of K potential labels in I, while U denotes the set of unseen categories during testing. The two sets are strictly exclusive in our setting $( \mathrm { i . e . , } S \cap \mathcal { U } = \varnothing )$
+
+Before inferencing on $\mathcal { D } _ { \mathrm { t e s t } }$ targeting U, the model is trained on $\mathcal { D } _ { \mathrm { t r a i n } }$ with ground-truth labels from $s .$ This means the categories in the test set are never seen during training, making the task formulated in a zero-shot setting. Once the model is well-trained, it is expected to generalize to unseen categories and achieve high performance for dense prediction of target objects in the open world.
+
+## 3.2. Pixel-wise Vision-Language Alignment
+
+Comparing distances between pixel features and different text anchor features in the shared feature space is a straightforward approach for zero-shot semantic segmentation. However, while the pioneer work CLIP [41] introduces a shared feature space for visual and text inputs, the image-level CLIP visual encoder is infeasible for dense prediction tasks since fine details in images, as well as the correlation between pixels, are lost. In this section, we describe our approach to address this issue by optimizing a dense visual encoder separate of CLIP and enforcing the pixel-wise output features towards the text anchors in the CLIP feature space during training.
+
+Visual Encoder We employ Dilated residual networks (DRN) [56] and Dense Prediction Transformers (DPT) [42] to encoder images into pixel-level embeddings. More specifically, an input image of size $H \times W \times 3$ is first processed with standard augmentation to $\tilde { H } \times \tilde { W } \times 3$ and then passed as input to the visual encoder, resulting in a feature map $\mathcal { F } _ { V } \in \mathbb { R } ^ { \tilde { H } \times \tilde { W } \times D }$ , where D is the feature size in DPT.
+
+Text Encoder While most concurrent methods use digit labels (e.g., 0, 1, 2) to represent categories, we take embeddings of the category names (e.g. ”airplane”, $\overrightarrow { \mathbf { \nabla } } \mathbf { c } \mathbf { a t } ^ { \mathbf { \curlyeq } } )$ as the anchors of feature space. These embeddings are obtained with the CLIP text encoder. Specifically, we adopt the pre-trained CLIP text encoder to map the names of K categories from S into CLIP feature space as the anchor features $\mathcal { F } _ { T } \in \mathbb { R } ^ { K \times D }$ , which is later used as targets for optimization. Note that, the visual features $\mathcal { F } _ { V }$ and the text features $\mathcal { F } _ { T }$ have the same dimension D.
+
+Vision-Language Alignment To enforce visionlanguage alignment, the distances between pixels and corresponding semantic category should be minimized while the distances between pixels and other categories should be maximized. Under the assumption that pixelwise vision and language features are embedded in the same feature space, we leverage the cosine similarity $\langle \cdot , \cdot \rangle$ as the quantitative distance metric between features and propose the alignment loss as the sum of cross entropy losses over seen classes of all pixels:
+
+$$
+\mathcal { L } _ { \mathrm { a l i g n } } = \sum _ { i , j } ^ { \tilde { H } , \tilde { W } } \left( - \log \frac { e ^ { \langle \mathcal { F } _ { V } [ i , j ] , \mathcal { F } _ { T } [ k _ { i j } ] \rangle } } { \sum _ { k ^ { \prime } = 1 } ^ { | S | } e ^ { \langle \mathcal { F } _ { V } [ i , j ] , \mathcal { F } _ { T } [ k ^ { \prime } ] \rangle } } \right)\tag{1}
+$$
+
+In Eq. 1, $\mathcal { F } _ { V } \left[ i , j \right]$ denotes pixel visual feature at position $( i , j ) , \mathcal { F } _ { T } \left[ k \right]$ denotes k-th text anchor features and $k _ { i j }$ denotes index of ground-truth category of pixel at $( i , j )$ .
+
+## 3.3. Shape Constraint
+
+Since CLIP is trained on an image-level task, simply leveraging the priors in the CLIP feature space may be insufficient for dense prediction tasks. To address this issue, we introduce boundary detection as a constraint task, so that the visual encoder is able to aggregate finer information contained in images. Inspired by InverseForm [3], we address this constraint task by optimizing the affine transformation between ground-truth edges and edges in feature maps towards identity transformation matrix.
+
+More specifically, as shown in Fig. 2, we extract middlelayer features of the visual encoders and split them into patches. On the one hand, the ground truth edges within the patches are obtained by applying Sobel operator on ground truth semantic masks. On the other hand, the feature patches are processed by a boundary head. Then, we calculate the affine transform matrix $\hat { \theta } _ { i }$ for the i-th patch between ground-truth edges and processed feature patches with a pre-trained MLP. Note that, this MLP is trained in advance with edge masks and not optimized during our method’s training. We optimize this affine transform matrix towards identity matrix by:
+
+$$
+\mathcal { L } _ { \mathrm { s h a p e } } = \frac { 1 } { T } \sum _ { i = 1 } ^ { T } \left| \hat { \theta } _ { i } - I \right| _ { F }\tag{2}
+$$
+
+where T denotes the number of patches and |·| denotes Frobenius norm. Furthermore, we directly calculate the binary cross entropy loss $\mathcal { L } _ { \mathrm { b c e } }$ between the predicted edge masks of the whole image and corresponding ground truths to further optimize the performance of boundary detection.
+
+After jointly training on the task of boundary detection, the visual encoder is enabled to collect and leverage shape priors in the input images. Ablation studies detailed later show that shape awareness introduced by $\mathcal { L } _ { \mathrm { s h a p e } }$ and $\mathcal { L } _ { \mathrm { b c e } }$ brings about notable improvements.
+
+Finally, the overall loss to optimize during training is:
+
+$$
+\mathcal { L } = \mathcal { L } _ { \mathrm { a l i g n } } + \lambda _ { 1 } \mathcal { L } _ { \mathrm { s h a p e } } + \lambda _ { 2 } \mathcal { L } _ { \mathrm { b c e } }\tag{3}
+$$
+
+where $\lambda _ { 1 }$ and $\lambda _ { 2 }$ are loss weights.
+
+## 3.4. Self-supervised Spectral Decomposition
+
+We seek to decompose the input images into eigensegments with clear boundaries in an unsupervised manner, and then fuse these eigensegments with the predictions of the neural networks in the fusion module in Fig. 2 .
+
+The derivation of affinity matrix is the key to spectral decomposition. Following Melas-Kyriazi et al. [34], we first leverage the features f from the attention block of the last layer of a pre-trained self-supervised transformer (i.e., DINO [5]). The affinity between pixel i and j is defined as:
+
+$$
+Z _ { \mathrm { s e m } } ( i , j ) = f _ { i } \cdot f _ { j } ^ { T }\tag{4}
+$$
+
+Note that, the self-supervised transformer is only used during inference and its weights are not optimized.
+
+While the affinities derived from transformer features are rich in semantic information, the low-level proximity including color similarity and spatial distance is missing. Inspired by image matting [8, 23], we first transfrom the input image into the HSV color space: $X ( i ) =$ $( \cos ( h ) , \sin ( h ) , s , v , x , y ) _ { i } .$ , where $h , s ,$ v are the respective HSV coordinates and $( x , y )$ are the spatial coordinates of pixel i. Then, the affinity between pixels is defined as
+
+$$
+Z _ { \mathrm { s h a p e } } ( i , j ) = 1 - \| X ( i ) - X ( j ) \| _ { 2 } , \ j \in \mathrm { K N N } ( i )\tag{5}
+$$
+
+where $\| \cdot \| _ { 2 }$ denotes 2-norm. The overall affinity matrix is defined as the weighted sum of the two:
+
+$$
+Z ( i , j ) = Z _ { \mathrm { s e m } } + \lambda \cdot Z _ { \mathrm { s h a p e } }\tag{6}
+$$
+
+With the affinity matrix, we now can compute the eigenvectors of the Laplacian L of the affinity matrix, which are used to decompose the image into multiple eigensegments.
+
+## 3.5. Inference
+
+Given an image for inference, we first encode the phrases of the categories using the pre-trained text encoder CLIP and obtain textual features $\dot { \mathcal { F } } _ { \mathrm { T } } \in \mathbb { R } ^ { C \times D }$ for C categories, each of which is represented by a D-dimension embedding. Then we leverage the trained visual encoder to obtain the visual feature map $\mathcal { F } _ { \mathrm { V } } \in \mathbb { R } ^ { \tilde { H } \times \tilde { W } \times D }$ . The final logits $\hat { F _ { i j } } = \mathcal { F } _ { \mathrm { V } } ( i , j ) \cdot \mathcal { F } _ { \mathrm { T } } ^ { T }$ are calculated as the cosine similarities between the visual feature map and textual features. In the mean time, we employ the pre-trained DINO to extract semantic features in an unsupervised manner and calculate the top K spectral eigensegments $E _ { k } \left( K = 5 \right.$ in our implementation). The final prediction results are generated by the fusion module, which selects from the sets of predictions according to the maximal IoU (denoted as $\Phi _ { \mathrm { F U S E } } )$ of the $E _ { k }$ and argmax $\hat { F _ { i j } }$
+
+$$
+\mathrm { P r e d } _ { i j } = \Phi _ { \mathrm { F U S E } } \left( E _ { k } , \mathrm { a r g m a x } \hat { F } _ { i j } \right) \quad k \in \{ 0 , 1 , \cdots K \}\tag{7}
+$$
+
+## 4. Experiments
+
+## 4.1. Datasets
+
+We extensively evaluate our method on two datasets dedicated for the task of zero-shot semantic segmentation:
+
+PASCAL-5<sup>i</sup> [12] and COCO-20<sup>i</sup> [29]. Built upon PASCAL VOC 2012 [12] and augmented by SBD [15], PASCAL-$5 ^ { i }$ contains 20 categories which are further divided into 4 folds denoted by $5 ^ { 0 ^ { - } , 5 ^ { 1 } , 5 ^ { 2 } }$ and $5 ^ { 3 }$ . Each image is annotated with 5 categories within each fold. Similarly, based on MS COCO [29], COCO-20<sup>i</sup> is a more challenging dataset with 80 categories divided into four folds denoted by $2 0 ^ { 0 } , 2 0 ^ { 1 }$ $2 0 ^ { 2 }$ and $2 0 ^ { 3 }$ , and each of the four folds contains 20 categories. Of the four folds in the two datasets, one is used for evaluation (i.e., the target fold) while the other three are used for training. In the following section, we denote each experiment setup by the target fold.
+
+Following prior literature on zero-shot semantic segmentation, we adopt mean intersection over union (mIoU) and foreground-background IoU (FBIoU) as the evaluation metrics. Specifically, mIoU is the average of IoUs of the categories in target fold and FBIoU is the average of foreground IoU and background IoU.
+
+## 4.2. Implementation Details
+
+In our experiments, we employ the pre-trained CLIP-ViT-B/32 as the text encoder. Background or unknown category is regarded as ”others” when mapped from text to CLIP features. The visual encoder is implemented by DRN [56] or DPT [42] with ViT [11] as the backbone. When training on the task of boundary detection, each feature map for the shape boundary and the corresponding ground truth are splitted into $3 \times 6$ patches. Each patch pair is then fed into the MLP in Part B of Fig. 2 to calculate the affine transformation matrix.
+
+During training, the network is optimized by an SGD optimizer with a momentum of 0.95 and a learning rate of $5 \times 1 0 ^ { - 5 }$ decayed by a polynomial scheduler. With ViT as the backbone of visual encoder, the training process finishes within 5 epochs on 4 NVIDIA Tesla V100 GPUs with a batch size of 6.
+
+## 4.3. Results
+
+The proposed method SAZS has been evaluated on the PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> datasets under zero-shot settings, alongside several baselines for comparison. The performances are reported in Tab. 1. With DRN as the visual encoder backbone, our method achieves large margins over the strong baseline LSeg [24], with mIoU improved by 6.1% and 4.8% on PASCAL-5<sup>i</sup> and COCO-20<sup>i</sup> respectively. Our model also outperforms LSeg [24] by large margins with the ViT backbone underlying DPT, with mIoU improved by 7.2% and 11.2%. The performance enhancements of SAZS remain consistent across different visual encoder choices, highlighting its effectiveness.
+
+In addition, we conduct cross-dataset validation by training on the COCO-20<sup>i</sup> dataset and testing on PASCAL-5<sup>i</sup>. As shown in Table 2, our method outperforms OpenSeg [13] and LSeg+ [24] in zero-shot dense prediction tasks with clear margins. It is worth noting that all three methods are trained on a larger semantic segmentation dataset (COCO-20<sup>i</sup> ). These performance gaps demonstrate the generalization ability of our shape-aware training framework across datasets. We also provide qualitative results for the proposed method SAZS. in Fig. 3 and Fig. 4. In these figures, we illustrate the predictions of SAZS with and without shape awareness on COCO-20<sup>i</sup> and PASCAL-5<sup>i</sup> respectively, showing its ability to make precise predictions on both seen and unseen categories.
+
+## 4.4. Ablation Study
+
+To further demonstrate the effectiveness of design choices in our approach, we perform detailed ablation studies by evaluating our method with or without shape constraint during training as well as the fusion of network predictions with eigensegments. Results on PASCAL-5<sup>i</sup> are reported in Tab. 3 and results on COCO-20<sup>i</sup> are reported in Tab. 4 and Tab. 5.
+
+Effects of Shape-awareness The motivation for auxiliary constraint $\mathcal { L } _ { \mathrm { s h a p e } }$ is to learn the shape priors of images contained in the target boundaries. We observe that without training on the constraint task of boundary detection, the performances of the proposed method tend to decline. Specifically as reported in Tab. 4 and Tab. 5, the mIoU of SAZS drops by 1.4% and by 1.5% with ViT and DRN backbone on COCO-20<sup>i</sup> when training without $\mathcal { L } _ { \mathrm { s h a p e } }$ . The performance gaps clearly indicate the significant role played by shape-awareness in the proposed SAZS framework.
+
+Effect of Fusion with Spectral Eigensegments We also demonstrate the importance of fusing with spectral eigensegments during inference. Without the fusion module, the mIoU dramatically decreases by 7.0% on PASCAL-$5 ^ { i }$ and by 6.2% (ViT backbone) and 8.6% (DRN backbone) on COCO-20<sup>i</sup>, as reported in Tab. 3, Tab. 4 and Tab. 5. These large margins indicate that eigensegments obtained by spectral decomposition of the affinity matrices largely suppress the bias on the training dataset and seen categories.
+
+## 4.5. Ablation of $Z _ { \mathrm { s e m } }$ and $Z _ { \mathrm { s h a p e } }$
+
+We conduct an ablation experiment on the ${ \mathrm { P A S C A L } } \mathrm { - } 5 ^ { i }$ dataset to investigate the effects of $Z _ { \mathrm { s e m } }$ and $Z _ { \mathrm { s h a p e } }$ in our fusion module. As shown in Table 6, both $Z _ { \mathrm { s e m } }$ and $Z _ { \mathrm { s h a p e } }$ contribute to improved segmentation performance, but using $Z _ { \mathrm { s e m } }$ alone yields better results than using $Z _ { \mathrm { s h a p e } }$ alone. While the segmentation performance obtained by combining the two is slightly higher than that achieved with $Z _ { \mathrm { s e m } }$ alone, using both requires fine-tuning the hyper-parameter λ, which can be unstable and requires additional manual effort.
+
+<table><tr><td rowspan="2">Method</td><td rowspan="2">Backbone</td><td rowspan="2">Setting</td><td colspan="6">PASCAL-5i</td><td colspan="6">COCO-20¹</td></tr><tr><td></td><td> $5 ^ { 1 }$ </td><td> $5 ^ { 2 }$ </td><td> $5 ^ { 3 }$ </td><td>mIoU</td><td>FBIoU</td><td> $2 0 ^ { 0 }$ </td><td> $2 0 ^ { 1 }$ </td><td> $2 0 ^ { 2 }$ </td><td> $2 0 ^ { 3 }$ </td><td>mIoU</td><td>FBIoU</td></tr><tr><td>FWB [37]</td><td>ResNet</td><td>1-shot</td><td>51.3</td><td>64.5</td><td>56.7</td><td>52.2</td><td>56.2</td><td></td><td>17.0</td><td>18.0</td><td>21.0</td><td>28.9</td><td>21.2</td><td></td></tr><tr><td>DAN [51]</td><td>ResNet</td><td>1-shot</td><td>54.7</td><td>68.6</td><td>57.8</td><td>51.6</td><td>58.2</td><td>71.9</td><td></td><td></td><td></td><td></td><td>24.4</td><td>62.3</td></tr><tr><td>PFENet [50]</td><td>ResNet</td><td>1-shot</td><td>60.5</td><td>69.4</td><td>54.4</td><td>55.9</td><td>60.1</td><td>72.9</td><td>36.8</td><td>41.8</td><td>38.7</td><td>36.7</td><td>38.5</td><td>63.0</td></tr><tr><td>HSNet [36]</td><td>ResNet</td><td>1-shot</td><td>67.3</td><td>72.3</td><td>62.0</td><td>63.1</td><td>66.2</td><td>77.6</td><td>37.2</td><td>44.1</td><td>42.4</td><td>41.3</td><td>41.2</td><td>69.1</td></tr><tr><td>SPNet [53]</td><td>ResNet</td><td>zero-shot</td><td>23.8</td><td>17.0</td><td>14.1</td><td>18.3</td><td>18.3</td><td>44.3</td><td></td><td></td><td></td><td></td><td>1</td><td></td></tr><tr><td>ZS3Net [4]</td><td>ResNet</td><td>zero-shot</td><td>40.8</td><td>39.4</td><td>39.3</td><td>33.6</td><td>38.3</td><td>57.7</td><td>18.8</td><td>20.1</td><td>24.8</td><td>20.5</td><td>21.1</td><td>55.1</td></tr><tr><td>LSeg [24]</td><td>ResNet</td><td>zero-shot</td><td>52.8</td><td>53.8</td><td>44.4</td><td>38.5</td><td>47.4</td><td>64.1</td><td>22.1</td><td>25.1</td><td>24.9</td><td>21.6</td><td>23.4</td><td>57.9</td></tr><tr><td>Ours</td><td>DRN</td><td>zero-shot</td><td>57.3</td><td>60.3</td><td>58.4</td><td>45.9</td><td>55.5</td><td>66.4</td><td>34.2</td><td>36.5</td><td>34.6</td><td>35.6</td><td>35.2</td><td>58.4</td></tr><tr><td>LSeg [24]</td><td>ViT-L</td><td>zero-shot</td><td>61.3</td><td>63.6</td><td>43.1</td><td>41.0</td><td>52.3</td><td>67.6</td><td>28.1</td><td>27.5</td><td>30.0</td><td>23.2</td><td>27.2</td><td>59.9</td></tr><tr><td>Ours</td><td>ViT-L</td><td>zero-shot</td><td>62.7</td><td>64.3</td><td>60.6</td><td>50.2</td><td>59.4</td><td>69.0</td><td>33.8</td><td>38.1</td><td>34.4</td><td>35.0</td><td>35.3</td><td>58.2</td></tr></table>
+
+Table 1. The performances of SAZS and baselines evaluated on PASCAL-5<sup>i</sup> and $\mathrm { C O C O - 2 0 ^ { i } }$
+<table><tr><td>Model</td><td>Backbone</td><td>external dataset</td><td>target dataset</td><td>PASCAL-5i</td></tr><tr><td>LSeg</td><td>ViT-L</td><td>X</td><td>√(seen classes)</td><td>52.3</td></tr><tr><td>SPNet</td><td>ResNet</td><td>x</td><td>√(seen classes)</td><td>18.3</td></tr><tr><td>ZS3Net LSeg</td><td>ResNet ResNet</td><td>x x</td><td>√(seen classes) √(seen classes)</td><td>38.3 47.4</td></tr><tr><td>LSeg+</td><td></td><td></td><td></td><td></td></tr><tr><td>OpenSeg [13]</td><td>ResNet</td><td>COCO</td><td>X X</td><td>59.0</td></tr><tr><td></td><td>ResNet</td><td>COCO</td><td></td><td>60.0</td></tr><tr><td>Ours</td><td>DRN</td><td>COCO</td><td>x</td><td>62.7</td></tr></table>
+
+Table 2. The cross dataset mIoU results of our model and previous SOTA methods on PASCAL-5<sup>i</sup>.
+<table><tr><td>Model</td><td>Fusion</td><td> $\mathcal { L } _ { \mathrm { s h a p e } }$ </td><td> $5 ^ { 0 }$ </td><td> $5 ^ { 1 }$ </td><td> $5 ^ { 2 }$ </td><td> $5 ^ { 3 }$ </td><td>mIoU</td></tr><tr><td>SAZS</td><td>√</td><td>√</td><td>62.7</td><td>64.3</td><td>60.6</td><td>50.2</td><td>59.4</td></tr><tr><td>SAZS</td><td>√</td><td></td><td>63.1</td><td>62.4</td><td>59.0</td><td>49.2</td><td>58.4</td></tr><tr><td>SAZS</td><td></td><td>√</td><td>59.7</td><td>63.4</td><td>44.3</td><td>42.2</td><td>52.4</td></tr><tr><td>SAZS</td><td></td><td></td><td>59.2</td><td>61.9</td><td>43.8</td><td>41.9</td><td>51.7</td></tr><tr><td>LSeg [24]</td><td></td><td></td><td>61.3</td><td>63.6</td><td>43.1</td><td>41.0</td><td>52.3</td></tr></table>
+
+Table 3. Ablation study on PASCAL- $- 5 ^ { i }$ (ViT backbone)
+<table><tr><td>Model</td><td>Fusion</td><td> $\mathcal { L } _ { \mathrm { s h a p e } }$ </td><td> $2 0 ^ { 0 }$ </td><td> $2 0 ^ { 1 }$ </td><td> $2 0 ^ { 2 }$ </td><td> $2 0 ^ { 3 }$ </td><td>mIoU</td></tr><tr><td>SAZS</td><td>√</td><td>√</td><td>33.8</td><td>38.1</td><td>34.4</td><td>35.0</td><td>35.3</td></tr><tr><td>SAZS</td><td>√</td><td></td><td>33.3</td><td>39.0</td><td>33.9</td><td>32.7</td><td>34.7</td></tr><tr><td>SAZS</td><td></td><td>√</td><td>30.0</td><td>30.4</td><td>27.5</td><td>28.5</td><td>29.1</td></tr><tr><td>SAZS</td><td></td><td></td><td>26.3</td><td>32.0</td><td>26.2</td><td>26.2</td><td>27.7</td></tr><tr><td>LSeg [24]</td><td></td><td></td><td>28.1</td><td>27.5</td><td>30.0</td><td>23.2</td><td>27.2</td></tr></table>
+
+Table 4. Ablation study on $\mathrm { C O C O - 2 0 } ^ { i }$ (ViT backbone)
+<table><tr><td>Model</td><td>Fusion</td><td> $\mathcal { L } _ { \mathrm { s h a p e } }$ </td><td>|  $2 0 ^ { 0 }$ </td><td> $2 0 ^ { 1 }$ </td><td> $2 0 ^ { 2 }$ </td><td> $2 0 ^ { 3 }$ </td><td>mIoU</td></tr><tr><td>SAZS</td><td>√</td><td>√</td><td>34.2</td><td>36.5</td><td>34.6</td><td>35.6</td><td>35.2</td></tr><tr><td>SAZS</td><td>√</td><td></td><td>33.7</td><td>38.2</td><td>33.4</td><td>35.5</td><td>35.2</td></tr><tr><td>SAZS</td><td></td><td>√</td><td>28.4</td><td>27.6</td><td>25.4</td><td>25.1</td><td>26.6</td></tr><tr><td>SAZS</td><td></td><td></td><td>24.2</td><td>28.5</td><td>24.4</td><td>23.3</td><td>25.1</td></tr><tr><td>LSeg [24]</td><td></td><td></td><td>22.1</td><td>25.1</td><td>24.9</td><td>21.6</td><td>23.4</td></tr></table>
+
+Table 5. Ablation study on COCO- $- 2 0 ^ { i }$ (DRN backbone)
+<table><tr><td>Model</td><td>external dataset</td><td> $Z _ { \mathrm { s h a p e } }$ </td><td> $Z _ { \mathrm { s e m } }$ </td><td>PASCAL-5{</td></tr><tr><td>SAZS</td><td>COCO</td><td></td><td></td><td>58.4</td></tr><tr><td>SAZS</td><td>COCO</td><td>√</td><td></td><td>58.6</td></tr><tr><td>SAZS</td><td>COCO</td><td></td><td>√</td><td>62.7</td></tr></table>
+
+Table 6. Impact of $Z _ { \mathrm { s h a p e } }$ and $Z _ { \mathrm { s e m } }$ Of fusion module (in the cross-dataset setting of Tabel. 2).
+
+![](images/42352a6faadfa9475697815c171350120591fc7e18ca7eccb66a1165d994a803.jpg)  
+Figure 3. Qualitative results of $\mathrm { C O C O - 2 0 ^ { i } }$ . The first and last columns are the input images and the corresponding ground-truth semantic masks for different categories. The second and the third columns are the predictions by SAZS without and with shape awareness, respectively. \* denotes unseen categories during training phase) and yellow boxes mark poorly segmented regions.
+
+## 4.6. Effects of Target Shape Compactness
+
+In this section, we investigate the impact of shapeawareness on the performance of SAZS in zero-shot semantic segmentation by analyzing the correlation between the mean intersection-over-union (mIoU) and the shape compactness (CO) of each category. Shape compactness, as proposed by Schick and others in 2012 [45], is a commonly used metric for measuring the similarity of superpixels to circles, which we use to characterize the shapes of objects in the input images.
+
+For each input image in the PASCAL-5<sup>i</sup> dataset, we collected the compactness (CO) metric of the ground-truth mask for the target object to describe its shape. We then calculated the variance of CO for each object category and plotted the results in Fig. 5a. The sample points in the figure represent the IoU and CO variance of each category, with the color indicating the experiment settings. This analysis aims to investigate how shape-awareness affects the SAZS’s performance on zero-shot semantic segmentation.
+
+![](images/c4f5270c18623aa010440a6edd9e2433c49a22ae277dc4d5179b6775094006bf.jpg)  
+Figure 4. Qualitative comparison results of ${ \mathrm { P A S C A L } } \cdot 5 ^ { i }$ . The first and last columns are the input images and the corresponding ground-truth semantic masks for different categories. The second and the third columns are the predictions by SAZS without and with shape awareness, respectively. \* denotes categories categories unseen during training phase) and yellow boxes mark poorly segmented regions.
+
+The results demonstrate a negative correlation between the IoU and the CO variance of a specific category (with a Pearson correlation coefficient of $r \ > \ 0 . 7$ and $P _ { \mathrm { \Delta } } < =$ 0.001), and the degree of correlation is higher for SAZS than for the baselines. These findings strongly suggest that shape-awareness can improve segmentation performance when objects have more stable shapes, and that SAZS is more able to leverage shape information compared to the other baselines. The experiments were conducted on the ${ \mathrm { P A S C A L } } \mathrm { - } 5 ^ { i }$ dataset.
+
+## 4.7. Effects of the Language Embedding Locality
+
+Intuitively, distribution of language anchors in the latent feature space may largely affect vision-language alignment and thus the performance of the proposed method. Inspired by recent research [20,25,41], we model the distribution by the embedding locality of anchors which is defined by the mean value and standard deviation of euclidean distances in the feature space between one anchor and all other anchors.
+
+For each category in each setting of experiments, we calculate its embedding locality and report the results collected on PASCAL-5<sup>i</sup> in Fig. 5b. The coordinates of sample points represent the IoU and the embedding locality of the corresponding category while the colors of the sample points de-
+
+![](images/b4ca85df296ca662ca2c8cdca0323eacfd27afd6df004088a87f99c04c82d977.jpg)  
+(a)
+
+![](images/4f86c0c2df844246da46eb634d41fdc303164a1341b8ec52656bc0f794779333.jpg)  
+(b)  
+Figure 5. Correlation of CO variance (a) or mean embedding locality (b) with IoU.
+
+note the experiment settings.
+
+According to the plotted results, we observe a negative linear correlation (with Pearson correlation coefficient $r >$ 0.5 and $P \leq 0 . 0 5 )$ between the embedding locality mean and IoU of a certain category, indicating that the closer a category is in the feature space to the others, the easier it is for the visual and text embeddings which leads to higher performances. Also, the degree of relevance of SAZS is the highest among all methods which implies that SAZS is able to better align pixel-wise visual embeddings towards the text anchors in the CLIP feature space.
+
+## 5. Conclusion
+
+In this paper, we present a novel framework for Shape-Aware Zero-Shot semantic segmentation (abbreviated as SAZS). The proposed framework leverages the rich priors contained in the feature space of a large-scale pretrained visual-language model, while also incorporating shape-awareness through joint training on a boundary detection constraint task. This is necessary to compensate for the absence of fine-grained features in the feature space. In addition, self-supervised spectral decomposition is used to obtain feature vectors for images, which are fused with the network predictions as prior knowledge to enhance the model’s ability to perceive shapes.
+
+Extensive experiments demonstrate the state-of-the-art performance of SAZS with significant margins over previous methods. Correlation analysis further highlights the impact of shape compactness and distribution of language anchors on the framework’s performance. Our approach effectively exploits the shape of targets and feature priors, showing the highest correlation among all compared methods and proving the novelty of the shape-aware design.
+
+## References
+
+[1] Yagiz Aksoy, Tae-Hyun Oh, Sylvain Paris, Marc Pollefeys,˘ and Wojciech Matusik. Semantic soft segmentation. ACM Transactions on Graphics (TOG), 37(4):1–13, 2018. 3
+
+[2] Donghyeon Baek, Youngmin Oh, and Bumsub Ham. Exploiting a joint embedding space for generalized zero-shot semantic segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9536– 9545, 2021. 2
+
+[3] Shubhankar Borse, Ying Wang, Yizhe Zhang, and Fatih Porikli. Inverseform: A loss function for structured boundary-aware segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 5901–5911, 2021. 5
+
+[4] Maxime Bucher, Tuan-Hung Vu, Matthieu Cord, and Patrick Perez. Zero-shot semantic segmentation.´ Advances in Neural Information Processing Systems, 32, 2019. 1, 2, 3, 7
+
+[5] Mathilde Caron, Hugo Touvron, Ishan Misra, Herve J ´ egou,´ Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerging properties in self-supervised vision transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9650–9660, 2021. 5
+
+[6] Liang-Chieh Chen, George Papandreou, Iasonas Kokkinos, Kevin Murphy, and Alan L Yuille. Deeplab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs. IEEE transactions on pattern analysis and machine intelligence, 40(4):834–848, 2017. 1, 2
+
+[7] Liang-Chieh Chen, Yukun Zhu, George Papandreou, Florian Schroff, and Hartwig Adam. Encoder-decoder with atrous separable convolution for semantic image segmentation. In Proceedings ofthe European conference on computer vision (ECCV), pages 801–818, 2018. 1
+
+[8] Qifeng Chen, Dingzeyu Li, and Chi-Keung Tang. Knn matting. IEEE transactions on pattern analysis and machine intelligence, 35(9):2175–2188, 2013. 5
+
+[9] Xiaoxue Chen, Tianyu Liu, Hao Zhao, Guyue Zhou, and Ya-Qin Zhang. Cerberus transformer: Joint semantic, affordance and attribute parsing. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 19649–19658, 2022. 1
+
+[10] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding. arXiv preprint arXiv:1810.04805, 2018. 3
+
+[11] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, et al. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929, 2020. 6
+
+[12] Mark Everingham, SM Eslami, Luc Van Gool, Christopher KI Williams, John Winn, and Andrew Zisserman. The pascal visual object classes challenge: A retrospective. Internationaljournal ofcomputer vision, 111(1):98–136, 2015. 6
+
+[13] Golnaz Ghiasi, Xiuye Gu, Yin Cui, and Tsung-Yi Lin. Open-vocabulary image segmentation. arXiv preprint arXiv:2112.12143, 2021. 6, 7
+
+[14] Zhangxuan Gu, Siyuan Zhou, Li Niu, Zihan Zhao, and Liqing Zhang. Context-aware feature generation for zeroshot semantic segmentation. In Proceedings ofthe 28th ACM International Conference on Multimedia, pages 1921–1929, 2020. 1, 2, 3
+
+[15] Bharath Hariharan, Pablo Arbelaez, Lubomir Bourdev,´ Subhransu Maji, and Jitendra Malik. Semantic contours from inverse detectors. In 2011 international conference on computer vision, pages 991–998. IEEE, 2011. 6
+
+[16] Ping Hu, Stan Sclaroff, and Kate Saenko. Uncertainty-aware learning for zero-shot semantic segmentation. Advances in Neural Information Processing Systems, 33:21713–21724, 2020. 3
+
+[17] Joel Janai, Fatma Guney, Aseem Behl, Andreas Geiger,¨ et al. Computer vision for autonomous vehicles: Problems, datasets and state of the art. Foundations and Trends® in Computer Graphics and Vision, 12(1–3):1–308, 2020. 1
+
+[18] Chao Jia, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham, Quoc Le, Yun-Hsuan Sung, Zhen Li, and Tom Duerig. Scaling up visual and vision-language representation learning with noisy text supervision. In International Conference on Machine Learning, pages 4904–4916. PMLR, 2021. 1
+
+[19] Bu Jin, Xinyu Liu, Yupeng Zheng, Pengfei Li, Hao Zhao, Tong Zhang, Yuhang Zheng, Guyue Zhou, and Jingjing Liu. Adapt: Action-aware driving caption transformer. arXiv preprint arXiv:2302.00673, 2023. 3
+
+[20] Aishwarya Kamath, Mannat Singh, Yann LeCun, Gabriel Synnaeve, Ishan Misra, and Nicolas Carion. Mdetrmodulated detection for end-to-end multi-modal understanding. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 1780–1790, 2021. 8
+
+[21] Naoki Kato, Toshihiko Yamasaki, and Kiyoharu Aizawa. Zero-shot semantic segmentation via variational mapping. In Proceedings of the IEEE/CVF International Conference on Computer Vision Workshops, pages 0–0, 2019. 2, 3
+
+[22] Weicheng Kuo, Anelia Angelova, Jitendra Malik, and Tsung-Yi Lin. Shapemask: Learning to segment novel objects by refining shape priors. In Proceedings of the IEEE/CVF international conference on computer vision, pages 9207–9216, 2019. 2
+
+[23] Anat Levin, Dani Lischinski, and Yair Weiss. A closed-form solution to natural image matting. IEEE transactions on pattern analysis and machine intelligence, 30(2):228–242, 2007. 5
+
+[24] Boyi Li, Kilian Q Weinberger, Serge Belongie, Vladlen Koltun, and Rene Ranftl. Language-driven semantic seg-´ mentation. arXiv preprint arXiv:2201.03546, 2022. 1, 2, 3, 6, 7
+
+[25] Linjie Li, Yen-Chun Chen, Yu Cheng, Zhe Gan, Licheng Yu, and Jingjing Liu. Hero: Hierarchical encoder for video+ language omni-representation pre-training. arXiv preprint arXiv:2005.00200, 2020. 8
+
+[26] Pengfei Li, Beiwen Tian, Yongliang Shi, Xiaoxue Chen, Hao Zhao, Guyue Zhou, and Ya-Qin Zhang. Toist: Task oriented
+
+instance segmentation transformer with noun-pronoun distillation. arXiv preprint arXiv:2210.10775, 2022. 3
+
+[27] Peike Li, Yunchao Wei, and Yi Yang. Consistent structural relation learning for zero-shot segmentation. Advances in Neural Information Processing Systems, 33:10317–10327, 2020. 1, 2, 3
+
+[28] Yang Li, Xiaoxue Chen, Hao Zhao, Jiangtao Gong, Guyue Zhou, Federico Rossano, and Yixin Zhu. Understanding embodied reference with touch-line transformer. arXiv preprint arXiv:2210.05668, 2022. 3
+
+[29] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollar, and C Lawrence´ Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014. 6
+
+[30] Sifei Liu, Shalini De Mello, Jinwei Gu, Guangyu Zhong, Ming-Hsuan Yang, and Jan Kautz. Learning affinity via spatial propagation networks. Advances in Neural Information Processing Systems, 30, 2017. 2
+
+[31] Xiangbin Liu, Liping Song, Shuai Liu, and Yudong Zhang. A review of deep-learning-based medical image segmentation methods. Sustainability, 13(3):1224, 2021. 1
+
+[32] Jonathan Long, Evan Shelhamer, and Trevor Darrell. Fully convolutional networks for semantic segmentation. In Proceedings ofthe IEEE conference on computer vision andpattern recognition, pages 3431–3440, 2015. 1, 2
+
+[33] Fengmao Lv, Haiyang Liu, Yichen Wang, Jiayi Zhao, and Guowu Yang. Learning unbiased zero-shot semantic segmentation networks via transductive transfer. IEEE Signal Processing Letters, 27:1640–1644, 2020. 2
+
+[34] Luke Melas-Kyriazi, Christian Rupprecht, Iro Laina, and Andrea Vedaldi. Deep spectral methods: A surprisingly strong baseline for unsupervised semantic segmentation and localization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8364– 8375, 2022. 5
+
+[35] George A Miller. Wordnet: a lexical database for english. Communications ofthe ACM, 38(11):39–41, 1995. 3
+
+[36] Juhong Min, Dahyun Kang, and Minsu Cho. Hypercorrelation squeeze for few-shot segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 6941–6952, 2021. 2, 4, 7
+
+[37] Khoi Nguyen and Sinisa Todorovic. Feature weighting and boosting for few-shot segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 622–631, 2019. 2, 7
+
+[38] Giuseppe Pastore, Fabio Cermelli, Yongqin Xian, Massimiliano Mancini, Zeynep Akata, and Barbara Caputo. A closer look at self-training for zero-label semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 2693–2702, 2021. 3
+
+[39] Jeffrey Pennington, Richard Socher, and Christopher D Manning. Glove: Global vectors for word representation. In Proceedings ofthe 2014 conference on empirical methods in natural language processing (EMNLP), pages 1532–1543, 2014. 3
+
+[40] Trung Pham, Thanh-Toan Do, Gustavo Carneiro, Ian Reid, et al. Bayesian semantic instance segmentation in open set
+
+world. In Proceedings ofthe European Conference on Computer Vision (ECCV), pages 3–18, 2018. 1
+
+[41] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International Conference on Machine Learning, pages 8748–8763. PMLR, 2021. 1, 2, 3, 4, 8
+
+[42] Rene Ranftl, Alexey Bochkovskiy, and Vladlen Koltun. Vi-´ sion transformers for dense prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 12179–12188, 2021. 4, 6
+
+[43] Yongming Rao, Wenliang Zhao, Guangyi Chen, Yansong Tang, Zheng Zhu, Guan Huang, Jie Zhou, and Jiwen Lu. Denseclip: Language-guided dense prediction with contextaware prompting. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 18082–18091, 2022. 3
+
+[44] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. Unet: Convolutional networks for biomedical image segmentation. In International Conference on Medical image computing and computer-assisted intervention, pages 234–241. Springer, 2015. 2
+
+[45] Alexander Schick, Mika Fischer, and Rainer Stiefelhagen. Measuring and evaluating the compactness of superpixels. In Proceedings of the 21st international conference on pattern recognition (ICPR2012), pages 930–934. IEEE, 2012. 7
+
+[46] Jianjun Shen, Siyi Lu, Ruize Qu, Hao Zhao, Yu Zhang, An Chang, Li Zhang, Wei Fu, and Zhipeng Zhang. Measuring distance from lowest boundary of rectal tumor to anal verge on ct images using pyramid attention pooling transformer. Computers in Biology and Medicine, 155:106675, 2023. 1
+
+[47] Jianbo Shi and Jitendra Malik. Normalized cuts and image segmentation. IEEE Transactions on pattern analysis and machine intelligence, 22(8):888–905, 2000. 2
+
+[48] Towaki Takikawa, David Acuna, Varun Jampani, and Sanja Fidler. Gated-scnn: Gated shape cnns for semantic segmentation. In Proceedings of the IEEE/CVF international conference on computer vision, pages 5229–5238, 2019. 2
+
+[49] Beiwen Tian, Liyi Luo, Hao Zhao, and Guyue Zhou. Vibus: Data-efficient 3d scene parsing with viewpoint bottleneck and uncertainty-spectrum modeling. ISPRS Journal of Photogrammetry and Remote Sensing, 194:302–318, 2022. 1
+
+[50] Zhuotao Tian, Hengshuang Zhao, Michelle Shu, Zhicheng Yang, Ruiyu Li, and Jiaya Jia. Prior guided feature enrichment network for few-shot segmentation. IEEE transactions on pattern analysis and machine intelligence, 2020. 7
+
+[51] Haochen Wang, Xudong Zhang, Yutao Hu, Yandan Yang, Xianbin Cao, and Xiantong Zhen. Few-shot semantic segmentation with democratic attention networks. In European Conference on Computer Vision, pages 730–746. Springer, 2020. 2, 7
+
+[52] Jingdong Wang, Ke Sun, Tianheng Cheng, Borui Jiang, Chaorui Deng, Yang Zhao, Dong Liu, Yadong Mu, Mingkui Tan, Xinggang Wang, et al. Deep high-resolution representation learning for visual recognition. IEEE transactions on pattern analysis and machine intelligence, 43(10):3349– 3364, 2020. 1, 2
+
+[53] Yongqin Xian, Subhabrata Choudhury, Yang He, Bernt Schiele, and Zeynep Akata. Semantic projection network for zero-and few-label semantic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8256–8265, 2019. 2, 3, 7
+
+[54] Enze Xie, Wenhai Wang, Zhiding Yu, Anima Anandkumar, Jose M Alvarez, and Ping Luo. Segformer: Simple and efficient design for semantic segmentation with transformers. Advances in Neural Information Processing Systems, 34:12077–12090, 2021. 1
+
+[55] Mengde Xu, Zheng Zhang, Fangyun Wei, Yutong Lin, Yue Cao, Han Hu, and Xiang Bai. A simple baseline for zeroshot semantic segmentation with pre-trained vision-language model. arXiv preprint arXiv:2112.14757, 2021. 3
+
+[56] Fisher Yu, Vladlen Koltun, and Thomas Funkhouser. Dilated residual networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 472–480, 2017. 4, 6
+
+[57] Yuhui Yuan, Xilin Chen, and Jingdong Wang. Objectcontextual representations for semantic segmentation. In European conference on computer vision, pages 173–190. Springer, 2020. 1
+
+[58] Pengju Zhang, Yihong Wu, and Jiagang Zhu. Semi-global shape-aware network. arXiv preprint arXiv:2012.09372, 2020. 2
+
+[59] Hao Zhao, Ming Lu, Anbang Yao, Yiwen Guo, Yurong Chen, and Li Zhang. Pointly-supervised scene parsing with uncertainty mixture. Computer Vision and Image Understanding, 200:103040, 2020. 1
+
+[60] Hang Zhao, Xavier Puig, Bolei Zhou, Sanja Fidler, and Antonio Torralba. Open vocabulary scene parsing. In Proceedings of the IEEE International Conference on Computer Vision, pages 2002–2010, 2017. 3
+
+[61] Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia. Pyramid scene parsing network. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 2881–2890, 2017. 1
+
+[62] Yupeng Zheng, Chengliang Zhong, Pengfei Li, Huan-ang Gao, Yuhang Zheng, Bu Jin, Ling Wang, Hao Zhao, Guyue Zhou, Qichao Zhang, et al. Steps: Joint self-supervised nighttime image enhancement and depth estimation. arXiv preprint arXiv:2302.01334, 2023. 1
+
+[63] Leisheng Zhong, Yu Zhang, Hao Zhao, An Chang, Wenhao Xiang, Shunli Zhang, and Li Zhang. Seeing through the occluders: Robust monocular 6-dof object pose tracking via model-guided video object segmentation. IEEE Robotics and Automation Letters, 5(4):5159–5166, 2020. 1
