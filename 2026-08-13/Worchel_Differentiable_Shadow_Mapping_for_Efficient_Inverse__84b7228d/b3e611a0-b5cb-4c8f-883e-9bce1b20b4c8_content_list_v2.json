@@ -1,0 +1,4311 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Differentiable Shadow Mapping for Efficient Inverse Graphics"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                169,
+                130,
+                799,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Markus Worchel"
+                    }
+                ]
+            },
+            "bbox": [
+                321,
+                181,
+                457,
+                196
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Marc Alexa"
+                    }
+                ]
+            },
+            "bbox": [
+                511,
+                181,
+                609,
+                196
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "TU Berlin"
+                    }
+                ]
+            },
+            "bbox": [
+                441,
+                212,
+                524,
+                227
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                262,
+                313,
+                280
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We show how shadows can be efficiently generated in differentiable rendering oftriangle meshes. Our central observation is that pre-filtered shadow mapping, a technique for approximating shadows based on rendering from the perspective of a light, can be combined with existing differentiable rasterizers to yield differentiable visibility information. We demonstrate at several inverse graphics problems that differentiable shadow maps are orders of magnitude faster than differentiable light transport simulation with similar accuracy – while differentiable rasterization without shadows often fails to converge."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                295,
+                470,
+                463
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                494,
+                209,
+                511
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Differentiable renderers have become an essential tool for solving inverse problems in computer vision. They currently come in two flavors: (1) forward rasterization using local shading models [9, 10, 39] and (2) path tracing and/or Monte Carlo methods for global light transport simulation [22, 36, 53, 76]. While local methods are orders of magnitude faster, they lack effects of global light interaction such as shadows, caustics, or indirect illumination."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                521,
+                470,
+                642
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Modern methods in real-time graphics can generate surprisingly realistic images by using efficient approximations of global effects. The single most important aspect for increasing the realism of local shading is the consideration of shadows (see Figure 1): for each pixel to be shaded, check if the path to a light source is unobstructed before evaluating a local shading model. Doing this accurately is costly and many approximate techniques have been developed. Our central observation is that one of the oldest and most widely used, shadow maps [71] (see Section 3), can be adapted to work in differentiable rendering frameworks."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                642,
+                470,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In Section 4 we explain how (certain approximations of) shadow mapping can be differentiated, exploiting existing differentiable rasterizers. Our main idea is similar to shadow maps: exploit efficient rasterization from the light’s point of view. For differentiable shadows this means: Existing differentiable rasterizers handle discontinuities of primary visibility along primitive borders;"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                810,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/0feedef51774d0a0e974c17092137145490373addc75271b8a298e8de294d15d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Local Shading"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                263,
+                627,
+                321
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/7c3def2bc4b7e5033dab0ab518e49a38a6a1e093d8aa5036ae12a9cdfe75843f.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Local Shading + Shadows"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                633,
+                263,
+                759,
+                321
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/cf87fe18decafdf5b627bdc71e7eb40dbf6ce237ee6b1a5f53a2fb1a6f84a022.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Global Shading"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                764,
+                263,
+                888,
+                321
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/c11ea53ea0de418fc3e78e6f75bc9ec4655633eb56db54daba2c4d9348806331.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Adding shadows (middle) to local shading (left) is a significant step towards global light transport simulation (right)."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Rendering"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                393,
+                625,
+                488
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/8a0bec62a70c4432bbee928d673be16ad1bfc6163fa5a956f0cc7f89de9b7057.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Numerical Deriva�ves"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                633,
+                393,
+                758,
+                488
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/7afb337626349110ad9319abc2eca4ca04914e2a4506149aea9f89259dd91048.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Our Deriva�ves"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Complex scene (330k triangles) rendered in real time with our differentiable shadow mapping. It shows self-shadowing of objects, shadowing between objects, and colored surfaces. Finite differences and our automatic derivatives w.r.t. movement of the light (note the non-zero derivatives at shadow boundaries)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                766,
+                393,
+                888,
+                488
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                613,
+                892,
+                628
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "we use this machinery to handle discontinuities of secondary visibility along shadow borders. The resulting images contain shadows and are differentiable (see Figure 2). For many inverse graphics problems the level of realism they provide will suffice, while being generated significantly faster than with global methods. This is important for machine learning tasks, where the renderings (and their derivatives w.r.t. scene parameters) are computed repeatedly. We provide de-"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                628,
+                779,
+                809
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f6d567eb53af7dddfaa3adb0b322e0b9346cc2f87d3dea18bff68aaf4529848f.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                789,
+                647,
+                887,
+                724
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/fb2e9284102e10be27172acd914ee2fb61930592ce8ccffab5595284f10dc05c.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                789,
+                728,
+                885,
+                804
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "tails of the implementation and how parameters affect optimization based on target images in Section 5."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                810,
+                892,
+                839
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given the importance of shadows for realistic image synthesis, it is unsurprising that many inverse problems heavily depend on them. We demonstrate the trade-off and possibillities of differentiable shadow mappings in several applications, ranging from pose estimation, over different types of geometry reconstruction, to interactive editing by manipulating shadows (Section 6)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                840,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                106,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                236,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "142"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                136
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The main idea of this work, using existing differentiable rendering frameworks that readily resolve the problem of visibility discontinuities for dealing with discontinuities of secondary rays, may be useful for various other scenarios beyond shadows. We elaborate on this and other immediate consequences of our approach in Section 7."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                136,
+                470,
+                228
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work: Differentiable Rendering"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                241,
+                441,
+                257
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Differentiable rendering enables computing derivatives of the rendering process, which generates a virtual image from a set of scene parameters. While there are differentiable renderers for a variety of scene representations, including volumes [51] or implicit surfaces [4, 24, 68], we focus on triangle meshes here and refer to Kato et al. [26] for a broader overview."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                266,
+                470,
+                372
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Many differentiable mesh renderers are based on rasterization, effectively point-sampling the scene on a regular grid in the image plane. Point sampling means that a primitive either covers a pixel or not; this binary outcome makes computing derivatives w.r.t. scene parameters difficult. Some differentiable rasterizers approximate the gradient computation [27, 39] whereas others approximate the rasterization [9–11, 30, 38, 58, 66], using a form of smoothing or anti-aliasing to ensure differentiability. Approaches also differ in terms of local shading of a pixel, from considering only given colors to evaluating reflection models based on the BRDF."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                372,
+                470,
+                553
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "At the other end of the spectrum are complex physicallybased differentiable renderers [22, 36, 53, 76], often based on Monte Carlo integration to numerically approximate the rendering equation [25]. For handling visibility discontinuities in the gradients, several techniques have been developed [5, 36, 40, 81]. Significant effort has been made to improve the immense time and memory requirements [23, 52, 67]. While modern GPUs possess specialized hardware for ray-triangle intersection, they still cannot match the performance of rasterization-based renderers."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                553,
+                470,
+                704
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Multi-view 3D reconstruction and related inverse problems such as view synthesis and material estimation are prime examples for the potential of differentiable rendering. Recent combinations of inverse graphics with machine learning techniques, like NeRF [6, 7, 44, 49, 79] or neural implicit surfaces [50, 54, 70, 74, 75, 78] are particularly successful. It is still common to use local shading models, especially in combination with efficient differentiable rasterizers for triangle meshes. Missing shadows or indirect illumination in the differentiable rendering process are often compensated for by assuming a setting where these effects are either neglegible (e.g. co-located camera and light [41,77] or soft environment lighting [17,47]), by modeling the interaction of light and material as a black box neural network [72], or simply ignored [18, 61]. In addition to analysis-by-synthesis settings, differentiable renderers have been used in a variety of contexts to train machine learning models [9, 15, 21, 32, 37, 43, 56, 62, 69, 73, 80]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                704,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                92,
+                893,
+                167
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Despite the popularity in computer graphics, surprisingly little effort has been spent on combining local shading models and approximate global solutions in the context of differentiable rendering. Lyu et al. [42] take a first step in this direction by approximating soft shadows produced by imagebased lighting, however, their gradients are so far limited by the proxy geometry [60] used for shadow computation. In contrast, we use the full mesh geometry for the shadows and are not restricted to a specific class of deformations."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                166,
+                893,
+                304
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Background: Shadow Mapping"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                318,
+                789,
+                335
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Shadow mapping [71] is based on the observation that points in a scene are lit by a (point) light source if they are closest to the light source. The shadow map is a depth image from the perspective of the light source. If a point in the scene is further from the light than the value stored in the shadow map, it is in the shadow. Otherwise it has the value stored in the shadow map, is closest to the light source, and lit. In local shading models, light is added over all light sources and the shadow computation is performed for each individual light, using a shadow map per light. In the fol lowing we consider a single light source and shadow map."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                343,
+                893,
+                510
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Formally, let the scene be given as the set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { X } \\subset \\mathbb { R } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". A point light source is defined by its position p. We assume a projective model and represent positions in homogeneous coordinates, so p can be at infinity, creating a directional light source, in which case p is the direction vector. Denote the distance of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } \\in \\mathbb { R } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to the light source as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d : \\mathbb { R } ^ { 3 } \\mapsto [ 0"
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d _ { \\mathrm { m a x } } ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", where the distance to a directional light source is measured from a plane outside of X so that distance values are finite and non-negative."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                508,
+                893,
+                645
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The shadow map is parameterized over the space of rays emanating from p. For simplicity we assume that the rays from p to any point in the scene can be parameterized over a single plane and we assume a rectangle U on this plane to be the parameter space for the rays; if the light source is placed so that this condition is violated, several planes (i.e., arranged in the form of a box) may be used. The mapping from scene points "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } \\in \\mathbb { R } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to U is the linear projective camera transforma-"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                646,
+                799,
+                811
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/7775de95c9a107d5017dfbf35d3f13fb3571db3f747a939fd7abfbdb18fc953a.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                810,
+                648,
+                890,
+                806
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "tion "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L : \\mathbb { R } ^ { 3 } \\mapsto \\mathbb { R } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In this setup, the shadow map can be expressed as"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                811,
+                892,
+                842
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "f : \\mathcal U \\mapsto \\mathbb R , \\quad f ( \\mathbf u ) = \\operatorname* { m i n } \\left\\{ d ( \\mathbf x ) : L ( \\mathbf x ) = \\mathbf u , \\mathbf x \\in \\mathcal X \\right\\}\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8512cebb40d98f922c9e482ea45099b4d3f45fd5fa0fc56b1f2d83b8dd566438.jpg"
+                }
+            },
+            "bbox": [
+                513,
+                854,
+                877,
+                872
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given the shadow map, we get the visibility of any point in"
+                    }
+                ]
+            },
+            "bbox": [
+                500,
+                885,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "143"
+                    }
+                ]
+            },
+            "bbox": [
+                485,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/97ffc9b4adcb43adfa0a00a29fee2090d79618488ac91301845cbeaac303849c.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Shadow Maps"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Variance Shadow Maps"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Shadow mapping suffers from self-shadowing artifacts (“shadow acne”) that are alleviated by biasing the depths towards the light source in the visibility test. Variance shadow mapping handles these artifacts implicitly."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                90,
+                464,
+                195
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "the scene w.r.t. the light source as"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                287,
+                302,
+                303
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "V ( \\mathbf { x } ) = \\left\\{ 0 \\quad d ( \\mathbf { x } ) > f ( L ( \\mathbf { x } ) ) \\right.\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d2ae676cce4f6f069d66118c621e4c4c23de1ff8f285099066c94a7956de2e5c.jpg"
+                }
+            },
+            "bbox": [
+                166,
+                313,
+                375,
+                353
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "It is important to note that the ‘else’ case really reduces to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } ) = f ( L ( \\mathbf { x } ) )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "because f had been constructed to store the smallest possible value of f in direction "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L ( \\mathbf { x } )"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                363,
+                470,
+                409
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The usefulness of shadow maps arises from the fact that they can be efficiently approximated using graphics hardware: simply render the scene from the perspective of the light source, disabling all lighting computations and storing only the depth values. However, a naive implementation will suffer from severe artifacts. First, the condition for a point to be lit is "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } ) \\leq f ( L ( \\mathbf { x } ) )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in finite precision arithmetic, which may or may not happen for visible points on a smooth surface because of the different discretization of the rendered image and the shadow map. The resulting problem is referred to as “shadow acne” and commonly tackled by introducing a bias β for the depth comparison, considering points with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } ) \\leq f ( L ( \\mathbf { x } ) ) + \\beta"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to be lit (Figure 3). While suitably chosen bias attenuates artifacts along smooth surfaces, it cannot remedy aliasing across shadow boundaries."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                409,
+                470,
+                635
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Various techniques have been suggested for dealing with aliasing artifacts resulting from the discrete nature of shadow maps [2, 3, 12, 57]. Many such approaches can be traced back to or interpreted as approximations of percentage closer filtering [59]. Rather than comparing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to only "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f ( L ( \\mathbf { x } ) )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we consider a small neighborhood around "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "in the shadow map and take the percentage of the rays around "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "that would lit x. In a slight generalization of the original formulation, we assume the neighborhood to be implicitly defined by a smooth (compactly supported) kernel "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k _ { \\mathbf { x } } ( \\mathbf { u } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "satisfying "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r } { \\int k _ { \\mathbf { x } } ( \\mathbf { u } ) \\mathrm { d } \\mathbf { u } \\ = \\ 1 } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Then the desired visibility function is"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                635,
+                472,
+                816
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "v ( \\mathbf { x } ) = \\int _ { d ( \\mathbf { x } ) \\leq f ( \\mathbf { u } ) } k _ { \\mathbf { x } } ( \\mathbf { u } ) \\mathrm { d } \\mathbf { u } .\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8bbde4276fea1a23f27e4c4c85b63d0babe407ee3b0dc035952f94b79d623a8d.jpg"
+                }
+            },
+            "bbox": [
+                173,
+                825,
+                372,
+                861
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Note that in this case we can indeed have "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } ) < f ( \\mathbf { u } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "because u is not restricted to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "but varies over a region."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                468,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The visibility function is taking on values in [0, 1], and in particular the boundaries of shadows are smoothly transitioning between the two extreme values. This also means that on completely lit smooth surfaces, even if the visibility is not 1 in concave areas, it is always smoothly varying and close to 1, eliminating the necessity to estimate a suitable bias, which can be difficult for some scenes [13]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                196
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Percentage closer filtering successfully alleviates many sampling artifacts but is costly: for every point x in the scene the integral needs to be evaluated. One would much rather pre-filter the shadow map [2]. Yet, simply convolving f with k and then evaluating the smoothed shadow map is different. This can be readily seen as the result would take only the discrete values 0 and 1. Better approximations (see [16] for an overview) generally pre-warp f and/or pre-filter not only f but also simple functions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g ( f )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", such as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "g ( f ) = f ^ { k } \\ \\mathrm { o r } \\ g = \\mathrm { e x p }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Then an approximation to Eq. (3) is built from the set of pre-computed functions."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                196,
+                893,
+                363
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While our approach works with all such approximations, we demonstrate it at the example of variance shadow maps [12]. The approximation is built by taking the view that the local shadow map may be considered a probability distribution. This makes sense because it is irrelevant what points are in the integration domain in Eq. (3) as long as the measure of the integration domain is correct. The local weighted mean and variance of the shadow map are"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                363,
+                893,
+                484
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mu _ { \\mathbf { x } } = \\int k _ { \\mathbf { x } } ( \\mathbf { u } ) f ( \\mathbf { u } ) \\mathrm { d } \\mathbf { u } , \\quad \\sigma _ { \\mathbf { x } } ^ { 2 } = \\int k _ { \\mathbf { x } } ( \\mathbf { u } ) f ( \\mathbf { u } ) ^ { 2 } \\mathrm { d } \\mathbf { u } - \\mu _ { \\mathbf { x } } ^ { 2 } .\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/505cd013da6da91c58a35298ca644942a61fb21221fc32ffde3afc70530a69e1.jpg"
+                }
+            },
+            "bbox": [
+                500,
+                492,
+                890,
+                525
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We note that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "v ( { \\bf x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a measure and since the shadow map "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is positive the best bound for this measure is given by the one-sided Chebyshev or Cantelli inequality, yielding"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                537,
+                893,
+                583
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "v ( \\mathbf { x } ) \\leq \\frac { \\sigma _ { \\mathbf { x } } ^ { 2 } } { \\sigma _ { \\mathbf { x } } ^ { 2 } + ( d ( \\mathbf { x } ) - \\mu _ { \\mathbf { x } } ) ^ { 2 } } .\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/bb2fa67c4fcf07c5de4ac7d21a004a9a839857b00960f503f74df101154a805e.jpg"
+                }
+            },
+            "bbox": [
+                598,
+                592,
+                794,
+                626
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Notice that, similar to percentage closer filtering, it may happen that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } ) ~ < ~ \\mu _ { \\mathbf { x } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "because "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu _ { \\mathbf { x } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a filtered version of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f ."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Since in this case the approximation of the visibility function would decrease as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "comes closer to the light source, Donnelly and Lauritzen [12] suggest the following slightly modified visibility function:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                635,
+                893,
+                727
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\hat { v } ( \\mathbf { x } ) = \\left\\{ \\begin{array} { l l } { \\frac { \\sigma _ { \\mathbf { x } } ^ { 2 } } { \\sigma _ { \\mathbf { x } } ^ { 2 } + ( d ( \\mathbf { x } ) - \\mu _ { \\mathbf { x } } ) ^ { 2 } } , } & { d ( \\mathbf { x } ) > \\mu _ { \\mathbf { x } } } \\\\ { 1 } & { \\mathrm { e l s e } . } \\end{array} \\right.\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/daab38e75073f74782ddd5b4e1498a084e3fdda9a94886bf8775715d00fd60a4.jpg"
+                }
+            },
+            "bbox": [
+                563,
+                734,
+                825,
+                776
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The resulting shadow maps (see Figure 3) have been observed to be very similar to percentage closer filtering."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                786,
+                892,
+                818
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Differentiable Filtered Shadow Mapping"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                829,
+                864,
+                847
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our goal is to differentiate the visibility function with respect to the scene parameters Θ. The binary visibility "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "V ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "has zero derivative almost everywhere. The exact form v(x)"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "144"
+                    }
+                ]
+            },
+            "bbox": [
+                485,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "of percentage closer filtering (Eq. (3)) is smooth, yet the integration domain not only varies with the scene parameters but also depends on x. We suggest to rather consider vˆ."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                136
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The main difficulty in computing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\frac { \\partial \\hat { v } } { \\partial \\Theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is that the shadow map f is only piecewise smooth, and the boundaries of the smooth regions may change with Θ. This makes the derivatives of the integrals in Eq. (4) challenging to compute. Similar in spirit to the original shadow map idea [71], we can use existing rasterizers. While the original motivation was efficiency, and this is also true in our case, an additional point is that significant effort has been spent to estimate such derivatives when rendering from the perspective of the viewer [9–11,27,30,38,39]. We can readily exploit any existing solution and simply render from the perspective of the light. Most differentiable rasterizers effectively replace the piecewise smooth functions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with smoothed functions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { f }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { f } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Attenuating aliasing artifacts in pre-filtered shadow mapping requires smoothing, so the smoothing by differentiable rasterizers is complementary in our setting."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                136,
+                470,
+                378
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the following, the vectors <sup>˜</sup>f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\dot { \\mathbf { f } ^ { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represent the discrete versions of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { f }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\tilde { f } } ^ { 2 } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ", with "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\nabla \\tilde { \\mathbf { f } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\nabla \\mathbf { \\bar { f } } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "their Jacobians w.r.t. Θ. The elements in vˆ dependent on the shadow map are "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The weighted mean "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a convolution that, in the discrete case, can be expressed as the scalar product"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                378,
+                470,
+                454
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { m } _ { 1 } = \\mathbf { G } \\tilde { \\mathbf { f } } ,\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/9d5a241bc79dcf5b09b35c36e5ad289197d17ffa60a54d28dd848e338d298879.jpg"
+                }
+            },
+            "bbox": [
+                233,
+                459,
+                312,
+                476
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { G }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a Toeplitz matrix and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { m } _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the first discrete moment of the shadow map. The derivative is then simply"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                483,
+                468,
+                513
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\mathbf { m } _ { 1 } } { \\partial \\boldsymbol { \\Theta } } = \\frac { \\partial \\mathbf { m } _ { 1 } } { \\partial \\tilde { \\mathbf { f } } } \\frac { \\partial \\tilde { \\mathbf { f } } } { \\partial \\boldsymbol { \\Theta } } = \\mathbf { G } \\boldsymbol { \\nabla } \\tilde { \\mathbf { f } } .\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/7ed8c502017ed64a28e813082c4f24d63ed19f8a0142d358bbe7672dcd461a67.jpg"
+                }
+            },
+            "bbox": [
+                179,
+                518,
+                367,
+                553
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "For "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we introduce the second discrete moment"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                558,
+                401,
+                574
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { m } _ { 2 } = \\mathbf { G } \\tilde { \\mathbf { f } ^ { 2 } } ,\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/caf5a61e4eb85f1e58400292bc7dd29f013e1b6547d14a44604d525488be75d1.jpg"
+                }
+            },
+            "bbox": [
+                230,
+                579,
+                315,
+                595
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "which similarly has the derivative"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                603,
+                303,
+                617
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\mathbf { m } _ { 2 } } { \\partial \\boldsymbol { \\Theta } } = \\frac { \\partial \\mathbf { m } _ { 2 } } { \\partial \\tilde { \\mathbf { f } } ^ { 2 } } \\frac { \\partial \\tilde { \\mathbf { f } ^ { 2 } } } { \\partial \\boldsymbol { \\Theta } } = \\mathbf { G } \\boldsymbol { \\nabla } \\tilde { \\mathbf { f } ^ { 2 } } .\\tag{10}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/30af5e2ec804af31ba98476741074d1433a5189e47eed5a2fb57e0208b0049c4.jpg"
+                }
+            },
+            "bbox": [
+                174,
+                623,
+                372,
+                659
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The discrete image of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be computed from the moments as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { m } _ { 2 } - \\mathbf { m } _ { 1 } \\otimes \\mathbf { m } _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and its derivative directly follows from expressions above and the product rule for m "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\otimes \\mathbf { m } _ { 1 }"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                665,
+                468,
+                710
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The distance "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is independent of the shadow map. Its variation with Θ stems from possible modification of the position of the light source or geometry and can be easily expressed. Lastly, vˆ is a piecewise rational function of these variables, with the boundary between the two pieces at "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d = \\mu"
+                    },
+                    {
+                        "type": "text",
+                        "content": "depending on both "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mu ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". This requires no special treatment, however, because "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\hat { v }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a continuously differentiable function across "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d = \\mu ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "as we see from"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                710,
+                470,
+                830
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\hat { v } } { \\partial \\mu } = - \\frac { \\partial \\hat { v } } { \\partial d } = \\left\\{ \\begin{array} { l l } { 2 \\frac { \\sigma ^ { 2 } ( d - \\mu ) } { ( \\sigma ^ { 2 } + ( d - \\mu ) ^ { 2 } ) ^ { 2 } } } & { d > \\mu } \\\\ { 0 } & { \\mathrm { e l s e } } \\end{array} \\right. .\\tag{11}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/588bf96153e1bd1be8e2e027d680504eb2587e48fac3dd106c7d8507675414fb.jpg"
+                }
+            },
+            "bbox": [
+                133,
+                835,
+                413,
+                876
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Thus, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\frac { \\partial \\hat { v } } { \\partial \\Theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be directly computed using the chain rule."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                883,
+                449,
+                902
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/492eb8ccad6d3e3c4afbc49d65c45ae3a7ee4ba20715ff199adbf8457ef87078.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. We implement directional lights and spot lights in our framework. An extension to omnidirectional point lights is straight forward. Image-based lighting (IBL) is not supported, but the illumination from some environment maps can be sufficiently well approximated by a collection of point lights."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                90,
+                888,
+                145
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Implementation and Parameter Exploration"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                252,
+                892,
+                270
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our reference implementation is based on NVD-IFFRAST [30] for creating and smoothing the shadow map. The Jacobians ∇<sup>˜</sup>f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bar { \\nabla } \\tilde { \\mathbf { f } ^ { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(w.r.t. the scene parameters) are not explicitly computed. Rather, we use reverse-mode differentiation to compute the gradients of an objective function. The relevant derivatives are computed automatically [55] and are implicitly evaluated."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                279,
+                893,
+                385
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We currently use a single shadow map per light source, which supports directional lights and spot lights. Omnidirectional point lights can be implemented by creating and querying several shadow maps. Area lights or environment lighting would have to be approximated by point light sources – we leave a more accurate treatment for future work. Figure 4 illustrates the supported light sources in our current implementation."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                385,
+                893,
+                505
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "By building on an existing differentiable rasterizer and automatic differentiation, our code becomes rather straightforward. The pseudo-code below is provided for a single light source – keep in mind that the methods have to be executed for each light source. The pre-computation of the prefiltered depth images m and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { m } _ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is described in Alg. 1 below. Here, we assume that the RENDERSCENE function returns the smoothed discrete depth image <sup>˜</sup>f as well as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { f } ^ { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The modular design of NVDIFFRAST implements this in two steps, first providing the discrete values f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } ^ { 2 } = \\mathbf { f } \\otimes \\mathbf { f } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "which are then smoothed using the antialias function. We implement the filtering as a convolution with a kernel of size k (e.g. a Gaussian). Once the discrete smoothed shadow maps have been computed, the visibility for a point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } \\in \\mathcal { X }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be computed with Alg. 2."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                505,
+                893,
+                734
+            ]
+        },
+        {
+            "type": "code",
+            "content": {
+                "code_caption": [],
+                "code_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 1 Render the shadow map for a light source l function RENDERSHADOWMAP(X, p , k) <sup>˜</sup>f, <sup>˜</sup>f<sup>2</sup> ← RENDERSCENE(X , p<sub>l</sub>) m ← FILTER(<sup>˜</sup>f, k) m<sub>2</sub> ← FILTER( <sup>˜</sup>f<sup>2</sup>, k) return m<sub>1</sub>, m<sub>2</sub>"
+                    }
+                ],
+                "code_footnote": [],
+                "code_language": "asp"
+            },
+            "bbox": [
+                501,
+                743,
+                892,
+                837
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Optimization without Smoothed Shadow Map. We test our hypothesis that the discrete shadow map f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "must"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                869,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "145"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Algorithm 2 Compute the visibility between a point x and a light at p given the pre-filtered shadow map"
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                90,
+                468,
+                122
+            ]
+        },
+        {
+            "type": "algorithm",
+            "content": {
+                "algorithm_caption": [],
+                "algorithm_content": [
+                    {
+                        "type": "text",
+                        "content": "function COMPUTEVISIBILITY(x, p, m<sub>1</sub>, m<sub>2</sub>) u ← L(x) m<sub>1</sub>, m<sub>2</sub> ← SAMPLESHADOWMAP(u, m<sub>1</sub>, m<sub>2</sub>) "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "d  d ( \\mathbf { x } , \\mathbf { p } ) , \\quad \\mu  m _ { 1 } , \\quad \\sigma ^ { 2 }  m _ { 2 } - m _ { 1 } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "if "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\dot { \\boldsymbol { { \\mathbf { \\mathit { d } } } } } \\leq \\mu \\boldsymbol { { \\mathbf { \\mathit { a } } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "then return 1 else return "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma ^ { 2 } / ( \\sigma ^ { 2 } + ( d - \\mu ) ^ { 2 } )"
+                    }
+                ],
+                "algorithm_footnote": []
+            },
+            "bbox": [
+                78,
+                119,
+                467,
+                212
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/3d56b9d2a9bf98d55448025217390213dda17dc12e625a42619887c2d71f329a.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Convergence behavior for a simple scene with and without using a smoothed shadow map in the differentiable rasterizer. Without smoothing, shadow discontinuities are not properly differentiated and optimization fails."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                78,
+                228,
+                468,
+                328
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "be turned into smooth versions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { f } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tilde { \\mathbf { f } ^ { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for properly tracking shadow discontinuities. This is facilitated by the modularity of NVDIFFRAST that allows disabling the smoothing."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                420,
+                468,
+                467
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our setup is as simple as possible: a single square occluder casts a single shadow on a single square receiver. We optimize the position of one displaced vertex of the occluder to reproduce the shadow in a reference configuration (see Figure 5). The optimization minimizes the mean squared error to the reference shadow image."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                468,
+                470,
+                559
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We find that the target configuration is not attained when using the discontinuous discrete shadow map for generating the visibility "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathrm { i . e . }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", without using NVDIFFRAST’s antialias function). Importantly, this result is independent of the kernel k used for pre-filtering to generate the moments "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { m } _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { m } _ { 2 } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". In other words, filtering f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { f } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "cannot recover the connection between the scene parameters and the shadow boundaries. Using the smooth functions (i.e., applying antialias to f and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\bar { \\mathbf { f } } ^ { 2 } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "shows the expected convergence across variations of all other parameters."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                559,
+                470,
+                712
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Shadow Map Resolution and Filter Kernel. The shadow map resolution and the filter kernel size are key parameters as they directly affect the quality of the shadow approximation (see Figure 6). Instead of investigating the forward pass of shadow map rendering, we focus on the backward pass, because it influences the gradient computation and any optimization based on it."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                733,
+                470,
+                839
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Consider a scene similar to the one above, now with a highly tessellated and slightly rotated occluder. High tessellation (relative to shadow map pixels) results in sparse shadow map Jacobians for occluder geometry because the anti-aliasing misses primitive boundaries. This might occur for arbitrary differentiable renderers relying on explicit boundary detection. The filter applied to recover the moments (Eqs. (7), (9)) is also applied to the Jacobians of the shadow map and thus affects the Jacobian of the visibility function (see Figure 7). While the filter kernel size is merely a visual effect in the forward pass, it can indeed affect the optimization: Figure 8 shows that larger filter kernels increase the robustness of gradient descent, both for stochastic gradient descent and momentum-based variants. However, larger kernels also increase the runtime."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                840,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/acba17d97c9452df1ed907a61ceaa08670237aaf30c998b50e2877c6b3a3c5b6.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 6. Effect of shadow map resolution (top row) and filter size k (bottom row) on the shadows cast by differently slanted planes."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                88,
+                888,
+                212
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/3bdf30c9a056df820dfd875205455ae0cdaec9ef9325f0ec6db8a823d63e012f.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 7. Jacobian of the visibility "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\nabla _ { x } \\mathbf { v } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "where x is the horizontal translation of a highly tessellated occluder over a planar receiver."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                500,
+                266,
+                890,
+                356
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/0767a68cf0b28f5ca07d77ba2795114190800cd799f2cd99ad44019788f627d6.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 8. Convergence plots for the single rectangular occluder experiment with different filter kernel sizes k. Stochastic gradient descent (left) and ADAM [28] (right) with small and large steps sizes α. The y-axis shows the signed error of the x translation."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                501,
+                409,
+                888,
+                486
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                580,
+                893,
+                747
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Low shadow map resolution may lead to occluders being missed completely by the visibility test (see Figure "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "^ { 6 , }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "top row). These issues can be alleviated by increasing the shadow map resolution; again at the cost of runtime."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                748,
+                893,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the following we consider a more complex setting to test different shadow map resolutions and filter kernel sizes in a more involved optimization: an object is placed on a rectangular floor plane and illuminated by n directional lights (Figure 9). Given a single reference image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { \\mathrm { r e f } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "we wish to recover the n light directions {l }, minimizing the"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                810,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "146"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/ca56202fdda196f372f1cd7fd4e41557b414700cd6bfc0ddbcef6af3ca1e0d27.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                158,
+                89,
+                310,
+                148
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9a042e10f7f484ae0c7ea6e1ba5993fb9bd01d0419a3ec912f4138f9d284ae4d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Reference"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Filter Kernel Size"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                90,
+                156,
+                147
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/67b6313be319fdc712615cdd8cb1291aa1d5d4938969624c3b3b7ed0b3fb749b.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": []
+            },
+            "bbox": [
+                313,
+                90,
+                388,
+                147
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/8614d49b97441f62c739ce3dabdea686046c21a04d79daa1d7f163d1c6142cb6.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Shadow Map Resolu�on"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                390,
+                90,
+                465,
+                147
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/858da9a7d10a2aa8f1ee8c5b92cd444e5dd51a03784ad7260a8681ca142f16b6.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 9. Light direction estimation with four lights, varying filter kernel sizes and shadow map resolutions."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                78,
+                215,
+                281,
+                351
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/7033b52cacd7f10998f8efcbb1d5902d4d1773af22430dabd89e15713c2b4db0.jpg"
+                },
+                "content": "",
+                "chart_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 10. Quantitative results for the parameter exploration, using a light direction estimation experiment. The y-axis in the top row is the average alignment of predicted light directions to the reference light directions, measured by the dot product."
+                    }
+                ],
+                "chart_footnote": []
+            },
+            "bbox": [
+                282,
+                215,
+                465,
+                349
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "mean squared image error."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                446,
+                254,
+                460
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We run the optimization for different objects and varying number of lights n. We report qualitative results in Figure 9 and quantitative results in Figure 10. As expected, increasing the shadow map resolution or the filter kernel size increases the runtime. The optimization behaves robustly with high accuracy and consistent error bounds across resolutions and filter sizes. Again, the accuracy improves slightly with larger filter size, albeit this improvement seems marginal considering the error bounds. Lowering the shadow map resolution has a similar effect because the effective filter footprint increases if k stays constant. We observe that the optimization for one light can get stuck in local minima where the shadows do not align but the shade of the floor plane matches that in the reference image. For multiple lights, shadows dominate the image, so this scenario is less likely; this could explain the different error bounds. Conversely, recovering multiple lights is more difficult, hence the lower average accuracy. These challenges are specific to the task and, in general, we observe that our method works robustly with different sets of parameters."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                460,
+                472,
+                765
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6. Applications"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                779,
+                209,
+                796
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We run all experiments on a workstation with an NVIDIA 1070 Ti GPU with 8 GB VRAM."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                804,
+                470,
+                835
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6.1. Monocular Pose Estimation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                847,
+                326,
+                862
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Estimating the orientation and position of an object from images is a classic computer vision task. The problem becomes easier for sequences of images [34] or if priors apply, such as in pose estimation of human body parts [11,64]. Given only a single (monocular) image makes retrieving the rigid transformation of an known object ill-posed. Shafer and Kanade [65] noticed that the shadow of an object in the image provides viable cues for reducing the ambiguity. We consider a simplified version of the 6D problem, allowing only 2 translational and one rotational degree of freedom. We place an object in front of a receiver plane and a directional light orthogonal to the plane. In this setting, we recover the parameters "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { t } = ( x , y )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(translation parallel to the plane) and φ (rotation around the object-centric “up” axis), given a reference image "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "I _ { \\mathrm { r e f } }"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                869,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/11265934fd9332da63f7b738b660819dcf38cea0df79b062855ac9b1007ccf3a.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "1 Light"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                89,
+                620,
+                179
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/565873309b51701d9277c29daa067041012be1da0f129125c8cf13a38ad587a0.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "2 Lights"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                637,
+                89,
+                756,
+                179
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/f81b04829bc28691bf1ba8463c9cd83e2a65a12c3fe0509389746891008e8e64.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "3 Lights"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                772,
+                89,
+                888,
+                179
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/40daaa00c0bf06f6a6968378de4d907b290c36d990d3a1cd521086b9129f9d7c.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 11. Visual difference between path-traced images by Mitsuba 3 [22] in direct illumination mode and our approximation based on local shading models and pre-filtered shadow maps."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                503,
+                263,
+                578,
+                381
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/dc8476683877d8205aaf0ff332c587e6c169c96b49e9fcd98af4e95f1cac46eb.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Reference"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                581,
+                263,
+                656,
+                381
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b5de1bcf0d6ce9a9bc9d6761d1411780e396901eff4d8cb80bb42c68db14d3d3.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Ini�al"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Rast."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                658,
+                263,
+                733,
+                381
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/65f5ea7dba6145e6efe188287087b492d3df59332c97f27f6ff497af7dcc31fb.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Rast. + Shadow"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                736,
+                263,
+                812,
+                381
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/42bdf321e04024602ccd54c6af9906b52ff066a04b3be13429332820acbce710.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Mitsuba 3"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Figure 12. Pose estimation results with path-traced references. In most cases, shadows provide viable cues for convergence (top row) but occasionally pure local shading is sufficient (bottom row)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                815,
+                263,
+                888,
+                381
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                477,
+                893,
+                672
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We perform tests across a variety of common 3D mesh models. The reference images are generated using the differentiable path tracer Mitsuba 3 [22] in direct illumination mode. We verify that our local shading model can generate images similar to the reference images (Figure 11). The results are generated by averaging over several random starting conditions for each object. This experiment is repeated for different camera image resolutions (128<sup>2</sup>, 512<sup>2</sup>, 1024<sup>2</sup>)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                672,
+                893,
+                795
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We report quantitative results for the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "5 1 2 ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "resolution in Table 1 (more data is in the supplementary material) and qualitative results in Figure 12. Mitsuba 3 recovers the rotation and translation most accurately, which could be attributed to its accurate gradient computation, using multiple sub-pixel samples. It should be expected, however, that the results are biased towards the method used for generating the reference images. We show that this is the case by using our renderer as reference for one experiment (see Table 1) and finding our method to yield the most accurate results in this instance. Across all experiments, not using shadows at all and relying purely on the shading of the object surface performs worst, yet still manages to converge to reasonable solutions in some instances."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                795,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "147"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/3fdbfb295bf6b227032b198bc9ee26fcf5d249938ee58bf308c7f874ed18e3cb.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Quantitative results for the pose estimation experiments for different scenes and image resolution 512 × 512 (full table in the supplementary material). We measure the rotation error ∆φ, the translation error ∆t, and the total runtime t, averaged over ten runs. We include results for a GPU with ray-tracing cores (“RT”) and for a setting where we use our renderer as reference (“Our Ref.”). Best scores in bold, second best scores underlined."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"3\"></td><td colspan=\"3\">Mitsuba 3 [22]</td><td colspan=\"3\">Rast. + Shadows (Ours)</td><td colspan=\"3\">Rasterizer</td></tr><tr><td>↓∆φ[°]</td><td>↓∆t</td><td>↓ t [s]</td><td>↓∆φ[°]</td><td>↓∆t</td><td>↓ t [s]</td><td>↓∆φ[°]</td><td>↓∆t</td><td>↓ t [s]</td></tr><tr><td>Bunny</td><td>0.23</td><td>0.10</td><td>325.29</td><td>0.33</td><td>0.22</td><td>3.76</td><td>0.31</td><td>0.26</td><td>1.58</td></tr><tr><td>Dragon</td><td>2.86</td><td>3.91</td><td>306.46</td><td>3.32</td><td>4.53</td><td>3.64</td><td>8.02</td><td>11.63</td><td>1.54</td></tr><tr><td>Hand</td><td>1.41</td><td>5.18</td><td>317.40</td><td>1.68</td><td>5.36</td><td>3.66</td><td>1.85</td><td>5.66</td><td>1.51</td></tr><tr><td>Spot</td><td>0.03</td><td>0.02</td><td>381.80</td><td>0.05</td><td>0.05</td><td>3.76</td><td>5.80</td><td>23.15</td><td>1.77</td></tr><tr><td>Spot (RT)</td><td>0.03</td><td>0.02</td><td>53.26</td><td>0.05</td><td>0.05</td><td>1.93</td><td>6.92</td><td>21.52</td><td>1.05</td></tr><tr><td>Spot (Our Ref.)</td><td>0.05</td><td>0.12</td><td>384.24</td><td>0.02</td><td>0.06</td><td>3.60</td><td>5.83</td><td>23.12</td><td>1.71</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                76,
+                198,
+                467,
+                292
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/961f16ca29dd879cd8369a9fb386e9d46831fd1ba85f7eef93537e39451a7e52.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Ground Truth"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                310,
+                169,
+                463
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/1c241797c8fbc5f557d68aa67e7d6a284ae7851dca1616e8ab01d4e45a5089e9.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Op�mized (1 Shadow)"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                183,
+                311,
+                318,
+                463
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/5ad9e3ee589c6cab080b96a936b12bc118ef76ed315c70a36a15018946b91921.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 14. Face reconstruction from real silhouettes of public figures. We masked out hair, facial hair, and the base."
+                    }
+                ],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "Op�mized (3 Shadows)"
+                    }
+                ]
+            },
+            "bbox": [
+                325,
+                310,
+                465,
+                463
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                531,
+                470,
+                637
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Unsurprisingly, rasterization is magnitudes faster than path tracing, both with and without shadows. Shadow mapping roughly doubles the runtime in rasterization, however, the pose estimation accuracy is significantly increased: our method consistently yields accuracy similar or close to the path tracing approach. Modern GPUs posses hardware units for ray-triangle intersections that significantly increase ray tracing performance. We include scores for a system with such a GPU (NVIDIA RTX 3080 Ti). It improves the path tracing runtime but, at least in this example, rasterization is still 27× faster."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                638,
+                470,
+                805
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6.2. Face Reconstruction from Profile Shadows"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                815,
+                441,
+                832
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While the variation within certain classes of objects is governed by pose, such as in articulated objects, deformations are best described by morphable models. A prominent example for morphable models is face geometry [14]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                839,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/85684cd3adc3ba07a4df5b06ffbaa55685ad13982a34c40f4462783ce77c5517.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 13. Face reconstruction from synthetic shadows."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Ini�al"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                89,
+                594,
+                170
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/42faef59740360c160d220dc116184f6d72d6b51e6b742152644108f3d28edcb.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "Prince Philip"
+                    }
+                ]
+            },
+            "bbox": [
+                601,
+                89,
+                696,
+                170
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/313b9c3d01c9c8e641161a55ad2920c0d2d0e225e2946ce8925a276456d6e7be.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Gary Lineker"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                699,
+                88,
+                790,
+                169
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/53e8743c62f9aa01789ac318cab2f75411c1ece56b7f0c222c51dfdb62b31a5d.jpg"
+                },
+                "image_caption": [],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "Derren Brown"
+                    }
+                ]
+            },
+            "bbox": [
+                797,
+                90,
+                887,
+                170
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our idea is to reconstruct face geometry from one (or more) shadows of the face. We base the experiment on the publicly available morphable model assembled by Li et al. [35] (other models would work as well)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                250,
+                892,
+                309
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In the first experiment we generated synthetic shadows from the morphable model. This allows comparing the optimization result not just based on images but also geometry (see Figure 13). We find that using more shadows only slightly increases the runtime (the time is not linear in the number of light sources, because we have one base pass and multiple shadow passes) but significantly improves the accuracy (see supplementary material for quantitative results)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                310,
+                893,
+                430
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We have also performed reconstructions of face geometry from ‘real’ silhouettes, created manually by artist Charles Burns using scissors and black paper [8] (the process is shown here [1]). We ignore regions appearing to be (facial) hair or torso as those are not captured by the morphable model we use. While the lack of ground truth makes it difficult to quantify the resulting geometry, visually they appear to be reasonable approximations (Figure 14)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                431,
+                893,
+                553
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6.3. Shadow Art"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                560,
+                630,
+                575
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Shadow Art [20, 46] is the design of a 3D object based only on the shadows it casts. When solving this design problem computationally, it is commonly simplified by assuming that the shadows are cast to planar surfaces orthogonal to directional lights, reducing the shadow images to silhouettes. In the traditional approach [46], the object is represented on a volumetric grid and voxel lines outside the shadow regions are removed – similar in spirit to visual hulls [33] or space carving [29]. Sadekar et al. [63] perform Shadow Art with differentiable rendering of meshes, but the limitation of co-located cameras and lights remains."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                583,
+                893,
+                750
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In our framework, lights and cameras can be placed arbitrarily. Also, curved shadow receivers work out-of-the-box (Figure 15). The only (minor) constraints we impose are gradient pre-conditioning [48] and a smoothness term between the normals of neighboring faces [41, 72] to avoid arbitrary vertex movements during optimization."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                750,
+                893,
+                840
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "A single triangle mesh is only one possible representation of the generated geometry. The combination of automatic differentiation and gradient descent allows optimizing arbitrary scene parameters. For example, we can also represent the object as a collection of shapes (see Figure 16). Beyond our reference implementation based on triangle meshes, the same approach readily works with any geometry representation as long as it can be differentiably rendered (e.g. signed distance functions [4,68] or spheres [31])."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                840,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "148"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/8176d80d83fc5022b45a3720a8adf919de4e74f9dd6765611ed4f5fec950e42d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 15. Shadow Art with one view. Our method can be used for simple scenes with co-located light and camera (left), for more complex settings with perspective cameras that observe the shadow receiver from any direction (middle), and for complex receiver geometry (right)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                80,
+                88,
+                890,
+                232
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/dce8d6d181cb6f19547773555936840c4b937186451065cdb2776c5243373d43.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 16. Shadow art with two views. Our method can be used in any setting that permits differentiable rendering, for example optimizing vertex positions of a mesh (left) or optimizing the parameters of multiple geometric objects (middle and right)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                78,
+                297,
+                467,
+                387
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                486,
+                470,
+                564
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "6.4. Interactive Modeling from Shadows"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                580,
+                388,
+                597
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our rasterization-based implementation generates shadows and – most importantly – the gradients of the objective function in real time. We demonstrate this by turning the shadow art setting, which is usually concerned with static reference shadows, into a “shadow modeling” setting, where a user can interactively paint the target shadows and an appropriate deformation is applied to the initial geometry in real time (see Figure 17). Note that using co-located camera and light is a design decision since painting silhouettes feels intuitive – the method is not limited to this setup."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                607,
+                472,
+                760
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "7. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                781,
+                196,
+                797
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our approach to inverse graphics using differentiable rasterization with local shading models and shadow maps helps in closing the gap between efficient differentiable renderers based on rasterization and renderers based on path tracing and Monte Carlo methods that more accurately model light transport."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                809,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/536002b21adcd24b054011d97cf0490b32d7d66084134a0d6e33b1dfce95c767.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 17. Shadow art from one view, with co-located camera and light is used as an interactive modeling tool. Users can modify the shadow of the reference object (gray) and an appropriate deformation is applied to the mesh in real-time (green)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                501,
+                296,
+                890,
+                448
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Limitations Focusing on direct shadows neglects other effects of global illumination. But even within the framework of local shading models with shadow maps we have made simplifiying assumptions: so far we consider only point light sources (instead of area lights) and for those we consider only one planar shadow map. Also, the particular choice of variance shadow maps suffers from artifacts, such as light bleeding, i.e. shadows becoming lighter in regions of high depth variance. Independent of the illumination effects, we have so far only considered triangle meshes for the representation of geometry."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                545,
+                895,
+                712
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Possible Generalizations Apart from shadows, various effects of global illumination have been recreated by efficient real-time approximations. Approaches very similar to ours may readily work with ambient occlusion [45], reflections and refractions [19], or generally indirect illumination."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                733,
+                893,
+                809
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Other geometry representations that are popular in the vision community, such as signed distance fields [24] or NeRFs [44], should work with shadow maps as well – although it is not clear if the same efficiency can be achieved, as the fast computation is mainly achieved by rasterizing triangle primitives."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                810,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "149"
+                    }
+                ]
+            },
+            "bbox": [
+                485,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                176,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Alive Network. Charles burns silhouette artist. https: //www.youtube.com/watch?v=sZEZs3yVkpQ, Oct 2016. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Thomas Annen, Tom Mertens, Philippe Bekaert, Hans-Peter Seidel, and Jan Kautz. Convolution shadow maps. In Proceedings of the 18th Eurographics Conference on Rendering Techniques, EGSR’07, page 51–60, Goslar, DEU, 2007. Eurographics Association. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Thomas Annen, Tom Mertens, Hans-Peter Seidel, Eddy Flerackers, and Jan Kautz. Exponential shadow maps. In Proceedings ofGraphics Interface 2008, GI ’08, page 155–161, CAN, 2008. Canadian Information Processing Society. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Sai Bangaru, Michael Gharbi, Tzu-Mao Li, Fujun Luan, Kalyan Sunkavalli, Milos Hasan, Sai Bi, Zexiang Xu, Gilbert Bernstein, and Fredo Durand. Differentiable rendering of neural sdfs through reparameterization. In ACM SIGGRAPH Asia 2022 Conference Proceedings, SIGGRAPH Asia ’22, New York, NY, USA, 2022. Association for Computing Machinery. 2, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Sai Praveen Bangaru, Tzu-Mao Li, and Fredo Durand. Un-´ biased warped-area sampling for differentiable rendering. ACM Trans. Graph., 39(6), nov 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Jonathan T. Barron, Ben Mildenhall, Matthew Tancik, Peter Hedman, Ricardo Martin-Brualla, and Pratul P. Srinivasan. Mip-nerf: A multiscale representation for anti-aliasing neural radiance fields. In Proceedings ofthe IEEE/CVF International Conference on Computer Vision (ICCV), pages 5855– 5864, October 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Jonathan T. Barron, Ben Mildenhall, Dor Verbin, Pratul P. Srinivasan, and Peter Hedman. Mip-nerf 360: Unbounded anti-aliased neural radiance fields. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 5470–5479, June 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Charles Burns. Mastering Silhouettes: Expert Instruction in the Art of Silhouette Portraiture. Stackpole Books, 2011. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Wenzheng Chen, Jun Gao, Huan Ling, Edward J. Smith, Jaakko Lehtinen, Alec Jacobson, and Sanja Fidler. Learning to predict 3d objects with an interpolation-based differentiable renderer. In Proceedings of the 33rd International Conference on Neural Information Processing Systems, Red Hook, NY, USA, 2019. Curran Associates Inc. 1, 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Wenzheng Chen, Joey Litalien, Jun Gao, Zian Wang, Clement Fuji Tsang, Sameh Khalis, Or Litany, and Sanja Fidler. DIB-R++: Learning to predict lighting and material with a hybrid differentiable renderer. In Advances in Neural Information Processing Systems (NeurIPS), 2021. 1, 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Martin de La Gorce, Nikos Paragios, and David J. Fleet. Model-based hand tracking with texture, shading and selfocclusions. In 2008 IEEE Conference on Computer Vision and Pattern Recognition, pages 1–8, 2008. 2, 4, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] William Donnelly and Andrew Lauritzen. Variance shadow maps. In Proceedings of the 2006 Symposium on Interactive 3D Graphics and Games, I3D ’06, page 161–165, New York, NY, USA, 2006. Association for Computing Machinery. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Hang Dou, Yajie Yan, Ethan Kerzner, Zeng Dai, and Chris Wyman. Adaptive depth bias for shadow maps. In Proceed-"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "ings of the 18th Meeting of the ACM SIGGRAPH Symposium on Interactive 3D Graphics and Games, I3D ’14, page 97–102, New York, NY, USA, 2014. Association for Computing Machinery. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Bernhard Egger, William A. P. Smith, Ayush Tewari, Stefanie Wuhrer, Michael Zollhoefer, Thabo Beeler, Florian Bernard, Timo Bolkart, Adam Kortylewski, Sami Romdhani, Christian Theobalt, Volker Blanz, and Thomas Vetter. 3d morphable face models—past, present, and future. ACM Trans. Graph., 39(5), jun 2020. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Marc Habermann, Lingjie Liu, Weipeng Xu, Michael Zollhoefer, Gerard Pons-Moll, and Christian Theobalt. Real-time deep dynamic characters. ACM Trans. Graph., 40(4), jul 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Jean-Marc Hasenfratz, Marc Lapierre, Nicolas Holzschuch, and Franc¸ois X. Sillion. A survey of Real-Time Soft Shadows Algorithms. Computer Graphics Forum, 22(4):753– 774, Dec. 2003. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Jon Hasselgren, Nikolai Hofmann, and Jacob Munkberg. Shape, Light, and Material Decomposition from Images using Monte Carlo Rendering and Denoising. arXiv:2206.03380, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Jon Hasselgren, Jacob Munkberg, Jaakko Lehtinen, Miika Aittala, and Samuli Laine. Appearance-driven automatic 3d model simplification. In Eurographics Symposium on Rendering, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Wolfgang Heidrich and Hans-Peter Seidel. Realistic, hardware-accelerated shading and lighting. In Proceedings of the 26th Annual Conference on Computer Graphics and Interactive Techniques, SIGGRAPH ’99, page 171–178, USA, 1999. ACM Press/Addison-Wesley Publishing Co. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Kai-Wen Hsiao, Jia-Bin Huang, and Hung-Kuo Chu. Multiview wire art. ACM Trans. Graph., 37(6), dec 2018. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Zeng Huang, Yuanlu Xu, Christoph Lassner, Hao Li, and Tony Tung. Arch: Animatable reconstruction of clothed humans. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Wenzel Jakob, Sebastien Speierer, Nicolas Roussel, Merlin´ Nimier-David, Delio Vicini, Tizian Zeltner, Baptiste Nicolet, Miguel Crespo, Vincent Leroy, and Ziyi Zhang. Mitsuba 3 renderer, 2022. https://mitsuba-renderer.org. 1, 2, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Wenzel Jakob, Sebastien Speierer, Nicolas Roussel, and De-´ lio Vicini. Dr.jit: A just-in-time compiler for differentiable rendering. ACM Trans. Graph., 41(4), jul 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Yue Jiang, Dantong Ji, Zhizhong Han, and Matthias Zwicker. Sdfdiff: Differentiable rendering of signed distance fields for 3d shape optimization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 2, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] James T. Kajiya. The rendering equation. SIGGRAPH Comput. Graph., 20(4):143–150, aug 1986. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Hiroharu Kato, Deniz Beker, Mihai Morariu, Takahiro Ando, Toru Matsuoka, Wadim Kehl, and Adrien Gaidon. Differentiable rendering: A survey, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Hiroharu Kato, Yoshitaka Ushiku, and Tatsuya Harada. Neural 3d mesh renderer. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018. 2, 4"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                468,
+                155
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "150"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                513,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. In Yoshua Bengio and Yann LeCun, editors, 3rd International Conference on Learning Representations, ICLR 2015, San Diego, CA, USA, May 7-9, 2015, Conference Track Proceedings, 2015. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Kiriakos N. Kutulakos and Steven M. Seitz. A theory of shape by space carving. International Journal of Computer Vision, 38(3):199–218, 2000. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Samuli Laine, Janne Hellsten, Tero Karras, Yeongho Seol, Jaakko Lehtinen, and Timo Aila. Modular primitives for high-performance differentiable rendering. ACM Trans. Graph., 39(6), nov 2020. 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Christoph Lassner and Michael Zollhofer. Pulsar: Efficient¨ sphere-based neural rendering. In 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 1440–1449, June 2021. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Alexandros Lattas, Stylianos Moschoglou, Stylianos Ploumpis, Baris Gecer, Abhijeet Ghosh, and Stefanos Zafeiriou. Avatarme++: Facial shape and brdf inference with photorealistic rendering-aware gans. IEEE Transactions on Pattern Analysis and Machine Intelligence, 44(12):9269–9284, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] A. Laurentini. The visual hull concept for silhouette-based image understanding. IEEE Transactions on Pattern Analysis and Machine Intelligence, 16(2):150–162, 1994. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Vincent Lepetit and Pascal Fua. Monocular model-based 3d tracking of rigid objects. Found. Trends. Comput. Graph. Vis., 1(1):1–89, jan 2005. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Ruilong Li, Karl Bladin, Yajie Zhao, Chinmay Chinara, Owen Ingraham, Pengda Xiang, Xinglei Ren, Pratusha Prasad, Bipin Kishore, Jun Xing, and Hao Li. Learning formation of physically-based face attributes. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Tzu-Mao Li, Miika Aittala, Fredo Durand, and Jaakko Lehti-´ nen. Differentiable monte carlo ray tracing through edge sampling. ACM Trans. Graph., 37(6), dec 2018. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Lingjie Liu, Marc Habermann, Viktor Rudnev, Kripasindhu Sarkar, Jiatao Gu, and Christian Theobalt. Neural actor: Neural free-view synthesis of human actors with pose control. ACM Trans. Graph., 40(6), dec 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Shichen Liu, Tianye Li, Weikai Chen, and Hao Li. Soft rasterizer: A differentiable renderer for image-based 3d reasoning. The IEEE International Conference on Computer Vision (ICCV), Oct 2019. 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Matthew M. Loper and Michael J. Black. Opendr: An approximate differentiable renderer. In David Fleet, Tomas Pajdla, Bernt Schiele, and Tinne Tuytelaars, editors, Computer Vision – ECCV 2014, pages 154–169, Cham, 2014. Springer International Publishing. 1, 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Guillaume Loubet, Nicolas Holzschuch, and Wenzel Jakob. Reparameterizing discontinuous integrands for differentiable rendering. ACM Trans. Graph., 38(6), nov 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Fujun Luan, Shuang Zhao, Kavita Bala, and Zhao Dong. Unified Shape and SVBRDF Recovery using Differentiable Monte Carlo Rendering. Computer Graphics Forum, 2021. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Linjie Lyu, Marc Habermann, Lingjie Liu, Ayush Tewari, Christian Theobalt, et al. Efficient and differentiable shadow computation for inverse problems. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 13107–13116, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Oscar Michel, Roi Bar-On, Richard Liu, Sagie Benaim, and Rana Hanocka. Text2mesh: Text-driven neural stylization for meshes. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 13492–13502, June 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Ben Mildenhall, Pratul P. Srinivasan, Matthew Tancik, Jonathan T. Barron, Ravi Ramamoorthi, and Ren Ng. Nerf: Representing scenes as neural radiance fields for view synthesis. In ECCV, 2020. 2, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Gavin Miller. Efficient algorithms for local and global accessibility shading. In Proceedings of the 21st Annual Conference on Computer Graphics and Interactive Techniques, SIGGRAPH ’94, page 319–326, New York, NY, USA, 1994. Association for Computing Machinery. 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Niloy J. Mitra and Mark Pauly. Shadow art. ACM Trans. Graph., 28(5):1–7, dec 2009. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Jacob Munkberg, Wenzheng Chen, Jon Hasselgren, Alex Evans, Tianchang Shen, Thomas Muller, Jun Gao, and Sanja¨ Fidler. Extracting triangular 3d models, materials, and lighting from images. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 8270– 8280, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Baptiste Nicolet, Alec Jacobson, and Wenzel Jakob. Large steps in inverse rendering of geometry. ACM Trans. Graph., 40(6), dec 2021. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Michael Niemeyer, Jonathan T. Barron, Ben Mildenhall, Mehdi S. M. Sajjadi, Andreas Geiger, and Noha Radwan. Regnerf: Regularizing neural radiance fields for view synthesis from sparse inputs. In Proc. IEEE Conf. on Computer Vision and Pattern Recognition (CVPR), 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Michael Niemeyer, Lars Mescheder, Michael Oechsle, and Andreas Geiger. Differentiable volumetric rendering: Learning implicit 3d representations without 3d supervision. In Proc. IEEE Conf. on Computer Vision and Pattern Recognition (CVPR), 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Merlin Nimier-David, Thomas Muller, Alexander Keller,¨ and Wenzel Jakob. Unbiased inverse volume rendering with differential trackers. ACM Trans. Graph., 41(4), jul 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Merlin Nimier-David, Sebastien Speierer, Beno´ ˆıt Ruiz, and Wenzel Jakob. Radiative backpropagation: An adjoint method for lightning-fast differentiable rendering. ACM Trans. Graph., 39(4), aug 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Merlin Nimier-David, Delio Vicini, Tizian Zeltner, and Wenzel Jakob. Mitsuba 2: A retargetable forward and inverse renderer. ACM Trans. Graph., 38(6), nov 2019. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Michael Oechsle, Songyou Peng, and Andreas Geiger. Unisurf: Unifying neural implicit surfaces and radiance fields for multi-view reconstruction. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pages 5589–5599, October 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                468,
+                161
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "151"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas Kopf, Edward Yang, Zach DeVito, Martin Raison,¨ Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith Chintala. Pytorch: An imperative style, high-performance deep learning library. In Proceedings of the 33rd International Conference on Neural Information Processing Systems, Red Hook, NY, USA, 2019. Curran Associates Inc. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[56] Dario Pavllo, Graham Spinks, Thomas Hofmann, Marie-Francine Moens, and Aurelien Lucchi. Convolutional generation of textured 3d meshes. In H. Larochelle, M. Ranzato, R. Hadsell, M.F. Balcan, and H. Lin, editors, Advances in Neural Information Processing Systems, volume 33, pages 870–882. Curran Associates, Inc., 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[57] Christoph Peters and Reinhard Klein. Moment shadow mapping. In Proceedings of the 19th Symposium on Interactive 3D Graphics and Games, i3D ’15, page 7–14, New York, NY, USA, 2015. Association for Computing Machinery. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[58] Felix Petersen, Bastian Goldluecke, Christian Borgelt, and Oliver Deussen. GenDR: A Generalized Differentiable Renderer. In IEEE/CVF International Conference on Computer Vision and Pattern Recognition (CVPR), 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[59] William T. Reeves, David H. Salesin, and Robert L. Cook. Rendering antialiased shadows with depth maps. SIG-GRAPH Comput. Graph., 21(4):283–291, aug 1987. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[60] Zhong Ren, Rui Wang, John Snyder, Kun Zhou, Xinguo Liu, Bo Sun, Peter-Pike Sloan, Hujun Bao, Qunsheng Peng, and Baining Guo. Real-time soft shadows in dynamic scenes using spherical harmonic exponentiation. In ACM SIGGRAPH 2006 Papers, SIGGRAPH ’06, page 977–986, New York, NY, USA, 2006. Association for Computing Machinery. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[61] Denys Rozumnyi, Martin R. Oswald, Vittorio Ferrari, and Marc Pollefeys. Shape from blur: Recovering textured 3d shape and motion of fast moving objects. In M. Ranzato, A. Beygelzimer, Y. Dauphin, P.S. Liang, and J. Wortman Vaughan, editors, Advances in Neural Information Processing Systems, volume 34, pages 29972–29983. Curran Associates, Inc., 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[62] Darius Ruckert, Linus Franke, and Marc Stamminger. Adop:¨ Approximate differentiable one-pixel point rendering. ACM Trans. Graph., 41(4), jul 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[63] Kaustubh Sadekar, Ashish Tiwari, and Shanmuganathan Raman. Shadow art revisited: A differentiable rendering based approach. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV), pages 29– 37, January 2022. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[64] Nikolaos Sarafianos, Bogdan Boteanu, Bogdan Ionescu, and Ioannis A. Kakadiaris. 3d human pose estimation: A review of the literature and analysis of covariates. Computer Vision and Image Understanding, 152:1–20, 2016. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[65] Steven A Shafer and Takeo Kanade. Using shadows in finding surface orientations. Computer Vision, Graphics, and Image Processing, 22(1):145–176, 1983. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[66] Yusuke Takimoto, Hiroyuki Sato, Hikari Takehara, Keishiro Uragaki, Takehiro Tawara, Xiao Liang, Kentaro Oku, Wataru Kishimoto, and Bo Zheng. Dressi: A hardware-agnostic differentiable renderer with reactive shader packing and"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "soft rasterization. Computer Graphics Forum, 41(2):13–27, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[67] Delio Vicini, Sebastien Speierer, and Wenzel Jakob. Path re-´ play backpropagation: Differentiating light paths using constant memory and linear time. ACM Trans. Graph., 40(4), jul 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[68] Delio Vicini, Sebastien Speierer, and Wenzel Jakob. Dif-´ ferentiable signed distance function rendering. ACM Trans. Graph., 41(4), jul 2022. 2, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[69] Gu Wang, Fabian Manhardt, Jianzhun Shao, Xiangyang Ji, Nassir Navab, and Federico Tombari. Self6d: Selfsupervised monocular 6d object pose estimation. In The European Conference on Computer Vision (ECCV), August 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[70] Peng Wang, Lingjie Liu, Yuan Liu, Christian Theobalt, Taku Komura, and Wenping Wang. Neus: Learning neural implicit surfaces by volume rendering for multi-view reconstruction. NeurIPS, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[71] Lance Williams. Casting curved shadows on curved surfaces. In Proceedings of the 5th Annual Conference on Computer Graphics and Interactive Techniques, SIGGRAPH ’78, page 270–274, New York, NY, USA, 1978. Association for Computing Machinery. 1, 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[72] Markus Worchel, Rodrigo Diaz, Weiwen Hu, Oliver Schreer, Ingo Feldmann, and Peter Eisert. Multi-view mesh reconstruction with neural deferred shading. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 6187–6197, June 2022. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[73] Shangzhe Wu, Christian Rupprecht, and Andrea Vedaldi. Unsupervised learning of probably symmetric deformable 3d objects from images in the wild. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[74] Lior Yariv, Jiatao Gu, Yoni Kasten, and Yaron Lipman. Volume rendering of neural implicit surfaces. In Thirty-Fifth Conference on Neural Information Processing Systems, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[75] Lior Yariv, Yoni Kasten, Dror Moran, Meirav Galun, Matan Atzmon, Basri Ronen, and Yaron Lipman. Multiview neural surface reconstruction by disentangling geometry and appearance. Advances in Neural Information Processing Systems, 33, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[76] Cheng Zhang, Bailey Miller, Kai Yan, Ioannis Gkioulekas, and Shuang Zhao. Path-space differentiable rendering. ACM Trans. Graph., 39(4), aug 2020. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[77] Kai Zhang, Fujun Luan, Zhengqi Li, and Noah Snavely. Iron: Inverse rendering by optimizing neural sdfs and materials from photometric images. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 5565–5574, June 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[78] Kai Zhang, Fujun Luan, Qianqian Wang, Kavita Bala, and Noah Snavely. PhySG: Inverse rendering with spherical gaussians for physics-based material editing and relighting. In The IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[79] Xiuming Zhang, Pratul P. Srinivasan, Boyang Deng, Paul Debevec, William T. Freeman, and Jonathan T. Barron. Nerfactor: Neural factorization of shape and reflectance under"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                107,
+                93,
+                470,
+                202
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "152"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                513,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "an unknown illumination. ACM Trans. Graph., 40(6), dec 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[80] Yuxuan Zhang, Wenzheng Chen, Huan Ling, Jun Gao, Yinan Zhang, Antonio Torralba, and Sanja Fidler. Image gans meet differentiable rendering for inverse graphics and interpretable 3d neural rendering. In International Conference on Learning Representations, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[81] Yang Zhou, Lifan Wu, Ravi Ramamoorthi, and Ling-Qi Yan. Vectorization for fast, analytic, and differentiable visibility. ACM Trans. Graph., 40(3), jul 2021. 2"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                111,
+                93,
+                467,
+                118
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "153"
+                    }
+                ]
+            },
+            "bbox": [
+                486,
+                945,
+                511,
+                957
+            ]
+        }
+    ]
+]

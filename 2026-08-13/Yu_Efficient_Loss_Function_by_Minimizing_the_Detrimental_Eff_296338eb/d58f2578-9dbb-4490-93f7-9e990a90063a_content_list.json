@@ -1,0 +1,1348 @@
+[
+    {
+        "type": "text",
+        "text": "Efficient Loss Function by Minimizing the Detrimental Effect of Floating-point Errors on Gradient-based Attacks",
+        "text_level": 1,
+        "bbox": [
+            88,
+            128,
+            882,
+            174
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Yunrui Yu Department of Computer Science State Key Lab of IOTSC University of Macau, Macau SAR, China. yb97445@um.edu.mo",
+        "bbox": [
+            130,
+            204,
+            464,
+            292
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            235,
+            325,
+            313,
+            343
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Attackers can deceive neural networks by adding human imperceptive perturbations to their input data; this reveals the vulnerability and weak robustness of current deep-learning networks. Many attack techniques have been proposed to evaluate the model’s robustness. Gradientbased attacks suffer from severely overestimating the robustness. This paper identifies that the relative error in calculated gradients caused by floating-point errors, including floating-point underflow and rounding errors, is a fundamental reason why gradient-based attacksfail to accurately assess the model’s robustness. Although it is hard to eliminate the relative error in the gradients, we can control its effect on the gradient-based attacks. Correspondingly, we propose an efficient loss function by minimizing the detrimental impact of the floating-point errors on the attacks. Experimental results show that it is more efficient and reliable than other lossfunctions when examined across a wide range ofdefence mechanisms.",
+        "bbox": [
+            75,
+            357,
+            470,
+            632
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction",
+        "text_level": 2,
+        "bbox": [
+            78,
+            659,
+            209,
+            675
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "AI with deep neural networks (DNNs) as the core [24] has achieved great success in different research directions and has been widely used in many safety-critical systems, such as aviation [1, 8, 35], medical diagnosis [27, 49], selfdriving [4,26,47] , etc. However, a severe problem with current DNNs is that they are vulnerable to adversarial attacks. Adding human imperceptive perturbations to input data can mislead the model to output incorrect results [16, 45]. Such vulnerability poses a significant security risk to all DNNbased systems. Therefore, increasing the models’ robustness and providing efficient and reliable evaluation methods are becoming increasingly urgent and vital.",
+        "bbox": [
+            75,
+            684,
+            470,
+            867
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Cheng-Zhong Xu<sup>\\*</sup> Department of Computer Science State Key Lab of IOTSC University of Macau, Macau SAR, China. czxu@um.edu.mo",
+        "bbox": [
+            504,
+            204,
+            839,
+            291
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ff0ef82daaba397d994e284c7ed15dfff65c283571b2c417352eda76b039c721.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 1. Comparison of the effectiveness of non-targeted and multi-targeted PGD 100 iterations attacks using various loss functions on the CIFAR-10 dataset. The best results were obtained from RobustBench<sup>1</sup> using an ensemble attack with a minimum of 4900 iterations. The defence model is from [59]."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            509,
+            333,
+            879,
+            497
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Numerous defence strategies [6, 10, 13, 16, 29, 31, 55] to improve the model’s robustness and many attacks [2, 29, 33, 41, 50, 52, 54, 59] to evaluate these strategies have been proposed. Currently, the most efficient attack method is known as white-box attack, where the attacker has complete knowledge of the target defending strategy, including its model architecture, parameters, detail of the training algorithm, dataset, etc. A typical example is Projective gradient descent (PGD) [29] for evaluating the model’s robustness. However, studies have shown that PGD with cross-entropy (CE) loss fails to provide accurate evaluation results [6, 41] and significantly overestimates the model’s robustness(Figure 1). To enhance the evaluation accuracy, recent powerful evaluation methods were proposed to ensemble diverse attack algorithms [10, 30]. However, their performance is at the cost of high computational overhead.",
+        "bbox": [
+            496,
+            611,
+            893,
+            853
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The research community attributes the failure of gradient-based attacks to gradient masking [15]. The core of gradient masking is that the calculated gradients are not necessarily efficient in guiding the generation of adversarial examples. The causes of inefficient gradients may be related to floating-point errors or other factors. This paper reveals that the relative error in the gradients caused by floatingpoint errors is one of the fundamental reasons for the failure of gradient-based attacks, and the relative error is directly affected by the value of the difference of the first and second largest in logits(DFSL). Although it is hard to eliminate the relative error in the gradients caused by floating-point errors completely, we can control its effect on the gradient-based attacks. Thus, we propose a new efficient loss function by minimizing the impact offloating-point errors (MIFPE) on gradient-based attacks. To summarize, our main contributions are as follows:",
+        "bbox": [
+            498,
+            854,
+            895,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "",
+        "bbox": [
+            104,
+            2,
+            181,
+            41
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore.",
+        "bbox": [
+            235,
+            0,
+            810,
+            46
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "\\*Corresponding author.",
+        "bbox": [
+            94,
+            875,
+            223,
+            887
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "<sup>1</sup>https://robustbench.github.io/",
+        "bbox": [
+            94,
+            887,
+            341,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "4056",
+        "bbox": [
+            482,
+            944,
+            516,
+            958
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            92,
+            470,
+            303
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We provide a comprehensive demonstration of how the presence of floating-point errors leads to the failure of gradient-based attacks due to the relative error in calculated gradients.",
+        "bbox": [
+            94,
+            310,
+            470,
+            372
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We show that the floating-point rounding errors may lead to attack’s failure due to growing relative errors as samples reach the classification boundary.",
+        "bbox": [
+            94,
+            381,
+            470,
+            428
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We demonstrate that when the model’s robustness is overestimated primarily due to floating-point errors, the loss function discarding partial elements of logits causes performance degradation in the gradient-based attack.",
+        "bbox": [
+            94,
+            435,
+            470,
+            511
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• We show that minimizing the impact of floating-point errors can improve the efficiency and accuracy of gradient-based attacks.",
+        "bbox": [
+            94,
+            521,
+            470,
+            568
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "• Empirical results demonstrate that MIFPE tends to outperform the competing loss functions in terms of attack performance and computational efficiency.",
+        "bbox": [
+            94,
+            575,
+            470,
+            621
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2. Preliminaries & Related Work",
+        "text_level": 2,
+        "bbox": [
+            76,
+            633,
+            357,
+            650
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We define the classification model as $f _ { \\pmb { \\theta } } \\left( \\mathbf { x } \\right)$ , where $\\pmb \\theta$ represents the model parameters. $f _ { \\pmb \\theta } : \\mathbf x \\subset \\dot { \\mathbb R } ^ { \\acute { C } \\times H \\times W } $ $\\mathbf { z } \\subset \\mathbb { R } ^ { k }$ is a classifier that maps input data x to output logits $\\mathbf { z } ,$ where C, H, and W are parameters that describe the input data’s channel number, height, and width, respectively. Additionally, K represents the number of classes from the model’s output. We define the label of the input data as y.",
+        "bbox": [
+            75,
+            659,
+            470,
+            765
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Attackers aim to breach defence strategies by generating adversarial examples $\\hat { \\mathbf { x } } ,$ which can maximize the loss function $L \\left( f _ { \\theta } \\left( \\hat { \\mathbf { x } } \\right) , y \\right)$ and deceive the model into producing incorrect results, arg max $f _ { \\pmb { \\theta } } ( \\hat { \\mathbf { x } } ) \\neq y .$ . Achieving this requires the attackers to find imperceptible perturbations $\\delta = \\hat { \\mathbf { x } } - \\mathbf { x }$ that satisfy the constraint $\\| \\delta \\| p \\le \\varepsilon$ , where ε is the magnitude and $p$ is the norm of the perturbation. Various perturbation options have been explored in literature, including the one-pixel attack [44, 44], $l _ { 2 }$ attacks [6, 31, 45], and l attacks [16, 29]. The attackers can find an adversarial example $\\hat { \\mathbf { x } } \\in \\mathcal { Z }$ by maximizing the loss. This process can be formulated as :",
+        "bbox": [
+            75,
+            765,
+            470,
+            901
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            90,
+            893,
+            136
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "img_path": "images/7f6ba3f726fc473ece23303bbf754b9a93ec3e3ad606dae2d3137b0074d89879.jpg",
+        "text": "$$\n\\hat { \\mathbf { x } } = \\mathbf { x } + \\operatorname* { m a x } _ { \\| \\delta \\| _ { p } \\in \\varepsilon } L \\left( f _ { \\theta } \\left( \\mathbf { x } + \\delta \\right) , y \\right) ,\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            578,
+            147,
+            812,
+            172
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "The white-box scenario is the most rigorous test for defence strategies, as attackers have complete knowledge about the models’ architecture, parameters, training data, and algorithm implementation details. This is a highly challenging situation for defence strategies. Attackers can exploit nearly all vulnerabilities in the defence strategies and perform tailored attacks. If defence strategies remain robust against white-box attacks, they can ensure the system’s security even in the worst-case scenario. In practice, the gradient-based method is commonly used to solve (1).",
+        "bbox": [
+            496,
+            183,
+            893,
+            333
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Many gradient-based white-box attacks methods have been proposed, which include fast gradient-sign method (FGSM) [16], basic iterative method (BIM) [23], projected gradient descent (PGD) [29], momentum iterative method (MIM) [13] and fast adaptive boundary attack (FAB) [9] for $\\ell _ { \\infty }$ -norm attacks. Carlini and Wagner (C&W) [6] and DeepFool [31] can additionally carry out $\\ell _ { 2 } { \\mathrm { - n o r m } }$ attacks. PGD is one of the widely used methods to evaluate the model’s robustness in the white box scenario, which finds an adversarial example by performing the following iterative update:",
+        "bbox": [
+            496,
+            333,
+            893,
+            501
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "img_path": "images/bea5ea34057c70df08ce12766555972f02518b90c859ea25eb37fbdb8e1d2b80.jpg",
+        "text": "$$\n\\begin{array} { r } { \\hat { \\mathbf { x } } _ { i + 1 } = \\mathcal { P } _ { \\epsilon , \\mathbf { x } } \\left( \\hat { \\mathbf { x } } _ { i } + \\alpha _ { i } \\operatorname { s i g n } \\left( \\nabla _ { \\hat { \\mathbf { x } } _ { i } } \\mathcal { L } ^ { \\mathrm { c e } } \\left( f _ { \\theta } ( \\hat { \\mathbf { x } } _ { i } ) , y \\right) \\right) \\right) , } \\end{array}\\tag{2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            514,
+            511,
+            851,
+            527
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Initially, $\\hat { \\mathbf { x } } _ { 0 } = \\mathcal { P } _ { \\epsilon , \\mathbf { x } } ( \\mathbf { x } + \\mathbf { u } )$ , where \\mathbf {u} \\sim n for {[-\\epsilon , \\epsilon ]} $\\sim \\mathcal { U } \\left( \\left[ - \\epsilon , \\epsilon \\right] \\right)$ , i.e. \\mathbf {u} is a uniform random noise bounded by $[ - \\epsilon , \\epsilon ]$ . The function $\\mathcal { P } _ { \\epsilon , \\mathbf { x } } \\colon \\mathbb { R } ^ { C \\times H \\times W }  \\mathcal { I }$ first clips the range of its input into the \\epsilon -ball $\\ell _ { p } .$ -distance neighbour of the original image \\x and then clips its input into the range of $\\mathcal { T } .$ . The term $\\nabla _ { \\hat { \\mathbf { x } } _ { i } } \\mathcal { L } ^ { \\mathrm { c e } } \\left( f _ { \\theta } ( \\hat { \\mathbf { x } } _ { i } ) , y \\right)$ computes the gradient of the loss w.r.t. the input $\\hat { \\mathbf { x } } _ { i }$ . Finally, $\\alpha _ { i }$ is the step size, and for each element in the tensor $\\mathbf { \\phi } _ { g , \\mathrm { ~ s i g n } ( \\mathbf { \\phi } _ { g } ) }$ returns one of $1 , 0 \\ \\mathrm { o r \\mathrm { - } 1 }$ , if the value is positive, zero or negative, respectively.",
+        "bbox": [
+            496,
+            537,
+            893,
+            674
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "CE is a commonly used loss function for training deep neural network models and evaluating their robustness in classification tasks. However, the presence of exponential operations in CE makes it vulnerable to underflow and rounding errors with limited floating-point precision. Gradient-based attacks with the CE loss may experience vanishing/inefficient gradients and difficulty converging while suffering from a severe overestimation of the model’s robustness. [6, 10]. Recent attack methods use surrogate losses for gradient computation [6, 18] and optimize an alternative target by replacing $\\mathcal X ^ { \\mathrm { c e } }$ with a custom surrogate loss function. ${ \\bf z } = f _ { \\pmb { \\theta } } \\left( \\hat { \\bf x } \\right)$ is output logits of the model, and $\\mathbf { z } _ { i }$ is the $i ^ { \\mathrm { { t h } } }$ component of $\\mathbf { z } ,$ two typical examples to replace the CE objective include the difference-of-logits (DL) [6], also known as hinge loss, where $i \\in \\{ 1 , 2 , . . . , K \\}$",
+        "bbox": [
+            496,
+            674,
+            893,
+            902
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "4057",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "and $i \\neq y \\colon$",
+        "bbox": [
+            76,
+            92,
+            151,
+            106
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/07453382100f33f5037f30bd74a4abfe4e88322380694732c232c8eb8a9bd118.jpg",
+        "text": "$$\n\\mathcal { L } ^ { \\mathrm { c w } } \\left( \\mathbf { z } , \\mathbf { y } \\right) = - \\mathbf { z } _ { y } + \\operatorname* { m a x } _ { i \\neq y } \\mathbf { z } _ { i } ,\\tag{3}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            178,
+            113,
+            367,
+            136
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "and the difference-of-logits ratio (DLR) loss [10]:",
+        "bbox": [
+            75,
+            142,
+            408,
+            157
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/dea9c741ceb392439ef6447c6cf9d7f0d82e8b415e72282b7ebdbf3a955a3a94.jpg",
+        "text": "$$\n\\mathscr { L } ^ { \\mathrm { d i r } } \\left( \\mathbf { z } , \\mathbf { y } \\right) = \\frac { - \\mathbf { z } _ { y } + \\mathrm { m a x } _ { i \\neq y } \\mathbf { z } _ { i } } { \\mathbf { z } _ { \\pi 1 } - \\mathbf { z } _ { \\pi 3 } } ,\\tag{4}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            165,
+            162,
+            380,
+            194
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where ${ \\mathbf z } _ { \\pi _ { 1 } }$ and ${ \\bf z } _ { \\pi _ { 3 } }$ respectively denote the $1 ^ { \\mathrm { t h } }$ and $3 ^ { \\mathrm { t h } }$ largest components of \\z . It is clear that maximizing the alternative goals is consistent with the original objective of making arg max $f \\left( { \\hat { \\mathbf { x } } } \\right) \\neq y .$ In addition, since surrogate losses avoid exponential operations, they are not prone to underflow, allowing gradient-based optimization to escape suffering from the overestimation caused by the floating-point underflow errors. However, the floating-point underflow errors are not the sole reason for all overestimations related to floating-point errors. At the same time, the new loss function discards some elements of $\\mathbf { z } ,$ reducing the effectiveness of the attack and causing gradient-based attacks with surrogate losses to overestimate the model’s robustness.",
+        "bbox": [
+            75,
+            199,
+            470,
+            395
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Many auxiliary techniques can assist existing attack methods to improve their performance. For example, momentum-based updates can improve the attack’s convergence rate and are widely used by white-box attacks [13, 18]. A step schedule with decreasing step size based on the number of iterations can improve the overall success rate [10, 18, 56]. Multi-target attacks can outperform nontarget attacks in the evaluation results at the cost of more iterations since they require enumerating multiple most likely target labels [18, 33, 34]. In addition to the above strategies, multiple restarts can also improve the effectiveness of gradient-based attacks by adding different random initial perturbations to the input data to diversify the starting point of the attack and reduce the impact of suboptimal solutions [5, 46]. Finally, several recent publications have shown that leveraging latent features in attacks can enhance the transferability of black-box attacks [21,22] and the performance of white-box attacks [56].",
+        "bbox": [
+            75,
+            395,
+            470,
+            667
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "However, even with so many auxiliary strategies mentioned above, using any single attack is still challenging to accurately evaluate the model’s robustness. Attackers start using an ensemble of multiple attack strategies to improve the attack’s performance by introducing diversity [5,10,28]. They often suffer from high computational costs. Even though these ensemble strategies are more powerful than any single attack, they still fail to provide an assessment of the ensemble defence strategy’s robustness accurately [48, 57].",
+        "bbox": [
+            75,
+            667,
+            470,
+            819
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "3. Efficient Loss Function",
+        "text_level": 2,
+        "bbox": [
+            76,
+            829,
+            297,
+            845
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Assuming that the input ˆx has the correct label $y ,$ we compute ${ \\bf z } = f _ { \\pmb { \\theta } } ( \\hat { \\bf x } )$ , where θ represents the model parameters. Next, we sort the values in z in a descending order, where $\\mathbf { z } _ { \\pi 1 }$ is the maximum value. We define $\\Delta$ as the difference between the maximum and the second maximum value, i.e., $\\Delta = { \\bf z } _ { \\pi 1 } - { \\bf z } _ { \\pi 2 } \\geq 0$ . The cross-entropy loss at z becomes",
+        "bbox": [
+            75,
+            854,
+            470,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            90,
+            893,
+            151
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/13471835b22f94ea82692069c5cc59da0efb8971fd6d689f58ac0be5c6e300c1.jpg",
+        "text": "$$\n\\begin{array} { r } { C E \\left( \\mathbf { z } , y \\right) = - \\log p _ { y } = - \\log \\frac { e ^ { \\mathbf { z } _ { y } - \\mathbf { z } _ { \\pi 1 } } } { \\sum _ { i = 1 } ^ { K } e ^ { \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } } } , } \\end{array}\\tag{5}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            540,
+            159,
+            849,
+            195
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/1d242965046732f3852a5b965d9595cc080b7dc348b9d295fc7812a2ad2d1e02.jpg",
+        "text": "$$\n\\begin{array} { r } { \\nabla _ { \\hat { \\mathbf { x } } } C E \\left( \\mathbf { z } , y \\right) = \\left( - 1 + p _ { y } \\right) \\nabla _ { \\hat { \\mathbf { x } } } \\left( \\mathbf { z } _ { y } - \\mathbf { z } _ { \\pi 1 } \\right) } \\\\ { + \\displaystyle \\sum _ { i \\neq y } p _ { i } \\nabla _ { \\hat { \\mathbf { x } } } \\left( \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } \\right) , } \\end{array}\\tag{6}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            215,
+            838,
+            268
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where $p _ { i } = e ^ { \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } } / \\sum _ { i = 1 } ^ { K } e ^ { \\mathbf { z } _ { j } - \\mathbf { z } _ { \\pi 1 } } , i \\in \\{ 1 , 2 , 3 , . . . , K \\}$",
+        "bbox": [
+            500,
+            279,
+            875,
+            297
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Exponential operations in Equation (5), specifically $e ^ { \\mathbf { z } _ { \\pi i } - \\mathbf { z } _ { \\pi 1 } } , i \\in \\{ 2 , . . . , K \\}$ , where ${ \\bf z } _ { \\pi i } - { \\bf z } _ { \\pi 1 } \\leq { \\bf z } _ { \\pi 2 } - { \\bf z } _ { \\pi 1 } =$ $- \\Delta \\leq 0 .$ , can cause floating-point underflow errors in the CE loss gradient. To investigate this issue, we analyze the properties of $e ^ { - \\Delta }$ and observe that when $\\Delta$ surpasses a threshold value denoted by $\\lambda , e ^ { - \\Delta }$ underflows and leads to significant inaccuracies in the gradient calculation. Specifically, when $\\Delta \\ge \\lambda$ and ${ \\bf z } _ { y } = { \\bf z } _ { \\pi 1 }$ , the predicted probability $p _ { y } = 1$ and the calculated gradient $\\nabla _ { \\hat { \\mathbf { x } } } C E \\left( \\mathbf { z } , y \\right) = 0$ The value of $\\lambda$ varies with different floating-point arithmetic precisions, with approximate values of 16.64, 103.28, and 744.44 for half-precision, single-precision, and doubleprecision, respectively.",
+        "bbox": [
+            496,
+            297,
+            892,
+            493
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Based on the findings, we identify that the root cause of the calculated gradient being equal to zero is the result of $\\Delta$ exceeding λ. To further investigate the relationship between the value of ∆ and the overestimation of the model’s robustness, we analyze the distribution of ∆ values in defence models that tend to be overestimated by gradient-based attacks under single-precision. The results in Figure 2 indicate that the range of $\\Delta$ values varies significantly among different defence models. Notably, the values of $\\Delta$ in 2a and 2b do not exceed 10, which is significantly smaller than λ 103.28 for single-precision. As a result, these models do not suffer from floating-point underflow errors. In contrast, most of the $\\Delta$ values in 2c exceed the threshold that leads to floating-point underflow errors. It is evident that not all models suffer from floating-point underflow errors, and other reasons associated with floating-point errors cause gradient-based attacks to fail. This is because in addition to floating-point underflow errors, floating-point errors have another component: floating-point rounding errors when $\\Delta < \\lambda$ . These errors result in a non-negligible relative error in $\\nabla _ { \\hat { \\mathbf { x } } } C E \\left( \\mathbf { z } , y \\right)$ . We define the relative error as $\\delta _ { C E } = \\delta \\left( \\nabla _ { \\hat { \\mathbf { x } } } C E \\left( \\mathbf { z } , y \\right) \\right)$",
+        "bbox": [
+            496,
+            493,
+            893,
+            825
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "We know that $\\delta _ { C E } \\ : = \\ : 1 0 0 \\%$ when $\\Delta \\ge \\lambda$ . We need to further analyze the change pattern of $\\delta _ { C E }$ when $\\Delta < \\lambda .$ A multi-iteration gradient-based attack involves adding perturbations to ˆx at each iteration, leading to constant changes in ${ \\mathbf z } , \\Delta \\left. \\right.$ , and $\\nabla _ { \\hat { \\mathbf { x } } } ( \\mathbf { z } _ { \\pi i } - \\mathbf { z } _ { \\pi 1 } )$ for $i \\in { 1 , 2 , . . . , K }$ after each modification. This makes it difficult to analyze how $\\delta _ { C E }$ changes when $\\Delta < \\lambda$ . However, we can indirectly examine the effect of floating-point errors on the attack’s performance by analyzing the impact of such errors on a single step. To do so, we introduce a scaling factor c and define the scaled value of $\\Delta$ as $T = c \\Delta$ . By varying c while keeping $\\hat { \\mathbf { x } } , \\mathbf { z } ,$ and $\\nabla _ { \\hat { \\mathbf { x } } } ( \\mathbf { z } _ { \\pi i } - \\mathbf { z } _ { \\pi 1 } )$ fixed during gradient calculation, we can investigate the relationship between $\\delta _ { C E }$ and $T$ for different values of T.",
+        "bbox": [
+            496,
+            824,
+            893,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "4058",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "chart",
+        "img_path": "images/18d66e5c7a91db6891ce8d4dcc528090f24ac13863d600b7820642f39638db17.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a) The ∆ distribution of [33]"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            88,
+            94,
+            341,
+            263
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a48af1188f771a0f80e00ef9a85b8972bfc7e492c5708e58d6951ce3d0eafd04.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            357,
+            93,
+            612,
+            263
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "chart",
+        "img_path": "images/d3421556520dbfaf0e76d3ff46a018dbe08e768ff42461eec86a7d3d8a065edf.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b) The ∆ distribution of [59]",
+            "(c) The ∆ distribution of [3]",
+            "Figure 2. The distributions of $\\boldsymbol { \\Delta } = \\mathbf { z } _ { \\pi 1 } - \\mathbf { z } _ { \\pi 2 }$ for the defending models on the CIFAR-10 dataset are averaged across 100 bins."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            627,
+            93,
+            882,
+            263
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            338,
+            470,
+            476
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To compute the scale factor, we need to detach the gradient information from $\\Delta$ since z contains the gradient information during the actual program running. Thus, we define the scale factor as $c = T / { \\Delta } _ { \\mathrm { d e t a c h } }$ . The use of the detach operation in the calculation of c removes the gradient information from the $\\Delta _ { d e t a c h }$ , making it distinct from the $\\Delta$ that retains gradient information. When ${ \\bf z } _ { y } \\ne { \\bf z } _ { \\pi 1 }$ , the model output is already incorrect. Therefore, we only focus on the relationship between $\\delta _ { C E }$ and T when ${ \\bf z } _ { y } = { \\bf z } _ { \\pi 1 }$ at which point $\\begin{array} { r } { \\nabla _ { \\widehat { \\mathbf { z } } } C E \\left( \\mathbf { c } \\mathbf { z } , y \\right) = c \\sum _ { i \\neq y } p _ { i } ^ { c } \\nabla _ { \\widehat { \\mathbf { x } } } \\left( \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } \\right) } \\end{array}$ where $\\begin{array} { r } { p _ { i } ^ { c } = e ^ { c ( \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } ) } / \\sum _ { j = 1 } ^ { K } e ^ { c ( \\mathbf { z } _ { j } - \\mathbf { z } _ { \\pi 1 } ) } } \\end{array}$",
+        "bbox": [
+            75,
+            479,
+            470,
+            651
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To get a more intuitive picture of the relationship between $\\delta _ { C E }$ and $T ,$ we plotted the figure of $\\delta _ { C E }$ on the binary classification task with $\\begin{array} { r l r } { K } & { { } = } & { 2 } \\end{array}$ , At this point, $\\begin{array} { r } { \\nabla _ { \\widehat { \\mathbf { z } } } C E \\left( \\mathbf { c } \\mathbf { z } , y \\right) \\ = \\ c \\sum _ { i \\neq u } p _ { i } ^ { c } \\nabla _ { \\widehat { \\mathbf { x } } } \\left( \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } \\right) \\ = } \\end{array}$ $\\mathrm { { \\bf c } } p _ { 2 } ^ { c } \\nabla _ { \\hat { \\bf x } } \\left( { \\bf z } _ { \\pi 2 } - { \\bf z } _ { \\pi 1 } \\right) \\ \\propto \\ \\mathrm { c } p _ { 2 } ^ { c }$ . Therefore, $\\delta _ { C E } ~ \\propto ~ \\delta \\left( \\mathrm { c } p _ { 2 } ^ { c } \\right)$ In Figure 3, we can see that for the same ˆx,when z and $\\nabla _ { \\hat { { \\mathbf { x } } } } \\left( \\mathbf { z } _ { i } - \\mathbf { z } _ { \\pi 1 } \\right) , ~ i \\in \\{ 1 , 2 , . . . , K \\}$ are all fixed, $\\delta _ { C E }$ varies with T. When $T \\ge \\lambda , \\delta _ { C E } = 1 0 0 \\%$ In contrast, When $T < \\lambda$ , The relative error $\\delta _ { C E }$ caused by the floating-point rounding errors is much more minor, varies continuously with T, and reaches the minimum when T is approximately 1. But one thing that needs to be highlighted is that after the relative error reaches the minimum, it starts to increase as $T$ gets closer to 0.",
+        "bbox": [
+            75,
+            654,
+            470,
+            866
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Following the same operation, we add a scale factor c to $\\Delta$ and hold $T = c \\Delta$ constant during each iteration of the multi-iteration attack. This technique, which we refer to as FT-PGD, allows us to assess the model’s robustness with a fixed T value. In Figure 4, we evaluate the model’s robustness using FT-PGD at various T values. By comparing the relative floating-point error in Figure 3 with the attack’s performance in Figure 4, we observe a strong correlation between the relative error $\\delta _ { C E }$ and the attack’s effectiveness. Thus, the relative error is a critical factor that contributes to overestimating the model’s robustness. Furthermore, we identify two distinct phases in the impact of floating-point errors on gradient-based attacks due to the CE loss, which depend on the relationship between T and λ.",
+        "bbox": [
+            76,
+            869,
+            470,
+            900
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a6fa8ff2ce03affbe5b2d24aed43887c84926d63c0b874d8adde13b0e5d5781d.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 3. The relative error of the gradient information computed using half-precision floating-point operations on a binary classification task with the CE loss varies with T for a given adversarial example within a single iteration."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            511,
+            343,
+            880,
+            506
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            609,
+            893,
+            792
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "(a) The attack failed due to floating-point underflow errors. When $T \\geq \\lambda$ , floating-point underflow causes the calculated gradient equal to zero and $\\delta _ { C E } = 1 0 0 \\%$ . As a result, the input perturbation becomes zero, and the model’s robustness is measured to be equal to its clean accuracy, which leads to a significant overestimation of the model’s robustness.",
+        "bbox": [
+            496,
+            795,
+            893,
+            900
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "4059",
+        "bbox": [
+            482,
+            945,
+            514,
+            957
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "chart",
+        "img_path": "images/722efa22a617d426546a7b4c92ad4f97c66a05cc24a9111b3cc745eeef31b4c0.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 4. A higher zero ratio, which represents the proportion of zero elements in the perturbation, leads to larger overestimations when evaluating model robustness. We assess model robustness using 100 iterations of FT-PGD with CE loss on the CIFAR-10 dataset under half-precision floating-point arithmetic. The model is obtained from [59]."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            88,
+            95,
+            457,
+            260
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "(b) The attack’s performance fluctuates with the small relative error caused by floating-point rounding errors. When $0 \\leq T < \\lambda .$ , the computed gradient’s relative error due to the floating-point rounding error is small and has the same variation pattern as the zero ratio and attack performance. The smallest relative error occurs around $T = 1$ However, it’s crucial to note that at the bottom left of Figure 3 and Figure 4, the relative error and its detrimental effect on the gradient-based attack increase as T approaches zero after reaching the minimum.",
+        "bbox": [
+            75,
+            385,
+            470,
+            536
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "It is straightforward to assume that since floating-point errors cause the above problem, it should be possible to solve the problem by simply increasing the precision of floating-point arithmetics because it can effectively reduce the floating-point errors. To test whether this simple idea works, we evaluated the impact of different floating-point arithmetics precisions, including half-precision, singleprecision, and double-precision, on the model’s robustness against FT-PGD with 100 iterations. As depicted in Figure 5, the attack’s performance exhibits a similar variation pattern across different precisions, and the model’s robustness measured with PGD remains nearly unchanged. While increasing the floating-point precision can delay attack failure due to floating-point underflow errors, it incurs significant computational overhead. Therefore, increasing the floating-point precision is not a viable solution to address the problem.",
+        "bbox": [
+            75,
+            537,
+            472,
+            795
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Surrogate loss functions(3,4) have been proposed [6, 10, 18] to work around floating-point underflow errors. They avoid suffering from floating-point underflow errors by discarding softmax operations. At the same time, they only use partial z elements in the new loss function. To demonstrate the effect of discarding elements of z on the attack’s performance, We designed an experiment to make only a fixed number of z elements participate in the calculation of the gradients by exploiting floating-point underflow errors. To achieve this goal we scale the logits ${ \\bf z } _ { \\pi 1 } - { \\bf z } _ { \\pi i }$ by a scale factor c to make $c ( { \\bf z } _ { \\pi 1 } - { \\bf z } _ { \\pi i } ) = \\lambda$ , such that $p _ { \\pi j } ^ { c } = 0$ if $j \\geq i$ and $p _ { \\pi j } ^ { c } > 0 \\mathrm { i f } j < i ,$ , where $i \\in \\{ 2 , 3 , . . . , \\overset { \\cdot } { K } \\}$ and $j \\in \\{ 1 , 2 , 3 , \\tilde { \\ldots } , K \\}$ . So that only $i - 1$ number of z elements are involved in the gradient calculation, thus giving PGD the ability to attack the network with a fixed number of z elements, which we now call FNZ-PGD. We use FNZ-PGD with different numbers of z elements to evaluate the model’s robustness which is overestimated mainly due to floating-point errors. From Figure 6, we can see that the more z elements involved in the attack, the more potent the attack will be. So discarding the z element in the loss function will impair the attack’s performance when model robustness is overestimated mainly due to floating-point errors.",
+        "bbox": [
+            75,
+            795,
+            470,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/2535c81748e9328d29fc67cde01ba12b753fc78dbdbfa974ec418e75e0bec4cb.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 5. The model’s robustness test results on the CIFAR-10 dataset under Float16, Float32, and Float64 follow a similar pattern of variation, except that the thresholds that lead to the attack’s failure are different, the model obtained from [59]."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            511,
+            95,
+            879,
+            258
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            363,
+            893,
+            621
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "In summary, the relative error in the calculated gradients due to the floating-point errors, which include floatingpoint underflow errors and floating-point rounding errors, is the critical factor contributing to the overestimation of the model’s robustness. While floating-point errors are a primary cause of gradient-based attacks’ failure, they are not the sole cause. Reducing their impact can only address the portion of model robustness that is overestimated due to them. Therefore, it is unrealistic to expect that solely reducing the impact of floating-point errors alone will eliminate all problems related to overestimating model robustness.",
+        "bbox": [
+            496,
+            625,
+            893,
+            791
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Although we cannot eliminate the relative error in the gradients caused by floating-point errors, we can control it’s side effect and significantly increase the power of gradientbased attacks. As a result, we propose the Minimize the impact of floating-point errors (MIFPE) loss, a small modification to the original CE loss, which scales the logits adaptively before the softmax operation. For untargeted and targeted attacks, the targets are as follows respectively:",
+        "bbox": [
+            496,
+            795,
+            893,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "4060",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ff56fdf1c59f12c972df9b14b2f6947f0a8f8fa59926d6e8cb69ae6cc507dcd1.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 6. Using more z elements increases attack potency when model robustness is overestimated mainly due to floating-point errors. We utilized FNZ-PGD with 100 iterations, CE loss, and a baseline of PGD-100 with CE, C&W, and DLR loss under CI-FAR10. All floating-point operations were single-precision, and the model was obtained from [59]. Here, n refers to the number of z elements used."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            88,
+            94,
+            455,
+            261
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            395,
+            423,
+            411
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "img_path": "images/88a56acf919a2a73ba76772b25c1782bc7028617e6c1dc0235d5c7de9058ca0e.jpg",
+        "text": "$$\n\\begin{array} { r } { \\mathcal { L } ^ { \\mathrm { M I F P E } } \\left( \\mathbf { z } , y \\right) \\triangleq \\mathcal { L } ^ { \\mathrm { c e } } \\left( T \\mathbf { z } / \\Delta _ { \\mathrm { d e t a c h } } , y \\right) , } \\end{array}\\tag{7}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            147,
+            419,
+            398,
+            438
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "img_path": "images/76e73a2493d73c9b0203c1b84d8aa8a4b514e2baf891c27ed403f264729ca49c.jpg",
+        "text": "$$\n\\begin{array} { r } { \\mathcal { L } _ { \\mathrm { t a r g e t } } ^ { \\mathrm { M I F P E } } \\left( \\mathbf { z } , y _ { \\mathrm { t } } \\right) = - \\mathcal { L } ^ { \\mathrm { c e } } \\left( T \\mathbf { z } / \\Delta _ { \\mathrm { d e t a c h } } , y _ { \\mathrm { t } } \\right) , } \\end{array}\\tag{8}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            138,
+            460,
+            406,
+            481
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Where $y _ { t }$ is a predefined class target, $t \\in \\{ 1 , 2 , . . . , K \\}$ and $y _ { t } \\neq y .$ . In our experiments, the factor $T$ was set to around 1 to minimize the detrimental effect of floating-point errors on the gradient-based attacks.",
+        "bbox": [
+            76,
+            484,
+            470,
+            545
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "The new surrogate loss $\\mathcal { L } ^ { \\mathrm { M I F P E } }$ has fourfold advantages. First, it can eliminate the failure of gradient-based attacks due to floating-point underflow errors. Second, it can minimize the impact of the small relative error due to floatingpoint rounding errors and significantly improve the performance of gradient-based attacks. Third, it provides the flexibility to adjust the number of logit elements involved in the attack simply by changing the value of T. Finally, unlike the C&W or DLR loss, it still represents the original CE loss faithfully, and all values in the logit vector can still contribute to the gradient calculation.",
+        "bbox": [
+            75,
+            545,
+            470,
+            712
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "4. Experiments",
+        "text_level": 2,
+        "bbox": [
+            76,
+            724,
+            210,
+            741
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "To ensure a fair comparison against other loss functions in our evaluation and to make our evaluation as comprehensive as possible, we conducted tests on different threat models and datasets. Specifically, we tested the $\\ell _ { \\infty } -$ norm bounded perturbation on the CIFAR-10 , CIFAR-100, MNIST [25] and ImageNet datasets [11],and the \\el \\_{2} -norm threat model on the CIFAR-10 dataset. For each test, we ran the PGD with different loss functions, including the crossentropy (CE) loss function, the C&W loss function [6], the DLR loss function [10], and our proposed MIFPE. We kept all other settings the same across the tests. Firstly, we used 100 iterations for each test. Secondly, we adopted the same step-size schedule with a linear decay [56], which updates the perturbation boundary ϵ at each iteration i according to the formula 2ϵ $( 1 - i / I )$ , where I denotes the total number of iterations. Thirdly, we employed momentum-based updates [10] with a momentum factor of $\\nu ~ = ~ 0 . 7 5$ for all tests. Lastly, we saved the best adversarial examples generated during the attack. To demonstrate the effectiveness of MIFPE in achieving near-state-of-the-art robustness with only 100 iterations, we compare our results with the best robust accuracy reported on RobustBench<sup>1</sup>, which uses an ensemble of attacks and a minimum of 4900 iterations. We also compared the attack performance of MIFPE with GAMA PGD [43] under the same 100-iteration constraint.",
+        "bbox": [
+            75,
+            750,
+            472,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            92,
+            893,
+            319
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In Table 1, we present a comprehensive comparison showing that MIFPE outperforms CE, C&W, and DLR loss functions on all tested models. Additionally, we found that when PGD with momentum and step schedule using MIFPE as the loss function outperforms GAMA PGD on all tested models by at leat more than 0.1% under 100 iterations constraint, which is impossible when PGD with momentum and step schedule using CE, C&W and DLR as the loss function. Remarkably, even with only 100 iterations, MIFPE achieves results that are very close to the best results obtained with at least 4900 iterations on some models, such as Uncovering limits [17] and Proper definition [32] for CI-$\\mathrm { F A R } 1 0 , l _ { \\infty } , \\varepsilon = 8 / 2 5 5$ . Our findings also reveal that C&W and DLR perform even worse than CE in some cases, such as on Robustness library [14] and Fast adversarial training [51] for CIFAR10, $l _ { \\infty } , \\varepsilon = 8 / 2 5 5$ . This suggests that discarding partial logit elements in the loss function would decrease the effectiveness of gradient-based attacks.",
+        "bbox": [
+            496,
+            320,
+            893,
+            592
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Faster convergence. We want to highlight that the effectiveness of MIFPE is not achieved by increasing the computational cost compared to other loss functions. We found that minimising the effect of the floating-point errors leads to faster convergence speed than competing loss functions. Figure 7 shows that for all two defending models, MIFPE loss performs more efficiently, and often with orders of magnitude faster than other loss functions for successful attacks. Finally, minimising the effect of floating-point error operation introduces no overhead and imposes no impact on the iteration time.",
+        "bbox": [
+            496,
+            594,
+            893,
+            761
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Boost the capability of existing attack strategies. Because MIFPE is a loss function, it can be easily integrated with existing attack strategies by replacing the original loss function. The results in Table 2 show that using MIFPE boosts the attack’s effectiveness.",
+        "bbox": [
+            496,
+            762,
+            893,
+            838
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Ablation analysis. Our ablation experiments, presented in Table 3, investigated the effect of momentum and stepsize schedule on PGD using different loss functions with 100 iterations. The results show that the MIFPE consistently outperforms the other loss functions, and shows the least variance across different setups. These findings suggest that the effectiveness of the MIFPE should not be dependent on the momentum and step-size schedule.",
+        "bbox": [
+            496,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "4061",
+        "bbox": [
+            482,
+            945,
+            514,
+            958
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "table",
+        "img_path": "images/a58b66e32df36a7168ab19d5507035a6ac1bd9925b04ab3c5779867c3cf3c5e8.jpg",
+        "table_caption": [
+            "Table 1. Comparing the proposed MIFPE loss $( \\mathcal { L } ^ { \\mathrm { M I F P E } } )$ , against CE $( \\mathcal { L } ^ { \\mathrm { c e } } ) , \\mathbf { C } \\& \\mathbf { W } \\left( \\mathcal { L } ^ { \\mathrm { c w } } \\right)$ , and DLR $( { \\mathcal { L } } ^ { \\mathrm { d l r } } )$ losses. For each surrogate loss, we use PGD-100 with the step-size schedule $\\varkappa ( 1 - i / I )$ and momentum $\\nu = 0 . 7 5$ . Models marked with † were trained with extra data. Models marked with ‡, which used $\\varepsilon = 0 . 0 3 1$ as originally reported by the authors. Numbers in parentheses indicate the improvement w.r.t. the CE baseline. The best, calculated using an ensemble of attacks and a minimum of 4900 iterations, is reported from RobustBench to demonstrate how closely MIFPE can approach the lowest known robustness accuracy with only 100 iterations."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=1 colspan=7>Defense method</td><td rowspan=1 colspan=1>Architecture</td><td rowspan=1 colspan=1>Clean</td><td rowspan=1 colspan=1> $\\mathbf { C E } \\left( \\mathcal { L } ^ { \\mathrm { c e } } \\right)$ 100</td><td rowspan=1 colspan=2> $\\mathbf { C } \\& \\mathbf { W } \\left( \\mathcal { L } ^ { \\mathrm { { c w } } } \\right)$ 100</td><td rowspan=1 colspan=1> $\\mathbf { D L R } \\left( \\mathcal { L } ^ { \\mathrm { d l r } } \\right)$ </td><td rowspan=1 colspan=1>GAMA _PGD100</td><td rowspan=1 colspan=1>MIFPE $( \\mathcal { L } ^ { \\mathrm { M F P E } } )$ 100</td><td rowspan=1 colspan=1>Best4900</td></tr><tr><td rowspan=1 colspan=12>MNIST, $\\ell _ { \\infty } , \\varepsilon = 0 . 3$ </td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td></tr><tr><td rowspan=1 colspan=7>Uncovering limits [17]</td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>99.26</td><td rowspan=1 colspan=1>96.55</td><td rowspan=1 colspan=2>96.64 (+0.09)</td><td rowspan=1 colspan=1>96.71 (+0.16)</td><td rowspan=1 colspan=1>96.69 (+0.14)</td><td rowspan=1 colspan=1>96.53 (−0.02)</td><td rowspan=1 colspan=1>96.31</td></tr><tr><td rowspan=1 colspan=7>MMA training [12] †</td><td rowspan=1 colspan=1>LeNet5Madry</td><td rowspan=1 colspan=1>98.98</td><td rowspan=1 colspan=1>95.66</td><td rowspan=1 colspan=2>95.60 (-0.06)</td><td rowspan=1 colspan=1>95.56 (-0.10)</td><td rowspan=1 colspan=1>95.96(+0.13)</td><td rowspan=1 colspan=1>95.50 (−0.16)</td><td rowspan=1 colspan=1>93.51</td></tr><tr><td rowspan=2 colspan=7>MMA training [12]</td><td rowspan=1 colspan=1>LeNet5Madry</td><td rowspan=1 colspan=1>98.95</td><td rowspan=1 colspan=1>95.09</td><td rowspan=1 colspan=2>95.33 (+0.24)</td><td rowspan=1 colspan=1>95.59 (+0.50)</td><td rowspan=1 colspan=1>95.74 (+0.19)</td><td rowspan=1 colspan=1>94.88 (−0.21)</td><td rowspan=1 colspan=1>91.40</td></tr><tr><td rowspan=2 colspan=5></td><td rowspan=2 colspan=3></td><td rowspan=2 colspan=2>SmallCNNSmallCNN</td><td rowspan=1 colspan=1>99.35</td><td rowspan=1 colspan=1>99.28</td><td rowspan=1 colspan=1>94.68 (-4.60)</td><td rowspan=1 colspan=1>95.09 (-4.19)</td><td rowspan=1 colspan=1>99.29 (+0.01)</td><td rowspan=1 colspan=1>94.67 (−4.61)</td></tr><tr><td rowspan=1 colspan=1>99.48</td><td rowspan=1 colspan=1>93.69</td><td rowspan=1 colspan=2>93.88 (+0.19)</td><td rowspan=1 colspan=1>94.49 (+0.80)</td><td rowspan=1 colspan=1>93.82 (+0.13)</td><td rowspan=1 colspan=1>93.67 (−0.02)</td><td rowspan=1 colspan=1>92.71</td></tr><tr><td rowspan=2 colspan=7>Robust optimization [29]Fast adversarial training [51]</td><td rowspan=1 colspan=2>optimization [29]</td><td rowspan=1 colspan=2>SmallCNN</td><td rowspan=1 colspan=1>99.35</td><td rowspan=1 colspan=1>93.06</td><td rowspan=1 colspan=1>93.19 (+0.13)</td><td rowspan=1 colspan=1>93.63(+0.57)</td><td rowspan=1 colspan=1>93.39(+0.33)</td></tr><tr><td rowspan=1 colspan=1>SmallCNN</td><td rowspan=1 colspan=1>98.50</td><td rowspan=1 colspan=1>86.82</td><td rowspan=1 colspan=2>86.96 (+0.14)</td><td rowspan=1 colspan=1>87.42(+0.60)</td><td rowspan=1 colspan=1>87.62 (+0.80)</td><td rowspan=1 colspan=1>86.57 (−0.25)</td><td rowspan=1 colspan=1>82.93</td></tr><tr><td rowspan=1 colspan=7></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1> ${ \\bf C I F A R - 1 0 }</td><td rowspan=1 colspan=2>, \\ell _ { \\infty } , \\varepsilon = 8 / 2 5 5$ </td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td></tr><tr><td rowspan=2 colspan=7>Uncovering limits [17]†Fixing data augmentation [36]</td><td rowspan=1 colspan=1>WRN-70-16</td><td rowspan=1 colspan=1>91.10</td><td rowspan=1 colspan=1>67.96</td><td rowspan=1 colspan=2>66.70 (-1.26)</td><td rowspan=1 colspan=1>66.78 (-1.18)</td><td rowspan=1 colspan=1>66.08 (-1.88)</td><td rowspan=1 colspan=1>65.96 (-2.00)</td><td rowspan=1 colspan=1>65.87</td></tr><tr><td rowspan=1 colspan=1>WRN-106-16</td><td rowspan=1 colspan=1>88.50</td><td rowspan=1 colspan=1>67.57</td><td rowspan=1 colspan=1>65.55</td><td rowspan=1 colspan=1>(-2.02)</td><td rowspan=1 colspan=1>65.61 (-1.96)</td><td rowspan=1 colspan=1>64.94 (-2.63)</td><td rowspan=1 colspan=1>64.75 (−2.82)</td><td rowspan=1 colspan=1>64.58</td></tr><tr><td rowspan=1 colspan=7>Fixing data augmentation [36]</td><td rowspan=1 colspan=1>WRN-70-16</td><td rowspan=1 colspan=1>88.54</td><td rowspan=1 colspan=1>67.27</td><td rowspan=1 colspan=1>65.23</td><td rowspan=1 colspan=1>(-2.04)</td><td rowspan=1 colspan=1>65.32 (-1.95)</td><td rowspan=1 colspan=1>64.57 (-2.70)</td><td rowspan=1 colspan=1>64.46 (−2.81)</td><td rowspan=1 colspan=1>64.20</td></tr><tr><td rowspan=3 colspan=7>Proper definition [32]Uncovering limits [17] †Proper definition [32]</td><td rowspan=1 colspan=1>WRN-70-16</td><td rowspan=1 colspan=1>89.01</td><td rowspan=1 colspan=1>66.66</td><td rowspan=1 colspan=1>63.94</td><td rowspan=1 colspan=1>(-2.72)</td><td rowspan=1 colspan=1>64.01 (-2.65)</td><td rowspan=1 colspan=1>63.65 (-3.01)</td><td rowspan=1 colspan=1>63.49 (−3.17)</td><td rowspan=1 colspan=1>63.35</td></tr><tr><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>89.48</td><td rowspan=1 colspan=1>65.59</td><td rowspan=1 colspan=2>63.62(-1.97)</td><td rowspan=1 colspan=1>63.82(-1.77)</td><td rowspan=1 colspan=1>63.05 (-2.90)</td><td rowspan=1 colspan=1>62.96 (-2.63)</td><td rowspan=1 colspan=1>62.76</td></tr><tr><td rowspan=1 colspan=3></td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>88.61</td><td rowspan=1 colspan=1>64.66</td><td rowspan=1 colspan=2>61.55 (-3.11)</td><td rowspan=1 colspan=1>61.62 (-3.04)</td><td rowspan=1 colspan=1>61.19 (-3.47)</td><td rowspan=1 colspan=1>61.12 (−3.54)</td><td rowspan=1 colspan=1>61.04</td></tr><tr><td rowspan=1 colspan=3>Adversaria</td><td rowspan=1 colspan=3>weig]</td><td rowspan=1 colspan=1>Adversarial weight perturbation [53]†</td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>88.25</td><td rowspan=1 colspan=1>63.18</td><td rowspan=1 colspan=2>60.51 (-2.67)</td><td rowspan=1 colspan=1>60.60(-2.58)</td><td rowspan=1 colspan=1>60.18(-3.00)</td><td rowspan=1 colspan=1>60.09 (−3.09)</td><td rowspan=1 colspan=1>60.04</td></tr><tr><td rowspan=1 colspan=3>Unlabeled dat</td><td></td><td rowspan=1 colspan=3>a [7]†</td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>89.69</td><td rowspan=1 colspan=1>61.60</td><td rowspan=1 colspan=1>60.47</td><td rowspan=1 colspan=1>(-1.13)</td><td rowspan=1 colspan=1>60.67 (-0.93)</td><td rowspan=1 colspan=1>59.82(-1.78)</td><td rowspan=1 colspan=1>59.72 (−1.88)</td><td rowspan=1 colspan=1>59.53</td></tr><tr><td rowspan=1 colspan=3>HYDRA [40]†</td><td rowspan=1 colspan=2></td><td rowspan=1 colspan=2></td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>88.98</td><td rowspan=1 colspan=1>59.53</td><td rowspan=1 colspan=1>58.21</td><td rowspan=1 colspan=1>(-1.32)</td><td rowspan=1 colspan=1>58.30(-1.23)</td><td rowspan=1 colspan=1>57.52 (-2.01)</td><td rowspan=1 colspan=1>57.38 (−2.15)</td><td rowspan=1 colspan=1>57.14</td></tr><tr><td rowspan=3 colspan=5>Pre-training [19]†</td><td rowspan=3 colspan=2></td><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>87.50</td><td rowspan=1 colspan=1>61.60</td><td rowspan=1 colspan=1>58.03</td><td rowspan=1 colspan=1>(-3.57)</td><td rowspan=1 colspan=1>58.73 (-2.87)</td><td rowspan=1 colspan=1>57.20 (-4.40)</td><td rowspan=1 colspan=1>56.88 (−4.72)</td><td rowspan=1 colspan=1>56.29</td></tr><tr><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>87.11</td><td rowspan=1 colspan=1>57.07</td><td rowspan=1 colspan=1>56.27</td><td rowspan=1 colspan=1>(-0.80)</td><td rowspan=1 colspan=1>57.07 (0.00)</td><td rowspan=1 colspan=1>55.22 (-1.85)</td><td rowspan=1 colspan=1>55.10 (-1.97)</td><td rowspan=1 colspan=1>54.92</td></tr><tr><td rowspan=1 colspan=1>WRN-34-20</td><td rowspan=1 colspan=1>85.14</td><td rowspan=1 colspan=1>61.43</td><td rowspan=1 colspan=1>55.35</td><td rowspan=1 colspan=1>(-6.08)</td><td rowspan=1 colspan=1>56.21 (-5.22)</td><td rowspan=1 colspan=1>54.37 (-7.06)</td><td rowspan=1 colspan=1>53.85 (−7.58)</td><td rowspan=1 colspan=1>53.74</td></tr><tr><td rowspan=2 colspan=3>Overfitting [37]Self-adaptive</td><td rowspan=1 colspan=3>ing [37]</td><td rowspan=2 colspan=1>training [20]‡</td><td rowspan=1 colspan=1>WRN-34-20</td><td rowspan=1 colspan=1>85.34</td><td rowspan=1 colspan=1>56.85</td><td rowspan=1 colspan=1>55.22</td><td rowspan=1 colspan=1>(-1.63)</td><td rowspan=1 colspan=1>55.97 (-0.88)</td><td rowspan=1 colspan=1>53.87 (-2.98)</td><td rowspan=1 colspan=1>53.62 (-3.23)</td><td rowspan=1 colspan=1>53.42</td></tr><tr><td rowspan=1 colspan=3>tive tra</td><td></td><td rowspan=1 colspan=1>WRN-34-10</td><td rowspan=1 colspan=1>83.48</td><td rowspan=1 colspan=1>56.12</td><td rowspan=1 colspan=1>54.30</td><td rowspan=1 colspan=1>(-1.82)</td><td rowspan=1 colspan=1>54.73 (-1.39)</td><td rowspan=1 colspan=1>53.64 (-2.48)</td><td rowspan=1 colspan=1>53.48 (−2.64)</td><td rowspan=1 colspan=1>53.34</td></tr><tr><td rowspan=1 colspan=7>TRADES [59]‡</td><td rowspan=1 colspan=1>WRN-34-10</td><td rowspan=1 colspan=1>84.92</td><td rowspan=1 colspan=1>55.21</td><td rowspan=1 colspan=1>53.94</td><td rowspan=1 colspan=1>(-1.27)</td><td rowspan=1 colspan=1>54.11 (-1.10)</td><td rowspan=1 colspan=1>53.38 (-1.83)</td><td rowspan=1 colspan=1>53.22 (−1.99)</td><td rowspan=1 colspan=1>53.08</td></tr><tr><td rowspan=1 colspan=7>Robustness library [14]</td><td rowspan=1 colspan=1>RN-50</td><td rowspan=1 colspan=1>87.03</td><td rowspan=1 colspan=1>51.56</td><td rowspan=1 colspan=1>52.07</td><td rowspan=1 colspan=1>(+0.51)</td><td rowspan=1 colspan=1>52.81(+1.25)</td><td rowspan=1 colspan=1>50.04 (-1.52)</td><td rowspan=1 colspan=1>49.84 (−1.72)</td><td rowspan=1 colspan=1>49.25</td></tr><tr><td rowspan=1 colspan=7>Neural level sets [3]$</td><td rowspan=1 colspan=1>RN-18</td><td rowspan=1 colspan=1>81.30</td><td rowspan=1 colspan=1>79.12</td><td rowspan=1 colspan=1>40.07</td><td rowspan=1 colspan=1>(-39.05)</td><td rowspan=1 colspan=1>45.10 (-34.02)</td><td rowspan=1 colspan=1>79.69 (+0.57)</td><td rowspan=1 colspan=1>40.06 (−39.06)</td><td rowspan=1 colspan=1>39.77</td></tr><tr><td rowspan=2 colspan=7>YOPO [58]Fast adversarial training [51]</td><td rowspan=1 colspan=1>WRN-34-10</td><td rowspan=1 colspan=1>87.20</td><td rowspan=1 colspan=1>46.05</td><td rowspan=1 colspan=1>47.02</td><td rowspan=1 colspan=1>(+0.97)</td><td rowspan=1 colspan=1>47.55 (+1.50)</td><td rowspan=1 colspan=1>45.30 (-0.75)</td><td rowspan=1 colspan=1>45.19 (-0.86)</td><td rowspan=1 colspan=1>44.83</td></tr><tr><td rowspan=1 colspan=1>RN-18</td><td rowspan=1 colspan=1>83.34</td><td rowspan=1 colspan=1>45.75</td><td rowspan=1 colspan=2>45.81 (+0.06)</td><td rowspan=1 colspan=1>46.89(+1.14)</td><td rowspan=1 colspan=1>43.71 (-2.04)</td><td rowspan=1 colspan=1>43.57 (−2.18)</td><td rowspan=1 colspan=1>43.21</td></tr><tr><td rowspan=1 colspan=7></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>CIFAR-10</td><td rowspan=1 colspan=2>0, $\\ell _ { \\infty } , \\epsilon = 8 / 2 5 5$ </td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td></tr><tr><td rowspan=4 colspan=7>Adversarial weight perturbation [54]Pre-training [19]†Progressive Hardening [42]Overfitting [37]</td><td rowspan=1 colspan=1>WRN-34-10</td><td rowspan=1 colspan=1>60.38</td><td rowspan=1 colspan=1>33.09</td><td rowspan=1 colspan=2>30.74(-2.35)</td><td rowspan=1 colspan=1>31.13(-1.96)</td><td rowspan=1 colspan=1>29.44 (-3.65)</td><td rowspan=1 colspan=1>29.35 (-3.74)</td><td rowspan=1 colspan=1>28.86</td></tr><tr><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>59.23</td><td rowspan=1 colspan=1>32.82</td><td rowspan=1 colspan=2>30.58(-2.24)</td><td rowspan=1 colspan=1>31.83 (-0.99)</td><td rowspan=1 colspan=1>29.22 (-3.60)</td><td rowspan=1 colspan=1>29.02 (−3.80)</td><td rowspan=1 colspan=1>28.42</td></tr><tr><td rowspan=2 colspan=1>WRN-34-10RN-18</td><td rowspan=2 colspan=1>62.8253.83</td><td rowspan=2 colspan=1>26.1820.47</td><td rowspan=2 colspan=2>26.69(+0.51)20.17 (-0.30)</td><td rowspan=1 colspan=1>27.26(+1.08)</td><td rowspan=2 colspan=1>24.97 (-1.21)19.20 (-1.27)</td><td rowspan=2 colspan=1>24.91 (-1.27)19.16 (−1.31)</td><td rowspan=2 colspan=1>24.5718.95</td></tr><tr><td rowspan=1 colspan=1>20.30 (-0.17)</td></tr><tr><td rowspan=1 colspan=7></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1>ImageNe</td><td rowspan=1 colspan=2>t, $\\ell _ { \\infty } , \\epsilon = 4 / 2 5 5$ </td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1></td></tr><tr><td rowspan=3 colspan=7>Transfer Better [39]Robustness library [14]Transfer Better [39]</td><td rowspan=1 colspan=1>RN-50</td><td rowspan=1 colspan=1>64.02</td><td rowspan=1 colspan=1>38.44</td><td rowspan=1 colspan=2>37.26 (-1.18)</td><td rowspan=1 colspan=1>37.72(-0.72)</td><td rowspan=1 colspan=1>34.94 (-3.50)</td><td rowspan=1 colspan=1>34.84 (-3.60)</td><td rowspan=1 colspan=1>34.96</td></tr><tr><td rowspan=2 colspan=1>RN-50RN-18</td><td rowspan=2 colspan=1>62.5652.92</td><td rowspan=1 colspan=1>32.16</td><td rowspan=1 colspan=2>32.24 (+0.08)</td><td rowspan=1 colspan=1>32.80(+0.64)</td><td rowspan=1 colspan=1>29.72 (-2.44)</td><td rowspan=1 colspan=1>29.60 (−2.56)</td><td rowspan=1 colspan=1>29.22</td></tr><tr><td rowspan=1 colspan=1>29.30</td><td rowspan=1 colspan=2>27.14(-2.16)</td><td rowspan=1 colspan=1>27.40 (1.90)</td><td rowspan=1 colspan=1>25.56 (-3.74)</td><td rowspan=1 colspan=1>25.40 (−3.90)</td><td rowspan=1 colspan=1>18.95</td></tr><tr><td rowspan=1 colspan=10> ${ \\bf C I F A R</td><td rowspan=1 colspan=5>- 1 0 } , \\ell _ { 2 } , \\varepsilon = 0 . 5$ </td><td rowspan=1 colspan=1></td></tr><tr><td rowspan=1 colspan=7>Uncovering limits [17]†</td><td rowspan=1 colspan=1>WRN-70-16</td><td rowspan=1 colspan=1>94.74</td><td rowspan=1 colspan=1>81.71</td><td rowspan=1 colspan=2>80.93 (-0.78)</td><td rowspan=1 colspan=1>80.94(-0.77)</td><td rowspan=1 colspan=1>87.74 (+6.03)</td><td rowspan=1 colspan=1>80.57 (-1.14)</td><td rowspan=1 colspan=1>80.53</td></tr><tr><td rowspan=1 colspan=5>Uncovering limi</td><td rowspan=1 colspan=2>ts [17]</td><td rowspan=1 colspan=1>WRN-70-16</td><td rowspan=1 colspan=1>90.90</td><td rowspan=1 colspan=1>75.20</td><td rowspan=1 colspan=2>74.89 (-0.31)</td><td rowspan=1 colspan=1>74.95 (-0.25)</td><td rowspan=1 colspan=1>81.78 (+6.58)</td><td rowspan=1 colspan=1>74.56 (−0.64)</td><td rowspan=1 colspan=1>74.50</td></tr><tr><td rowspan=1 colspan=4>Adversarial w</td><td rowspan=1 colspan=3>eight perturbation [54]</td><td rowspan=1 colspan=1>WRN-34-10</td><td rowspan=1 colspan=1>88.51</td><td rowspan=1 colspan=1>74.77</td><td rowspan=1 colspan=2>73.88 (-0.89)</td><td rowspan=1 colspan=1>73.89 (-0.88)</td><td rowspan=1 colspan=1>79.38 (+4.61)</td><td rowspan=1 colspan=1>73.67 (−1.10)</td><td rowspan=1 colspan=1>73.66</td></tr><tr><td rowspan=3 colspan=7>Robustness library [14]Overfitting [37]Decoupling direction and norm [38]</td><td rowspan=1 colspan=2>ss library [14]</td><td rowspan=1 colspan=2>RN-50</td><td rowspan=1 colspan=1>90.83</td><td rowspan=1 colspan=1>69.65</td><td rowspan=1 colspan=1>70.13 (+0.48)</td><td rowspan=1 colspan=1>70.25 (+0.60)</td><td rowspan=1 colspan=1>78.15 (+8.50)</td></tr><tr><td rowspan=1 colspan=5></td><td rowspan=1 colspan=1>RN-18</td><td rowspan=1 colspan=1>88.67</td><td rowspan=1 colspan=1>68.66</td><td rowspan=1 colspan=2>68.74 (+0.08)</td><td rowspan=1 colspan=1>69.03 (+0.37)</td><td rowspan=1 colspan=1>76.19 (+7.53)</td><td rowspan=1 colspan=1>67.87 (−0.79)</td><td rowspan=1 colspan=1>67.68</td></tr><tr><td rowspan=1 colspan=1>WRN-28-10</td><td rowspan=1 colspan=1>89.05</td><td rowspan=1 colspan=1>66.56</td><td rowspan=1 colspan=2>67.00 (+0.44)</td><td rowspan=1 colspan=1>67.02 (+0.46)</td><td rowspan=1 colspan=1>74.61 (+8.05)</td><td rowspan=1 colspan=1>66.48 (−0.08)</td><td rowspan=1 colspan=1>66.44</td></tr><tr><td rowspan=1 colspan=7>MMA training [12]</td><td rowspan=1 colspan=1>WRN-28-4</td><td rowspan=1 colspan=1>88.02</td><td rowspan=1 colspan=1>66.22</td><td rowspan=1 colspan=2>66.58 (+0.36)</td><td rowspan=1 colspan=1>66.60 (+0.38)</td><td rowspan=1 colspan=1>71.44 (+5.22)</td><td rowspan=1 colspan=1>66.16 (−0.06)</td><td rowspan=1 colspan=1>66.09</td></tr></table>",
+        "bbox": [
+            78,
+            170,
+            893,
+            739
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            766,
+            470,
+            828
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "To analyze the reasons for the failure of the attack due to floating-point rounding errors, we selected $\\mathbb { Z } = \\mathbf { z } _ { y } \\textrm { - }$ $\\operatorname* { m a x } _ { i \\neq y } \\mathbf { z } _ { i }$ because its sign indicates if the attack is successful or not. We compared the change of Z for samples attacked by PGD-100 with CE loss but failed, and PGD-100 with MIFPE loss and succeeded. Figure 8 demonstrates that for samples attacked with CE loss, the value of Z rapidly approaches 0 in the first few iterations and then remains positive afterwards. On the other hand, when attacked with MIFPE loss Z smoothly drops below 0 after approaching 0. This phenomenon suggests that the floating-point rounding error primarily may cause attack failure when the samples become close to the classification boundary due to the relative error and its detrimental effect on the gradient-based attack would increase as T approaches zero after reaching the minimum.",
+        "bbox": [
+            75,
+            839,
+            470,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            765,
+            895,
+            888
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "4062",
+        "bbox": [
+            482,
+            944,
+            516,
+            958
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/d07371c8ce9fdff62365bed67a12484b56179e11c66cf0b608ac150ef3e82d5a.jpg",
+        "content": "",
+        "chart_caption": [],
+        "chart_footnote": [],
+        "bbox": [
+            86,
+            93,
+            267,
+            233
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ced55be1f3afc56c653be470216b459275eb4a9be28663a0cea09da0885b8624.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 7. We compare MIFPE to standard CE loss and other surrogate loss functions (C&W [6] and DLR [10]) on defenders [58,59]. The graph shows iterations on the horizontal axis and the percentage of unsuccessful examples on the vertical axis."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            271,
+            93,
+            460,
+            233
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/e870339d813d4618f897c5a9d7c747ddb7ceb0e755e848e1a628babdd709aceb.jpg",
+        "table_caption": [
+            "Table 2. The comparison of attack performances for FGSM [16], PGD [29], APGD DLR [10] and AA [10] using original loss functions versus MIFPE loss on CIFAR10 dataset and $\\varepsilon = 0 . 0 3 1$ with the model obtained from TRADES [59]. with the row representing the improvement achieved with MIFPE."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Attack iteration</td><td>FGSM 1</td><td>PGD 100</td><td>APGD_DLR 100</td><td>AA 4900</td></tr><tr><td>Original</td><td>79.83</td><td>79.79</td><td>45.90</td><td>40.22</td></tr><tr><td>MIFPE</td><td>49.76</td><td>40.06</td><td>40.49</td><td>39.89</td></tr><tr><td>∇</td><td>30.07</td><td>39.73</td><td>5.41</td><td>0.33</td></tr></table>",
+        "bbox": [
+            94,
+            393,
+            450,
+            472
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/731d8b64c520f3efe92046dd16e7155b6f357d6f9408a9bce5ddc13b5055e6cd.jpg",
+        "table_caption": [
+            "Table 3. Ablation study on the effect of momentum and step-size schedule on the PGD with different loss functions and under 100 iterations on CIFAR10 dataset with the model obtained from Neural level sets [3]. New components are added in consecutive rows."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Accuracy under</td><td colspan=\"4\">Loss Function</td></tr><tr><td>attack(%)</td><td>CE</td><td>C&amp;W</td><td>DLR</td><td>MIFPE</td></tr><tr><td>PGD</td><td>55.46</td><td>54.23</td><td>54.39</td><td>53.42</td></tr><tr><td>+Momentum</td><td>55.25</td><td>54.02</td><td>54.18</td><td>53.23</td></tr><tr><td>+Step-size schedule</td><td>55.21</td><td>53.94</td><td>54.11</td><td>53.22</td></tr></table>",
+        "bbox": [
+            78,
+            555,
+            468,
+            633
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            662,
+            470,
+            723
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "5. Conclusion",
+        "text_level": 2,
+        "bbox": [
+            76,
+            738,
+            197,
+            755
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "This paper reveals that relative error in calculated gradient caused by floating-point errors is a fundamental reason why gradient-based attacks fail to accurately evaluate the model’s robustness. To efficiently and accurately evaluate the model’s robustness, we introduce MIFPE , a new loss function that minimises the impact of floating-point errors on gradient-based attacks. Compared with other loss functions, MIFPE enjoys higher accuracy and faster convergence speed. Moreover, we find several surprising observations related to adversarial attacks: (1)Discarding partial elements of logits in the loss will impair the attack’s performance; (2)The floating-point rounding errors lead to the attack’s failure by causing an increasing relative error as the samples get closer to the classification boundary; (3)Increasing the precision of floating-point arithmetic cannot solve the problem of overestimating the model’s robustness caused by floating-point errors, etc. We hope that the above observations will help discover more efficient and reliable loss functions in the future. Finally, MIFPE is open source with reproducible results <sup>2</sup>.",
+        "bbox": [
+            75,
+            765,
+            472,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/c4e928d003cc1e3c69cc38fdfed5220b7fcd7257d0a1baf546969ce768b3a629.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 8. The changing process of the value of $\\mathbb { Z } ~ = ~ \\mathbf { z } _ { y } ~ -$ $\\operatorname* { m a x } _ { i \\neq y } \\mathbf { z } _ { i }$ with the number of iterations during the attack on the CIFAR10 dataset using the model from TRADES [59] and singleprecision arithmetic. The horizontal axes show the number of iterations used so far, and the vertical axes show the value of Z."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            511,
+            94,
+            880,
+            261
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            392,
+            893,
+            559
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Acknowledgments",
+        "text_level": 2,
+        "bbox": [
+            500,
+            571,
+            660,
+            588
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "This work is supported in part by Science and Technology Development Fund of Macao S.A.R (FDCT) under No. 0015/2019/AKP, 0123/2022/AFJ, and 0081/2022/A2. This work was carried out in part at SICC which is supported by SKL-IOTSC, University of Macau.",
+        "bbox": [
+            498,
+            597,
+            893,
+            667
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_footnote",
+        "text": "<sup>2</sup>Available at: https://github.com/MIFPE/Efficient-Loss-Function.",
+        "bbox": [
+            498,
+            875,
+            890,
+            900
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "4063",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            78,
+            89,
+            176,
+            106
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[1] Samet Akc¸ay, Mikolaj E Kundegorski, Michael Devereux, and Toby P Breckon. Transfer learning using convolutional neural networks for object classification within X-ray baggage security imagery. In 2016 IEEE International Conference on Image Processing (ICIP), pages 1057–1061. IEEE, 2016. 1",
+            "[2] Jean-Baptiste Alayrac, Jonathan Uesato, Po-Sen Huang, Alhussein Fawzi, Robert Stanforth, and Pushmeet Kohli. Are labels required for improving adversarial robustness? In Advances in Neural Information Processing Systems, volume 32, 2019. 1",
+            "[3] Matan Atzmon, Niv Haim, Lior Yariv, Ofer Israelov, Haggai Maron, and Yaron Lipman. Controlling neural level sets. In Advances in Neural Information Processing Systems, pages 2032–2041, 2019. 4, 7, 8",
+            "[4] Mariusz Bojarski, Anna Choromanska, Krzysztof Choromanski, Bernhard Firner, Larry J Ackel, Urs Muller, Phil Yeres, and Karol Zieba. Visualbackprop: Efficient visualization of cnns for autonomous driving. In 2018 IEEE International Conference on Robotics and Automation (ICRA), pages 1–8. IEEE, 2018. 1",
+            "[5] Nicholas Carlini, Anish Athalye, Nicolas Papernot, Wieland Brendel, Jonas Rauber, Dimitris Tsipras, Ian Goodfellow, Aleksander Madry, and Alexey Kurakin. On evaluating adversarial robustness. arXiv preprint arXiv:1902.06705, 2019. 3",
+            "[6] N. Carlini and D. Wagner. Towards evaluating the robustness of neural networks. In 2017 IEEE Symposium on Security and Privacy (SP), pages 39–57, 2017. 1, 2, 5, 6, 8",
+            "[7] Yair Carmon, Aditi Raghunathan, Ludwig Schmidt, John C Duchi, and Percy S Liang. Unlabeled data improves adversarial robustness. In Advances in Neural Information Processing Systems, volume 32, pages 11192–11203, 2019. 7",
+            "[8] Taoran Cheng, Pengcheng Wen, and Yang Li. Research status of artificial neural network and its application assumption in aviation. In 2016 12th International Conference on Computational Intelligence and Security (CIS), pages 407–410. IEEE, 2016. 1",
+            "[9] Francesco Croce and Matthias Hein. Minimally distorted adversarial examples with a fast adaptive boundary attack. In ICML, 2020. 2",
+            "[10] Francesco Croce and Matthias Hein. Reliable evaluation of adversarial robustness with an ensemble of diverse parameter-free attacks. In ICML, 2020. 1, 2, 3, 5, 6, 8",
+            "[11] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In 2009 IEEE conference on computer vision and pattern recognition, pages 248–255. Ieee, 2009. 6",
+            "[12] Gavin Weiguang Ding, Yash Sharma, Kry Yik Chau Lui, and Ruitong Huang. Mma training: Direct input space margin maximization through adversarial training. In International Conference on Learning Representations, 2020. 7",
+            "[13] Y. Dong, F. Liao, T. Pang, H. Su, J. Zhu, X. Hu, and J. Li. Boosting adversarial attacks with momentum. In 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9185–9193, 2018. 1, 2, 3",
+            "[14] Logan Engstrom, Andrew Ilyas, Hadi Salman, Shibani Santurkar, and Dimitris Tsipras. Robustness (python library), 2019. Available at: https://github.com/ MadryLab/robustness. 6, 7",
+            "[15] Ian Goodfellow. Gradient masking causes clever to overestimate adversarial perturbation size. arXiv preprint arXiv:1804.07870, 2018. 1",
+            "[16] Ian Goodfellow, Jonathon Shlens, and Christian Szegedy. Explaining and harnessing adversarial examples. In International Conference on Learning Representations, 2015. 1, 2, 8",
+            "[17] Sven Gowal, Chongli Qin, Jonathan Uesato, Timothy Mann, and Pushmeet Kohli. Uncovering the limits of adversarial training against norm-bounded adversarial examples. arXiv preprint arXiv:2010.03593, 2020. 6, 7",
+            "[18] Sven Gowal, Jonathan Uesato, Chongli Qin, Po-Sen Huang, Timothy Mann, and Pushmeet Kohli. An alternative surrogate loss for PGD-based adversarial testing. arXiv 1910.09338, 2019. 2, 3, 5",
+            "[19] Dan Hendrycks, Kimin Lee, and Mantas Mazeika. Using pre-training can improve model robustness and uncertainty. In International Conference on Machine Learning, pages 2712–2721. PMLR, 2019. 7",
+            "[20] Lang Huang, Chao Zhang, and Hongyang Zhang. Selfadaptive training: beyond empirical risk minimization. In NeurIPS, 2020. 7",
+            "[21] Qian Huang, Isay Katsman, Horace He, Zeqi Gu, Serge Belongie, and Ser-Nam Lim. Enhancing adversarial example transferability with an intermediate level attack. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 4733–4742, 2019. 3",
+            "[22] Nathan Inkawhich, Wei Wen, Hai Helen Li, and Yiran Chen. Feature space perturbations yield more transferable adversarial examples. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7066– 7074, 2019. 3",
+            "[23] Alexey Kurakin, Ian Goodfellow, and Samy Bengio. Adversarial examples in the physical world. Technical Report, Google Inc., 2017. Available at: https://arxiv.org/ abs/1607.02533. 2",
+            "[24] Yann LeCun, Yoshua Bengio, and Geoffrey Hinton. Deep learning. nature, 521(7553):436–444, 2015. 1",
+            "[25] Yann LeCun, Leon Bottou, Yoshua Bengio, and Patrick´ Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998. 6",
+            "[26] Peiliang Li, Xiaozhi Chen, and Shaojie Shen. Stereo R-CNN based 3d object detection for autonomous driving. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 7644–7652, 2019. 1",
+            "[27] Zhuoling Li, Minghui Dong, Shiping Wen, Xiang Hu, Pan Zhou, and Zhigang Zeng. CLU-CNNs: Object detection for medical images. Neurocomputing, 350:53–59, 2019. 1",
+            "[28] Ye Liu, Yaya Cheng, Lianli Gao, Xianglong Liu, Qilong Zhang, and Jingkuan Song. Practical evaluation of adversarial robustness via adaptive auto attack. 2022. 3"
+        ],
+        "bbox": [
+            84,
+            114,
+            468,
+            196
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "4064",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[29] Aleksander Madry, Aleksandar Makelov, Ludwig Schmidt, Dimitris Tsipras, and Adrian Vladu. Towards deep learning models resistant to adversarial attacks. In International Conference on Learning Representations, 2018. 1, 2, 7, 8",
+            "[30] Xiaofeng Mao, Yuefeng Chen, Shuhui Wang, Hang Su, Yuan He, and Hui Xue. Composite adversarial attacks. Association for the Advancement ofArtificial Intelligence (AAAI), 2021. 1",
+            "[31] Seyed-Mohsen Moosavi-Dezfooli, Alhussein Fawzi, and Pascal Frossard. Deepfool: a simple and accurate method to fool deep neural networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 2574–2582, 2016. 1, 2",
+            "[32] Tianyu Pang, Min Lin, Xiao Yang, Jun Zhu, and Shuicheng Yan. Robustness and accuracy could be reconcilable by (Proper) definition. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvari, Gang Niu, and Sivan Sabato, editors, Proceedings of the 39th International Conference on Machine Learning, volume 162 of Proceedings of Machine Learning Research, pages 17258–17277. PMLR, 17–23 Jul 2022. 6, 7",
+            "[33] Tianyu Pang, Xiao Yang, Yinpeng Dong, Kun Xu, Hang Su, and Jun Zhu. Boosting adversarial training with hypersphere embedding. In NeurIPS, 2020. 1, 3, 4, 7",
+            "[34] Chongli Qin, James Martens, Sven Gowal, Dilip Krishnan, Krishnamurthy Dvijotham, Alhussein Fawzi, Soham De, Robert Stanforth, and Pushmeet Kohli. Adversarial robustness through local linearization. In Advances in Neural Information Processing Systems, 2019. 3",
+            "[35] Ashish Kapoor Ratnesh Madaan. Game of drones at NeurIPS 2019: Simulation-based drone-racing competition built on AirSim. Microsoft Research Blog, 2019. Available at: https://www.microsoft.com/enus / research / blog / game - of - drones - at - neurips - 2019 - simulation - based - drone - racing - competition - built - on - airsim / ?OCID=msr\\_blog\\_gameofdrones\\_neurips\\_fb. 1",
+            "[36] Sylvestre-Alvise Rebuffi, Sven Gowal, Dan Andrei Calian, Florian Stimberg, Olivia Wiles, and Timothy Mann. Data augmentation can improve robustness. In A. Beygelzimer, Y. Dauphin, P. Liang, and J. Wortman Vaughan, editors, Advances in Neural Information Processing Systems, 2021. 7",
+            "[37] Leslie Rice, Eric Wong, and J. Zico Kolter. Overfitting in adversarially robust deep learning. In ICML, 2020. 7",
+            "[38] Jer´ ome Rony, Luiz G Hafemann, Luiz S Oliveira, Ismail Benˆ Ayed, Robert Sabourin, and Eric Granger. Decoupling direction and norm for efficient gradient-based l2 adversarial attacks and defenses. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 4322–4330, 2019. 7",
+            "[39] Hadi Salman, Andrew Ilyas, Logan Engstrom, Ashish Kapoor, and Aleksander Madry. Do adversarially robust imagenet models transfer better? Advances in Neural Information Processing Systems, 33:3533–3545, 2020. 7",
+            "[40] Vikash Sehwag, Shiqi Wang, Prateek Mittal, and Suman Jana. Hydra: Pruning adversarially robust neural networks. arXiv preprint arXiv:2002.10509, 2020. 7",
+            "[41] Ali Shafahi, Mahyar Najibi, Mohammad Amin Ghiasi, Zheng Xu, John Dickerson, Christoph Studer, Larry S Davis, Gavin Taylor, and Tom Goldstein. Adversarial training for free! In Advances in Neural Information Processing Systems, volume 32, pages 3358–3369, 2019. 1",
+            "[42] Chawin Sitawarin, Supriyo Chakraborty, and David Wagner. Improving adversarial robustness through progressive hardening. arXiv 2003.09347, 2020. 7",
+            "[43] Gaurang Sriramanan, Sravanti Addepalli, Arya Baburaj, et al. Guided adversarial attack for evaluating and enhancing adversarial defenses. Advances in Neural Information Processing Systems, 33:20297–20308, 2020. 6",
+            "[44] Jiawei Su, Danilo Vasconcellos Vargas, and Kouichi Sakurai. One pixel attack for fooling deep neural networks. IEEE Transactions on Evolutionary Computation, 2017. 2",
+            "[45] Christian Szegedy, Wojciech Zaremba, Ilya Sutskever, Joan Bruna, Dumitru Erhan, Ian Goodfellow, and Rob Fergus. Intriguing properties of neural networks. In International Conference on Learning Representations, 2014. 1, 2",
+            "[46] Yusuke Tashiro, Yang Song, and Stefano Ermon. Diversity can be transferred: Output diversification for white- and black-box attacks. In Advances in Neural Information Processing Systems, 2020. 3",
+            "[47] Marin Toromanoff, Emilie Wirbel, and Fabien Moutarde. End-to-end model-free reinforcement learning for urban driving using implicit affordances. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), June 2020. 1",
+            "[48] Florian Tramer, Nicholas Carlini, Wieland Brendel, and Aleksander Madry. On adaptive attacks to adversarial example defenses. Advances in Neural Information Processing Systems, 33:1633–1645, 2020. 3",
+            "[49] Guotai Wang, Wenqi Li, Maria A Zuluaga, Rosalind Pratt, Premal A Patel, Michael Aertsen, Tom Doel, Anna L David, Jan Deprest, Sebastien Ourselin, et al. Interactive med-´ ical image segmentation using deep learning with imagespecific fine tuning. IEEE transactions on medical imaging, 37(7):1562–1573, 2018. 1",
+            "[50] Yisen Wang, Difan Zou, Jinfeng Yi, James Bailey, Xingjun Ma, and Quanquan Gu. Improving adversarial robustness requires revisiting misclassified examples. In International Conference on Learning Representations, 2020. 1, 7",
+            "[51] Eric Wong, Leslie Rice, and J. Zico Kolter. Fast is better than free: Revisiting adversarial training. In International Conference on Learning Representations, 2020. 6, 7",
+            "[52] Boxi Wu, Jinghui Chen, Deng Cai, Xiaofei He, and Quanquan Gu. Does network width really help adversarial robustness? arXiv 2010.01279, 2020. 1",
+            "[53] Boxi Wu, Jinghui Chen, Deng Cai, Xiaofei He, and Quanquan Gu. Do wider neural networks really help adversarial robustness? In Thirty-Fifth Conference on Neural Information Processing Systems, 2021. 7",
+            "[54] Dongxian Wu, Shu tao Xia, and Yisen Wang. Adversarial weight perturbation helps robust generalization. In NeurIPS, 2020. 1, 7",
+            "[55] Chaowei Xiao, Bo Li, Jun-Yan Zhu, Warren He, Mingyan Liu, and Dawn Song. Generating adversarial examples with adversarial networks. In IJCAI, 2018. 1"
+        ],
+        "bbox": [
+            78,
+            93,
+            468,
+            147
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "4065",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[56] Yunrui Yu, Xitong Gao, and Cheng-Zhong Xu. LAFEAT: Piercing through adversarial defenses with latent features. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 5735–5745, June 2021. 3, 6",
+            "[57] Yunrui Yu, Xitong Gao, and Cheng zhong Xu. MORA: Improving ensemble robustness evaluation with model reweighing attack. In Alice H. Oh, Alekh Agarwal, Danielle Belgrave, and Kyunghyun Cho, editors, Advances in Neural Information Processing Systems, 2022. 3",
+            "[58] Dinghuai Zhang, Tianyuan Zhang, Yiping Lu, Zhanxing Zhu, and Bin Dong. You only propagate once: Accelerating adversarial training via maximal principle. In Advances in Neural Information Processing Systems, volume 32, pages 227–238, 2019. 7, 8",
+            "[59] Hongyang Zhang, Yaodong Yu, Jiantao Jiao, Eric Xing, Laurent El Ghaoui, and Michael Jordan. Theoretically principled trade-off between robustness and accuracy. In ICML, 2019. 1, 4, 5, 6, 7, 8"
+        ],
+        "bbox": [
+            80,
+            93,
+            468,
+            160
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "4066",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 10
+    }
+]

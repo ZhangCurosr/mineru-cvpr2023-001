@@ -1,0 +1,1330 @@
+[
+    {
+        "type": "text",
+        "text": "Learning to Generate Image Embeddings with User-level Differential Privacy",
+        "text_level": 1,
+        "bbox": [
+            93,
+            130,
+            874,
+            152
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Zheng Xu<sup>\\*</sup> Maxwell Collins<sup>∗</sup> Yuxiao Wang Liviu Panait Sewoong Oh Sean Augenstein Ting Liu Florian Schroff H. Brendan McMahan",
+        "bbox": [
+            129,
+            180,
+            841,
+            217
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Google Research",
+        "bbox": [
+            411,
+            222,
+            552,
+            239
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 2,
+        "bbox": [
+            233,
+            265,
+            313,
+            282
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Small on-device models have been successfully trained with user-level differential privacy (DP) for next word prediction and image classification tasks in the past. However, existing methods canfail when directly applied to learn embedding models using supervised training data with a large class space. To achieve user-level DP for large imageto-embedding feature extractors, we propose DP-FedEmb, a variant of federated learning algorithms with per-user sensitivity control and noise addition, to train from userpartitioned data centralized in the datacenter. DP-FedEmb combines virtual clients, partial aggregation, private local fine-tuning, and public pretraining to achieve strong privacy utility trade-offs. We apply DP-FedEmb to train image embedding models for faces, landmarks and natural species, and demonstrate its superior utility under same privacy budget on benchmark datasets DigiFace, EMNIST, GLD and iNaturalist. We further illustrate it is possible to achieve strong user-level DP guarantees ofϵ < 2 while controlling the utility drop within 5%, when millions of users can participate in training .",
+        "bbox": [
+            75,
+            296,
+            472,
+            602
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction",
+        "text_level": 2,
+        "bbox": [
+            76,
+            630,
+            209,
+            646
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Representation learning, by training deep neural networks as feature extractors to generate compact embedding vectors from images, is a fundamental component in computer vision. Metric learning, a kind of representation learning using supervised data, has been widely applied to image recognition, clustering, and retrieval [61, 75, 77]. Machine learning models have the capacity to memorize training data [10, 11], leading to privacy risks when the models are deployed. Privacy risk can also be audited by membership inference attacks [9, 63], i.e. detecting whether certain data was used to train a model and potentially exposing users’ usage behaviors. Defending against such risks is a critical responsibility when training on privacy-sensitive data.",
+        "bbox": [
+            75,
+            656,
+            472,
+            867
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Differential Privacy (DP) [23] is an extensively used quantifiable measurement of privacy risk, now generally accepted as a standard notion of privacy in both industry and government [5, 18, 50, 70]. Applied to machine learning, DP requires a training procedure with explicit randomness, and guarantees that the distribution over output models is quantifiably similar given a certain scope of change to the training dataset. A DP guarantee with respect to the change of a single arbitrary training example is known as examplelevel DP, which provides plausible deniability (in the binary hypothesis testing sense of [38]) that any single example (e.g., image) occurred in the training dataset. If we instead consider how the distribution of output models changes if the data (including even the number of examples) from any single user change arbitrarily, we have user-level DP [22]. This ensures model training is quantifiably insensitive to all of the data from any one user, and hence it is impossible to tell if a user has participated in training with high confidence. This guarantee can be exponentially stronger than example-level DP if one user may contribute many examples to training.",
+        "bbox": [
+            496,
+            267,
+            895,
+            585
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Recently, DP-SGD [1] (essentially, SGD with the additional steps of clipping each individual gradient to have a maximum norm, and adding correspondingly calibrated noise) has been used to achieve example-level DP for relatively large models in language modeling and image classification tasks [4, 16, 42, 45, 81], often utilizing techniques like large batch training and pretraining on public data. DP-SGD can be modified to guarantee user-level DP, which is often combined with federated learning algorithms and called DP-FedAvg [49]. User-level DP has only been studied for small on-device models that have less than 10 million parameters [36, 49, 57].",
+        "bbox": [
+            496,
+            590,
+            893,
+            773
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "We consider user-level DP for relatively large models in representation learning with supervised data. In our setting, similar to federated learning (FL), the data are userpartitioned; but in contrast to decentralized FL, we are primarily motivated by centralized data that benefit from access to richer computation resources and the ability to form virtual clients at random. Throughout this work, we use user as the basic unit of data partitioning and the granularity for privacy; a user owns their (image) data, and class, identity and label are used interchangeably for the supervised information.",
+        "bbox": [
+            496,
+            780,
+            895,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "",
+        "bbox": [
+            104,
+            2,
+            181,
+            41
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore.",
+        "bbox": [
+            235,
+            0,
+            810,
+            46
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "\\*The first two authors contributed equally. Correspondence to Zheng Xu xuzheng@google.com",
+        "bbox": [
+            75,
+            875,
+            470,
+            901
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_number",
+        "text": "7969",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/8bfbb5fa203c4337dedad82a76565e8a67a01dcf18a7ffc56af8b974246453f4.jpg",
+        "image_caption": [
+            "Figure 1. DP-FedEmb combines virtual clients, local fine-tuning, partial aggregation, and public pretraining to achieve strong privacy utility trade-offs. Colors indicate different users and the simplified case of a single class per user, coloring the softmax head accordingly."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            142,
+            89,
+            828,
+            320
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            376,
+            470,
+            421
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Though typically each user only contributes images for a small number of classes, the combined class space from the union of all users can be very large, which proves challenging for existing DP algorithms. When the model size is fixed independent of the number of users, and at a relatively small scale with a few million parameters, previous methods can only achieve strong user-level DP when millions of users are available [36, 49, 57]. In contrast, when considering learning embedding models for applications like facial images, the number of classes (and hence, the total model size) can grow linearly with the number of users, and so simply scaling up to larger datasets with more users no longer ensures that good privacy-utility trade-offs can be achieved. For example, in a standard multi-class training paradigm with 128-dimensional embedding vectors, with one million users we expect the final dense layer for prediction alone to have over 128 million trainable parameters. Further, the fact that most users will only have examples from a small number of classes implies that gradients are approximately sparse, whereas DP-SGD requires the addition of dense noise to the full gradient, leading to a poor signal-to-noise ratio in the updates. Hence, existing methods can easily fail on the problems we consider.",
+        "bbox": [
+            75,
+            428,
+            472,
+            776
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We propose DP-FedEmb to train embedding models with user-level differential privacy; Fig. 1 provides a highlevel overview. DP-FedEmb combines public pretraining, virtual clients, local fine-tuning, and partial aggregation to achieve strong privacy-utility trade-offs. The key to the approach is partitioning the model into a backbone network that generates embeddings, and a classification softmax head specific to the classes in the training data. In each training round, users are grouped into virtual clients and initialized from the global backbone. A local randomlyinitialized softmax head layer is added for the limited number of classes on the virtual client, and the complete local model is fine-tuned in order to produce an update to the backbone. The local head parameters are not included in the private aggregation and hence require no noise addition. This is in contrast to existing methods like DP-FedAvg/DP-SGD, which would add noise to all parameters including the softmax head. The backbone updates are clipped to a maximum L2 norm, aggregated across virtual clients, and combined with appropriate DP noise. At this point, the noised update is the output of a DP mechanism and satisfies the corresponding DP guarantee. This update is then applied to the global backbone, which inherits the DP guarantee, and passed to the next round of training. DP-FedEmb significantly improves the scalability of DP training for embedding models, as only the parameters of the backbone network are privatized and released, and the size of this portion of the model does not grow with the number of users. Pretraining the backbone network on public data to learn general visual representations before applying DP-FedEmb for more privacy sensitive tasks further improves performance.",
+        "bbox": [
+            75,
+            780,
+            472,
+            902
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            376,
+            895,
+            726
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "We demonstrate the superior performance of DP-FedEmb for embedding models by experiments on datasets with moderate size of users and classes (DigiFace of 98.96K or 9047 users / identities, Google Landmarks Dataset of 1262 users and 2028 classes, and iNaturalist of 9275 users and 1203 classes). We also show relatively strong privacy guarantees of single digit ϵ can be achieved while maintaining strong utility if millions users can participate in training. To our knowledge, this is the first report of training a commonly used large vision model, ResNet-50, with non-negligible noise for user-level DP.",
+        "bbox": [
+            496,
+            734,
+            895,
+            902
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "page_number",
+        "text": "7970",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2. Learning Embedding Models",
+        "text_level": 2,
+        "bbox": [
+            76,
+            89,
+            348,
+            107
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2.1. Problem formulation and centralized training",
+        "text_level": 2,
+        "bbox": [
+            76,
+            113,
+            464,
+            131
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "We learn a backbone network parameterized by θ, that outputs an embedding vector $z = f ( \\theta , x )$ for an input image x. The backbone network, θ, is trained on paired examples of image x and class $y .$ . The training dataset is naturally partitioned by M users, i.e., $\\textstyle { \\mathcal { D } } = \\bigcup _ { i = 1 } ^ { M } { \\mathcal { D } } _ { i }$",
+        "bbox": [
+            75,
+            137,
+            470,
+            213
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "We adopt the popular multi-class training framework for embedding models, where a proxy weight vector $w _ { j }$ is learnt for each class $j .$ . We use ω to denote the union of proxy weight vectors $\\{ w _ { j } \\}$ , which is called the head of the network. Given a training image-class pair $( x , y )$ , logits are computed by taking the inner product between the embedding vector $f ( \\theta , x )$ and the proxy weight vectors in the network head $\\omega .$ . This is effectively passing $f ( \\theta , x )$ through a dense network layer parameterized by ω without the bias terms. With a supervised training loss $\\ell ,$ such as the cross entropy loss, the following objective is optimized",
+        "bbox": [
+            75,
+            213,
+            470,
+            380
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/8d0a9ae3271136e706820c5419eec5f624916af95fba3004d981f7e3bcb25e12.jpg",
+        "text": "$$\n\\operatorname* { m i n } _ { \\theta , \\omega } \\quad \\sum _ { ( x , y ) \\in \\mathcal { D } } \\ell ( \\langle \\omega , f ( \\theta , x ) \\rangle , y ) ,\\tag{1}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            160,
+            386,
+            383,
+            419
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where we overload the inner product notation, $\\mathrm { i . e . }$ $\\langle \\omega , f ( \\theta , x ) \\rangle$ ⟩, to denote a set of inner products with each element in $\\omega .$ . Typically, variants of the gradient descent method are used to solve the optimization in (1). In each iteration, the average gradient is computed on a sampled minibatch of data $B \\subset \\mathcal { D }$ , and is then used to update the model parameters $\\theta$ and $\\omega .$ Furthermore, when the output space, i.e., the number of classes, is very large, sampled softmax is often applied [35], where only a subset of proxy weights sampled from ω are used in each training iteration.",
+        "bbox": [
+            75,
+            425,
+            470,
+            577
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2.2. User-level DP and DP-FedAvg",
+        "text_level": 2,
+        "bbox": [
+            76,
+            583,
+            344,
+            598
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "To achieve user-level DP, we control the sensitivity of each user and add corresponding noise for anonymization. To effectively control the sensitivity, it is important to understand and account for the contributions of each user in the model updates; hence it is convenient to consider the data at a granularity of users instead of individual samples. Grouping together each user’s data, the objective (1) can be rewritten as",
+        "bbox": [
+            75,
+            606,
+            472,
+            727
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "img_path": "images/f8b3d16e69ff2afb1560c259766dcc0c69fd9faef8adc818d6e287720b438803.jpg",
+        "text": "$$\n\\operatorname* { m i n } _ { \\theta , \\omega } \\ \\sum _ { i = 1 } ^ { M } \\sum _ { ( x , y ) \\in \\mathcal { D } _ { i } } \\ell ( \\langle \\omega , f ( \\theta , x ) \\rangle , y ) .\\tag{2}\n$$",
+        "text_format": "latex",
+        "bbox": [
+            143,
+            729,
+            400,
+            773
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The above objective of two level sum is often found in federated learning [73], which can be optimized by the (generalized) FedAvg algorithm [48, 58]. In generalized FedAvg, each round t starts with the server broadcasting $\\theta ^ { ( t ) } , \\omega ^ { ( \\bar { t } ) }$ to a subset of clients. Each client i will then update the local model parameters by CLIENTOPT with private data $\\mathcal { D } _ { i } ,$ and send back the updates for model parameters $\\Delta _ { i } ( \\theta ^ { ( t ) } ) , \\Delta _ { i } ( \\omega ^ { ( t ) } )$ . The model deltas from sampled clients are then aggregated and used by SERVEROPT to get $\\theta ^ { ( t + 1 ) } , \\omega ^ { ( t + 1 ) }$ for the next round.",
+        "bbox": [
+            75,
+            780,
+            470,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            498,
+            92,
+            892,
+            121
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The generalized FedAvg algorithm can be extended for user-level DP by clipping the model deltas and adding noise proportional to the sensitivity [27,49]. We can use either independent Gaussian noise [49], or correlated noise that can achieve comparable privacy-utility trade-off without relying on the assumption of sampling [36]. The two variants are effectively applying DP-SGD [1] or DP-FTRL [36] as SERVEROPT in the generalized FedAvg framework. Unlike the cross-device FL setting where sampling is extremely hard, it is possible to control user sampling in the datacenter and use DP-SGD. But DP-FTRL provides the possibility of handling the online setting where the user data are streamed instead of collected, and can be accounted for zCDP [7] reported by US census bureau [70]. A complete description of DP-FedAvg for training a backbone network to generate image embeddings is in Alg. 2 in Appendix B",
+        "bbox": [
+            496,
+            122,
+            893,
+            364
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "In addition to the flexibility of generalized FedAvg for user-level DP, there are a few side effects of FedAvg that make it particularly effective for differentially private training. The model deltas are computed based on data for each user before clipping in DP, which can potentially reduce the bias introduced by clipping. As [16] suggested that averaging gradients from augmented data before clipping can improve training for example-level DP, model deltas from user data for user-level DP can be considered a natural extension to improve the bias-variance trade-off. The communication efficiency of FedAvg that leads to infrequent aggregation and model release is also desirable for DP training. The local model updates by private data on clients introduce no additional privacy cost, and only communication rounds between clients and server have to be accounted for DP. Though the theoretical advantages of FedAvg are only proved under certain assumptions [74, 78], FedAvg with local updates can achieve communication efficiency and fast convergence in various practical applications [73].",
+        "bbox": [
+            496,
+            364,
+            893,
+            654
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2.3. Proposed DP-FedEmb method",
+        "text_level": 2,
+        "bbox": [
+            500,
+            664,
+            771,
+            680
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "While generalized DP-FedAvg can be applied to train a backbone network θ to generate embedding $f ( \\theta , x )$ from image x, there are challenges that significantly affect the efficiency and feasibility of the method. We propose DP-FedEmb with a few key features: virtual clients, partial aggregation, local fine-tuning, public pretraining, and parameter freezing. Details of DP-FedEmb are provided in Alg. 1.",
+        "bbox": [
+            496,
+            688,
+            893,
+            794
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Virtual clients. Data heterogeneity is one of the key problems in federated optimization [73]. When we train embedding models in the multi-class framework, the class space can be very large and each user may only observe a limited number of classes. In the extreme case, when training embedding models on facial images [61, 66], each user may only have images for their own identity. This significantly limits the advantage of local updates due to client drift [39], and even with specialized regularization like [82], FedSGD [48] with frequent aggregation and model release has to be used instead of FedAvg. It is challenging to use some specialized techniques for handling data heterogeneity [73] in DP training. Instead, we propose a simple yet effective approach: randomly groups the data of sampled users into virtual clients.",
+        "bbox": [
+            496,
+            795,
+            893,
+            901
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "7971",
+        "bbox": [
+            482,
+            944,
+            514,
+            957
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_footnote": [],
+        "code_body": "Algorithm 1: DP-FedEmb: learning embedding   \nmodel θ with user-level DP   \nInput: SERVEROPT with learning rate α;   \nCLIENTOPT with learning rate $\\beta _ { 1 }$ and $\\beta _ { 2 } ;$   \nclip norm γ and noise multiplier $\\sigma ;$   \n(optional) pretrained model $\\mathbf { \\bar { \\theta } } ^ { ( 0 ) }$   \n1 for round $t = 0 , 1 , \\ldots , T - 1$ do   \n2 Sample a subset of users $\\mathcal { U } ^ { ( t ) }$   \n3 Partition users $\\mathcal { U } ^ { ( t ) }$ to virtual clients $\\mathbf { \\mathcal { S } } ^ { ( t ) }$   \n4 for each virtual client $V \\in S ^ { ( t ) }$ in parallel do   \n5 Initialize backbone $\\boldsymbol { \\theta } _ { V } ^ { ( t , 0 ) } = \\boldsymbol { \\theta } ^ { ( t ) }$   \n6 Randomly initialize head $\\omega _ { V } ^ { ( t , 0 ) }$   \n7 for $k = 0 , \\ldots , K - 1$ do   \n8 Sample minibatch $B \\subset \\textstyle \\bigcup _ { i \\in V } { \\mathcal { D } } _ { i }$   \n9 Compute gradients $\\nabla _ { { \\boldsymbol { \\theta } } _ { V } } \\ell _ { B } , \\mathsf { \\overline { { V } } } _ { \\omega _ { V } } \\ell _ { B } ,$   \nwhere   \n$\\ell _ { B } = \\mathbb { E } _ { ( x , y ) \\in B } \\ell ( \\langle \\omega _ { V } , f ( \\theta _ { V } , x ) \\rangle , y )$   \n10 Update $\\theta _ { V } ^ { ( t , k + 1 ) }$ by CLIENTOPT, $\\theta _ { V } ^ { ( t , k ) }$   \n$\\nabla _ { \\boldsymbol { \\theta } _ { V } } \\ell _ { B } , \\dot { \\beta } _ { 1 }$   \n11 Update $\\omega _ { V } ^ { ( t , k + 1 ) }$ by CLIENTOPT, $\\omega _ { V } ^ { ( t , k ) }$   \n$\\nabla _ { \\omega _ { V } } \\ell _ { B } , { \\dot { \\beta } } _ { 2 }$   \n12 end   \n13 Compute clipped model update   \n$\\Delta _ { V } ^ { ( t ) } = \\mathrm { C l i p } ( \\theta _ { V } ^ { ( t , K ) } - \\theta _ { V } ^ { ( t , 0 ) } , \\gamma )$   \n14 end   \n15 Aggregate model updates   \n$\\begin{array} { r } { \\Delta ^ { ( t ) } = \\mathrm { A d d N o i s e } \\Big ( \\sum _ { V \\in \\mathcal { S } ^ { ( t ) } } \\Delta _ { V } ^ { ( t ) } , \\sigma \\gamma \\Big ) \\Big / | \\mathcal { S } ^ { ( t ) } | } \\end{array}$   \n16 Update global backbone parameters   \n$\\boldsymbol { \\theta } ^ { ( t + 1 ) } = \\mathrm { S E R V E R O P T } ( \\boldsymbol { \\theta } ^ { ( t ) } , \\Delta ^ { ( t ) } , \\alpha )$   \n17 end",
+        "bbox": [
+            76,
+            92,
+            467,
+            583
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            613,
+            470,
+            734
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Unlike the cross-device FL setting where the on-device data of users cannot be directly communicated, virtual clients are feasible for user data in the datacenter. It is important to guarantee that a user will not be included in two virtual clients in a single round for user-level DP, analogous to microbatches for DP-SGD and example-level DP [1, 51]. When the grouping of users for virtual clients is fixed in advance across rounds, the granularity of the DP definition can slightly change: the adjacent dataset for DP is based on virtual clients (a group of users) instead of a single user, which has conceptually stronger privacy guarantees. However, when virtual clients are randomly regrouped across rounds as in Alg. 1, we can only show user-level DP as discussed in Appendix C. Virtual clients also control the interpolation between federated training and centralized training: when all users are grouped into a single virtual client, federated training is equivalent to centralized training, which removes heterogeneity but is challenging for DP mechanism. Virtual clients are used for both baseline DP-FedAvg and the proposed DP-FedEmb method.",
+        "bbox": [
+            75,
+            734,
+            470,
+            902
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            498,
+            90,
+            893,
+            228
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Partial aggregation and local fine-tuning. Another challenge is the number of parameters in DP training. A common backbone θ of ResNet-50 for 128 dimensional embedding vectors has 23.77 million parameters. However, the parameter size of head ω can linearly grow with the number of classes. Taking FaceNet [61, 66] as an example again, ω can easily grow to 1280 million for 10 million identities in real-world applications. Sampled softmax [35, 72] can be applied to improve training efficiency. However, as both backbone θ and head ω are shared among users and need to be privatized by adding noise during training, the combined parameter size of $( \\theta , \\omega )$ will significantly affect the privacy utility trade-off, which cannot be mitigated by sampled softmax.",
+        "bbox": [
+            498,
+            229,
+            893,
+            440
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In DP-FedEmb, inspired by federated reconstruction [65] and DP personalization [34], we only aggregate and privatize the backbone network θ, which is used in inference and has fixed parameter size that does not grow with classes. A local head ω<sub>V</sub> is randomly initialized and updated on each virtual client V. A fine-tuning approach is adopted for local updates, where different learning rates $\\beta _ { 1 } , \\beta _ { 2 }$ are used for the backbone $\\theta _ { V }$ and head $\\omega _ { V }$ , respectively. When combined with virtual clients, the partial aggregation and local fine-tuning approach can be interpreted in various ways: each virtual client is performing transfer learning given a shared backbone network for representation learning; the data of each class are their own positive samples as well as negative samples for other classes on the same virtual client; the size of local head $\\omega _ { V }$ is also significantly smaller than ω for all classes, which is effectively a user-based sampling for softmax.",
+        "bbox": [
+            498,
+            443,
+            893,
+            700
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Public pretraining. The parameter size of the backbone to be privatized can still be large after applying partial aggregation and local fine-tuning with virtual clients, e.g., 23.77 million for ResNet-50. Inspired by recent research on applying DP-SGD for example-level DP on large language modeling [45, 81] and image classification [16, 42], we use a model pretrained on public images to initialize the DP training of the backbone network. There is a relatively clear distinction between the public and private domains for our task: we use public images collected from open webpages for pretraining, and then privately train on users’ data collected in a datacenter.",
+        "bbox": [
+            496,
+            702,
+            893,
+            883
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Parameter freezing. Neural networks are known to be overparameterized, and not all weights are equally important [26, 84]. Freezing some parameters to be non-trainable has been shown to be effective when the privacy budget is small [64], especially when combined with public pretraining for large models [16, 81]. For backbone convolutional neural networks with normalization layers, we experiment with training parameters with all normalization layers, and some of the convolutional kernels. However, freezing is found to be less efficient in our setting that performs representation learning, instead of classification, for a moderate size model in the high-utility-moderate-noise regime.",
+        "bbox": [
+            517,
+            885,
+            893,
+            900
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "7972",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            92,
+            470,
+            257
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "DP mechanism and hyperparameters. Similar to generalized DP-FedAvg, we perform clipping for model deltas and add noise for aggregated updates. The clip norm γ is estimated by adaptive clipping [3] in the parameter tuning stage. For DP-FedEmb, we perform extensive studies on several configurations in Sec. 3. Differentially private hyperparameter tuning [55] is a topic out of the scope of this paper, and automating hyperparameter tuning is an important future work. Either independent Gaussian noise like DP-SGD [49] or tree-based correlated noise like DP-FTRL [36] can be added. Under the same noise multiplier, DP-FedEmb will achieve the same privacy bound as DP-FedAvg with virtual clients, while utility can be improved for training a backbone network with a large head.",
+        "bbox": [
+            75,
+            257,
+            472,
+            470
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "3. Experiments",
+        "text_level": 2,
+        "bbox": [
+            76,
+            482,
+            210,
+            500
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We conduct experiments to train image-to-embedding backbone networks with user-level DP. We use the Digi-Face dataset [6] of synthetic faces based on ethical and responsible development considerations, and verified that the conclusions on DigiFace are very similar to conclusions generated from experiments on natural facial images. We randomly split the DigiFace dataset of 110K identities and 1.22M into subsets of 98.96K identities with 1.10M images for training, 5443 identities with 58.24K images for validation, and 5598 identities with 60.82K images for testing. We extensively use a smaller training set, Digi-Face10K, which contains the 9047 training identities of 72 images sampled from the DigiFace training set. We also run experiments on public datasets of natural images: EMNIST, Google Landmarks Dataset (GLD) and iNaturalist (iNat) dataset. These datasets are summarized in Tab. 3.",
+        "bbox": [
+            75,
+            507,
+            472,
+            750
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "In our setting, each user holds only the images of their own identities, i.e., user-level DP is also identity-level DP. We use ResNet-50 [31] and MobileNetV2 [32, 60, 73] as backbone networks, replace batch normalization [33] with group normalization [80], and use a multi-class framework with a large softmax head to train the backbone. The dimension of the embeddings are 128 for all experiments.",
+        "bbox": [
+            75,
+            750,
+            470,
+            856
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We evaluate the performance of the backbone network based on predicting identity matches from the distance between two image embeddings. By varying a threshold on the pairwise similarity, a recall versus false accept rate (FAR) curve on the test data can be generated for a trained model. A scalar value of recall@FAR=1e−3 is often reported. The privacy guarantees are computed by either using Renyi differential privacy (RDP) [53] and converting to (ϵ, δ)-DP by [8], or DP-FTRL accounting without restart [36]. More discussion on privacy accounting can be found in Appendix C. We aim for single-digit ϵ when δ is small, and sometimes relax to ϵ ∼ 20 as we use the stronger substitute-one DP definition [56].",
+        "bbox": [
+            75,
+            856,
+            470,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            92,
+            893,
+            242
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We compare the proposed DP-FedEmb with non-private oracle performance of centralized training, and baseline methods DP-FedAvg. We tune the learning rate with learning rate scheduling for standard centralized training. The centralized baseline is provided as an oracle for non-private training performance. We exclude tricks like data augmentation for either centralized or federated training as the goal is not achieving state-of-the-art performance. Virtual clients are used to improve DP-FedAvg performance, and the same tuning strategy is applied for DP-FedEmb and DP-FedAvg. In most of the experiments, unless otherwise specified, we fix the hyperparameters in the federated setting and only tune the learning rates; the backbone networks are pretrained on classifying the 1000 classes of ImageNet [59]; both CLIENTOPT and SERVEROPT are SGD optimizers with momentum 0.9; and more details are provided in Sec. 3.3. Code is released at https: //github.com/google-research/federated/ tree/master/dp\\_visual\\_embeddings.",
+        "bbox": [
+            496,
+            242,
+            895,
+            531
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "3.1. Privacy-utility-computation trade-off",
+        "text_level": 2,
+        "bbox": [
+            500,
+            542,
+            825,
+            559
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We study the privacy-utility-computation trade-offs of training ResNet-50 on DigiFace10K in Fig. 2 and Fig. 6. Figure 2a shows the privacy-utility trade-off. Without adding noise, the federated algorithms (DP-)FedAvg and (DP-)FedEmb can achieve even better results than the nonprivate centralized baseline, which is consistent with recent empirical and theoretical justifications that FedAvg is more accurate when learning representations [14, 15]. When the same noise multiplier is used, i.e., under same privacy budget, DP-FedEmb outperforms DP-FedAvg; and the margin increases when increasing the noise. We can observe the advantage of DP-FedEmb over DP-FedAvg even if we only have a small number of identities in DigiFace: the size of the head is 9047 × 128 ∼ 1.16M, only 4.6% of the backbone ResNet-50 with 23.77M parameters. For large scale data with 10 million identities, the size of the head can grow to 1280M, which is much larger than the backbone networks, and DP-FedAvg can easily fail in such settings.",
+        "bbox": [
+            496,
+            568,
+            895,
+            839
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "It can be difficult to achieve a strong formal differential privacy bound without significantly hurting utility for Digi-Face10K, which only has a small number of total users. We consider the practical setting of more available users, and study the privacy-computation trade-off in Figs. 2c, 2d, 6b and 6c based on extrapolation. A key hypothesis following [36,49] is used: utility (Recall@FAR) is non-decreasing when simultaneously increasing the number of clients per round and noise multiplier. The hypothesis is based on the fact that the signal-to-noise ratio is non-decreasing when linearly increasing the number of clients per round and noise multiplier, and has been verified in practice [50, 57].",
+        "bbox": [
+            496,
+            840,
+            893,
+            901
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "7973",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "chart",
+        "img_path": "images/985c25fdcedc9eb5acb1de8b88032726b89c347df6a588aba4e1a57a9dbe5e23.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            91,
+            93,
+            277,
+            202
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/bde7e4bcc7bffcb5559e2f0ab501eaf832e8f98afc15d48e5c142ac8514334b2.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            284,
+            92,
+            457,
+            202
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a696fec62e36d39d41988d3e3bbdcc1f2924b32c8bd75d7e40d5d079497311fb.jpg",
+        "content": "",
+        "chart_caption": [
+            "(c)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            464,
+            90,
+            665,
+            202
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/c4b9787cc7965c42fa8f32e3d11a65b6f3c20e232c261983794de88bc705625c.jpg",
+        "content": "",
+        "chart_caption": [
+            "(d)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            673,
+            89,
+            875,
+            200
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a95001f6b93536f7b809e02682c80f5ec8491c24d59d9f0f035705457bc71b41.jpg",
+        "content": "",
+        "chart_caption": [
+            "Figure 2. (a) Recall@FAR=1e−3 on DigiFace validation set under different noise multiplier; (b) zoom in the high utility regime in (a); (c) and (d) privacy-computation trade-off by extrapolating based on 3M and 10M total users, respectively. ”r400” and ”r800” represent the result at 400 or 800 training rounds; target 71.77% is 95% of centralized non-private recall@ $\\mathrm { F A R { = } 1 e { - } 3 }$ at 75.55%.",
+            "(a)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            81,
+            287,
+            266,
+            404
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "chart",
+        "img_path": "images/ea493ada0c58822aa2ffa111ddaf900425834316ec81e4520ece7e9aed77e906.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b)",
+            "Figure 3. DP-FedEmb and DP-FedAvg on DigiFace10K under the same privacy budget with noise multiplier 0.08, and additional oracle baseline of centralized training w/o DP: (a) recall@FAR=1e−3 on validation dataset during training; dashed lines are approximation by sampling a subset of validation users; (b) ROC curve of trained model on test set with log scale x-axis."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            274,
+            282,
+            462,
+            401
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            75,
+            536,
+            470,
+            657
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We first choose the noise multiplier that is within 5% of recall@FAR=1e−3 compared to centralized non-private training in Figs. 2a and 6a, based on simulation that samples 64 virtual clients that each have 32 users per round: recall@FAR=1e−3 is 72.16 for running DP-FedAvg with 0.01 noise multiplier for 400 rounds, 72.37 for running DP-FedAvg with 0.015 noise multiplier for 800 rounds, 71.3 for running DP-FedEmb with 0.015 noise multiplier for 400 rounds, 72.6 for running DP-FedEmb with 0.02 noise multiplier for 800 rounds, and 71.85 for running DP-FTRL-FedEmb with 0.26 noise multiplier for 800 rounds. Then we linearly increase the number of users sampled and use the increased noise multiplier in RDP accounting to compute privacy bound ϵ given $\\delta = 1 0 ^ { - 7 }$ to generate Figs. 2c, 2d and 6b, and compute zCDP for Fig. 6c. Comparing curves of r400 and r800, training longer with larger noise is more effective than training shorter with smaller noise. Figure 2c suggests ∼98K users per round is enough for DP-FedEmb to achieve single-digit ϵ if 3M users are available, while ∼57K users per round are needed if 10M users are available in Fig. 2d. 98K users is 48× the number of users per round in our current simulation, which can be achieved by training with 8× computing resources for 6× longer. In Fig. 6b, there is a crossover point when using DP-FTRL versus DP-SGD for DP-FedEmb, and DP-FTRL is more effective for relatively large privacy ϵ. Figure 6c shows that DP-FTRL-FedEmb can achieve zCDP smaller than 2.6, as used by US Census Bureau [70], when 8× users per round and 10M total users are available.",
+        "bbox": [
+            75,
+            659,
+            472,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            284,
+            893,
+            481
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "3.2. Model evaluation",
+        "text_level": 2,
+        "bbox": [
+            500,
+            491,
+            671,
+            507
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In Tab. 1, we summarize the quantitative results from the privacy-utility-computation trade-off analysis in Sec. 3.1. Each experiment runs three times to compute the mean and standard deviation. For similar recall@FAR=1e−3 on the DigiFace validation set, DP-FedEmb achieves stronger privacy guarantee than baseline DP-FedAvg, and the advantage of DP-FedEmb is expected to be more pronounced if a head for larger 10M identities is used for training. When 10M users are available and 64× users per round in training, privacy $\\epsilon ~ = ~ 3 . 9 0$ of single digit and zCDP= 1.28 smaller than 2.6 can be achieved when recall@FAR=1e−3 is within a 5% drop compared with non-private centralized training. In addition to validation performance, the private models also perform well on the left-out test dataset. Figure 3 presents the training curves and ROC curves for comparing DP-FedEmb and DP-FedAvg under the same privacy budget. DP-FedEmb outperforms DP-FedAvg in all training rounds, and trains a stronger private model with better recall at different false accept rates.",
+        "bbox": [
+            496,
+            516,
+            895,
+            805
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "3.3. Ablation study",
+        "text_level": 2,
+        "bbox": [
+            500,
+            815,
+            650,
+            832
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We primarily use MobileNetV2 for ablation studies on DigiFace10K for two reasons: MobileNetV2 is smaller and faster for training in experiments; to test the generalization of DP-FedEmb and avoid overfitting on ResNet-50.",
+        "bbox": [
+            496,
+            839,
+            893,
+            901
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "7974",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "table",
+        "img_path": "images/2bd59611bae0e282b21b47b5ab288ca2ebe7c16fb46cf721627a0220fb319377.jpg",
+        "table_caption": [
+            "Table 1. Quantitative results of privacy and utility on the DigiFace10K dataset. The client learning rate and clip norm for federated algorithms are 0.002 and 0.6, respectively; $\\delta = 1 0 ^ { - 7 }$ for privacy guarantees. Centralized training has a standard learning rate scheduling, while tricks like data augmentation are excluded for all methods. The privacy guarantees are extrapolated based on 10M users and 131K users per round. A strong privacy guarantee can be achieved within a 5% drop on recall@FAR=1e−3."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=2 colspan=1>Algorithm</td><td rowspan=1 colspan=2>Hyperparameters</td><td rowspan=1 colspan=2>Privacy (10M users)</td><td rowspan=1 colspan=2>Recall@FAR=1e-3</td></tr><tr><td rowspan=1 colspan=1>Noise</td><td rowspan=1 colspan=1> $\\overline { { \\mathrm { ~ \\tiny ~ S e r L R ~ } } }$ </td><td rowspan=1 colspan=1> $\\overline { { \\mathrm { R D P – } \\epsilon } }$ </td><td rowspan=1 colspan=1> $\\overline { { \\mathbf { z C D P } } }$ </td><td rowspan=1 colspan=1>Validation</td><td rowspan=1 colspan=1>Test</td></tr><tr><td rowspan=1 colspan=1>Centralized</td><td rowspan=1 colspan=1>0</td><td rowspan=1 colspan=1>0.05</td><td rowspan=1 colspan=1>∞</td><td rowspan=1 colspan=1>∞</td><td rowspan=1 colspan=1> $\\overline { { 7 5 . 5 5 \\pm 0 . 0 5 } }$ </td><td rowspan=1 colspan=1> $7 5 . 5 3 \\pm 0 . 1 2$ </td></tr><tr><td rowspan=1 colspan=1>DP-FedAvg</td><td rowspan=1 colspan=1> $\\overline { { 0 . 0 1 5 \\times 6 4 } }$ </td><td rowspan=1 colspan=1>0.5</td><td rowspan=1 colspan=1>5.62</td><td rowspan=1 colspan=1>-</td><td rowspan=1 colspan=1> $\\overline { { 7 2 . 5 7 \\pm 0 . 1 2 } }$ </td><td rowspan=1 colspan=1> $\\overline { { 7 2 . 3 7 \\pm 0 . 0 9 } }$ </td></tr><tr><td rowspan=1 colspan=1>DP-FedEmb</td><td rowspan=1 colspan=1> $0 . 0 2 \\times 6 4$ </td><td rowspan=1 colspan=1>0.2</td><td rowspan=1 colspan=1>3.90</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1> $\\overline { { 7 2 . 6 3 \\pm 0 . 0 5 } }$ </td><td rowspan=1 colspan=1> $\\overline { { 7 2 . 3 7 \\pm 0 . 0 9 } }$ </td></tr><tr><td rowspan=1 colspan=1>DP-FTRL-FedEmb</td><td rowspan=1 colspan=1> $0 . 2 6 \\times 6 4$ </td><td rowspan=1 colspan=1>0.2</td><td rowspan=1 colspan=1>9.67</td><td rowspan=1 colspan=1>1.28</td><td rowspan=1 colspan=1> $\\overline { { 7 2 . 2 \\pm 0 . 2 9 } }$ </td><td rowspan=1 colspan=1> $\\overline { { 7 1 . 8 7 \\pm 0 . 2 6 } }$ </td></tr></table>",
+        "bbox": [
+            163,
+            87,
+            805,
+            184
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/74e8446a89fd2ff93d9bf434505b85e5cb125dc8aeb2cdda4be83d105b707a47.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            81,
+            276,
+            284,
+            395
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/7f02bf50c34f1b990816a7350de32cc3e833ad652c7e26ed882c28adfd584c01.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b)",
+            "Figure 4. Recall@FAR=1e−3 on DigiFace validation set when training a MobileNet (a) with DP-FedEmb w/ pretraining, and baselines of DP-FedEmb w/o pretraining and DP-FedAvg; (b) with different pretrained models."
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            290,
+            280,
+            464,
+            393
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Parameter freezing and public pretraining. For similar parameter size, MobileNetV2 outperforms ResNet-50 with frozen parameters, and Fig. 4a shows the privacyutility trade-off. Recall $\\circled { a } \\mathrm { F A R { = } 1 e { - } 3 }$ of DP-FedEmb-r800 on MobileNetV2 only drops from 68.86% to 67.56% when 0.02 noise is added, while ResNet-50 drops from 79.09% to 72.6%. However, ResNet-50 still outperforms MobileNetV2 by a large margin in the high utility regime. DP-FedEmb consistently outperforms DP-FedAvg when noises are added. In Fig. 4b, though the private fine-tuning utility is not linearly increasing with pretraining accuracy, there seems to be a general positive correlation: better pretrained models can lead to better private models except for one outlier where a inferior pretrained model causes difficulty in training. More discussion on parameter freezing and public pretraining is provided in Appendix D.4.",
+        "bbox": [
+            75,
+            492,
+            472,
+            734
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Federated settings. In the above experiments, we fix important hyperparameters for the federated setting: users per virtual client is 32, virtual clients per round is 64, examples per client is capped at 2048, the head learning rate (LR) scale $\\beta _ { 2 } / \\beta _ { 1 }$ is 100, the buffer size for data shuffling on clients is 2048, and the batch size for local SGD is 32. In Fig. 9, instead of tuning these hyperparameters in advance, we conduct a study on these hyperparameters to understand DP-FedEmb. Among these hyperparameters, Figs. 9a and 9d suggest virtual clients and head LR scale are particularly important for DP-FedEmb to be on par with non-private centralized training, which is an important contribution of this work. Figures 9a to 9c suggest users per virtual client, clients per round, and examples per client only need to be large enough under privacy consideration and computation resources for the best practice. The head LR scale has a large tuning range between 50 and 500 in Fig. 9d. Recall@FAR=1e−3 is not sensitive to shuffle buffer size in Fig. 9e. The model utility can be potentially improved if we further tune the client batch size as suggested by Fig. 9f. We fixed the learning rate and other hyperparameters while varying one of the hyperparameters in the ablation study. How to automate tuning, especially tuning with differential privacy guarantees, is an important future work.",
+        "bbox": [
+            75,
+            734,
+            472,
+            902
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            277,
+            893,
+            474
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Learning rate (LR). For experiments in Secs. 3.1 and 3.2, server and client learning rates are first tuned for non-private federated training with adaptive clipping of quantile 0.5 [3]. Then server learning rate is tuned when adding noise for private tuning, while estimated clip norm and client learning rate are fixed. The tuning range of learning rates are $\\{ 1 , 2 , 5 \\} * 1 0 ^ { - n }$ . Figures 5a and 5b suggest the optimal learning rates are similar for training 400 rounds or 800 rounds in non-private training. We then fix the client learning rate to be 0.002 and use the estimated clip norm 0.6 for MobileNetV2 in Fig. 5c, and observe the fixed clip results are very similar to adaptive clipping results. The best server learning rate for private training with noise can be smaller than non-private training, where the difference is even more notable for larger model ResNet-50 in Fig. 5d.",
+        "bbox": [
+            496,
+            476,
+            895,
+            703
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Variants of DP-FedEmb. We use local fine-tuning with different learning rates $\\beta _ { 1 } , \\beta _ { 2 }$ to update backbone and head parameters. An alternative is to reconstruct the head first before fine-tuning the backbone [41, 65]. We empirically find that head reconstruction can only achieve similar per formance as the proposed fine-tuning when there are same or more number of updates on the backbone network, and hence use local fine-tuning for efficiency. It is also possible to use binary or triplet loss within a virtual clients. In our preliminary results, they achieve inferior results compared to DP-FedEmb that uses multi-class cross-entropy loss. We leave other improvement like arcface loss [17] as future work.",
+        "bbox": [
+            496,
+            704,
+            895,
+            901
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "7975",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "chart",
+        "img_path": "images/92aadb5893e71fd0fbf317a2cd1c8753884c417c4d0d6dac1810d49f2d781a36.jpg",
+        "content": "",
+        "chart_caption": [
+            "(a)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            88,
+            95,
+            258,
+            224
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/bd70200ebd924bbaf880161db701f2ff0f6dd94b0530a586c9ad2c92580a35cd.jpg",
+        "content": "",
+        "chart_caption": [
+            "(b)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            264,
+            94,
+            464,
+            223
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/f378f4ac4460909518ef60c65ab087ad96c66cf5ef5b368d3c738b6d37c82cd2.jpg",
+        "content": "",
+        "chart_caption": [
+            "(c)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            468,
+            93,
+            669,
+            223
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "chart",
+        "img_path": "images/a846db7016a521489c88101fee8548b92d251951ea1942fe054e3cf9e67a725e.jpg",
+        "content": "",
+        "chart_caption": [
+            "(d)"
+        ],
+        "chart_footnote": [],
+        "bbox": [
+            674,
+            90,
+            879,
+            222
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "table",
+        "img_path": "images/bc315b7bcd3d5828526ef78f728232b18d89d4f8151ed8185e45d4aaf0b9c8d6.jpg",
+        "table_caption": [
+            "Figure 5. Study for learning rates. (a) and (b) recall@FAR=1e−3 after training MobileNetV2 using DP-FedEmb with adaptive clipping [3] and 0 noise for 400 rounds and 800 rounds, respectively; (c) and (d) varying server learning rate with fixed client learning rate and clip norm for MobileNetV2 and ResNet-50.",
+            "Table 2. The utility under same privacy budget for DigiFace [6], EMNIST [67], GLD [68] and iNat [69] datasets."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=2 colspan=1>Dataset</td><td rowspan=2 colspan=1>Algorithm</td><td rowspan=1 colspan=2>Recall@FAR=1e-3 / 0.1</td></tr><tr><td rowspan=1 colspan=1>Approx</td><td rowspan=1 colspan=1>AllPair</td></tr><tr><td rowspan=1 colspan=1>DigiFace</td><td rowspan=1 colspan=1>DP-FedEmbDP-FedAvg</td><td rowspan=1 colspan=1></td><td rowspan=1 colspan=1> $\\overline { { 1 9 . 7 6 \\pm 0 . 4 3 } }$  $1 3 . 3 8 \\pm 0 . 2 7$ </td></tr><tr><td rowspan=1 colspan=1>EMNIST</td><td rowspan=1 colspan=1>DP-FedEmbDP-FedAvg</td><td rowspan=1 colspan=1> $\\overline { { 1 0 . 6 4 \\pm 0 . 5 } }$  $9 . 7 8 \\pm 0 . 4 4$ </td><td rowspan=1 colspan=1> $\\overline { { 1 0 . 4 7 \\pm 0 . 5 } }$  $9 . 6 7 \\pm 0 . 4 1$ </td></tr><tr><td rowspan=1 colspan=1>GLD</td><td rowspan=1 colspan=1>DP-FedEmbDP-FedAvg</td><td rowspan=1 colspan=1> $\\overline { { 2 6 . 1 8 \\pm 0 . 4 4 } }$  $2 4 . 4 8 \\pm 1 . 0$ </td><td rowspan=1 colspan=1> $\\overline { { 2 7 . 0 7 \\pm 0 . 0 4 } }$  $2 6 . 2 7 \\pm 0 . 1 7$ </td></tr><tr><td rowspan=1 colspan=1>iNat</td><td rowspan=1 colspan=1>DP-FedEmbDP-FedAvg</td><td rowspan=1 colspan=1> $\\overline { { 4 0 . 4 9 \\pm 1 . 0 8 } }$  $2 9 . 5 7 \\pm 0 . 7 8$ </td><td rowspan=1 colspan=1> $\\overline { { 4 0 . 9 3 \\pm 0 . 9 4 } }$  $2 9 . 6 \\pm 0 . 6 5$ </td></tr></table>",
+        "bbox": [
+            78,
+            303,
+            475,
+            459
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "3.4. Additional results",
+        "text_level": 2,
+        "bbox": [
+            76,
+            526,
+            251,
+            542
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "We run additional experiments of ResNet-50 on the larger DigiFace of 98.96K users. Because a lot of users in DigiFace have only 5 images, we set each virtual client to contain 64 users, and use 3072 samples per virtual client. We sample 128 virtual clients per round, and a relatively large noise 1.39 in RDP accounting can achieve $\\epsilon = 2 4 . 8 6 , \\delta \\ = \\ 1 0 ^ { - 5 }$ without extrapolation. The utility measured by recall@FAR=1e−3 is shown in Tab. 2. Though the utilities of both methods are significantly degraded by the large noise, DP-FedEmb is much better than the DP-FedAvg baseline because the noise is only added to backbone of ∼2.4M parameters instead of backbone plus head of ∼15M parameters. The full table including EM-NIST [67] results for reproducibility and hyperparameter choices is provided in Tab. 4 in Appendix D.",
+        "bbox": [
+            75,
+            551,
+            472,
+            779
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "In Tab. 2, we also conduct experiments with MobileNetV2 on Google Landmark Dataset (GLD) [32, 68, 77] and iNaturalist (iNat) dataset [32, 47, 69] to demonstrate the generalization of DP-FedEmb. We use a public model pretrained on ImageNet, and report extra approximate recall@FAR by computing pairwise similarity for minibatches, which is easy to reproduce and consistent with the all pair recall@FAR. We fix the hyperparameters for the federated settings, and compare the performance of DP-FedEmb and DP-FedAvg under the same privacy budget (noise multiplier). Since each user already has multiple classes in GLD, we use a smaller number of users, 8, in each virtual client. We also use a smaller number of virtual clients per round, 32, for fast experiments and strong sampling effect. Recall $\\textcircled { a } \\mathrm { F A R { = } 1 e { - } 3 }$ of DP-FedEmb and DP-FedAvg with small noise multiplier 0.02 on GLD outperforms centralized training. For iNat, we use an even smaller four users per virtual client and train for only 400 rounds, and use a relatively large noise multiplier 0.5 to get a single-digit $\\epsilon = 1 6 . 0 6 ~ \\mathrm { D P }$ guarantee for 9275 users. We report recall@FAR=0.1 instead of recall@FAR=1e−3 for the challenging iNat task. In all experiments, DP-FedEmb consistently outperforms DP-FedAvg.",
+        "bbox": [
+            75,
+            780,
+            472,
+            901
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            496,
+            305,
+            893,
+            534
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "4. Conclusion",
+        "text_level": 2,
+        "bbox": [
+            500,
+            565,
+            619,
+            582
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "This paper presented DP-FedEmb for training embedding models with user-level differential privacy. We show how practical utility with strong privacy guarantees can be achieved in the data center, thanks to key algorithm design choices around the construction of virtual clients and in the selection of what information is shared among users. Our experiments validate this improves the privacy utility tradeoff upon vanilla DP-FedAvg for supervised representation learning. Though strong formal DP bounds at practical levels of utility could only be achieved when millions of users participate in training, DP-FedEmb is designed to be exceptionally scalable when model size and class space increases with number of users. DP-FedEmb can also be applied to decentralized FL when each real client contains multiple classes, possibly reducing the necessity of virtual clients. Finally, DP is a worst-case guarantee that can be improved by both algorithmic design and advanced accounting methods; the non-negligible noise we added for the small scale datasets in experiments are ready to be empirically audited for privacy.",
+        "bbox": [
+            496,
+            598,
+            895,
+            902
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "7976",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 2,
+        "bbox": [
+            78,
+            89,
+            176,
+            106
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[1] Martin Abadi, Andy Chu, Ian Goodfellow, H Brendan McMahan, Ilya Mironov, Kunal Talwar, and Li Zhang. Deep learning with differential privacy. In Proceedings of the 2016 ACM SIGSAC conference on computer and communications security, pages 308–318, 2016. 1, 3, 4, 14",
+            "[2] Kareem Amin, Alex Kulesza, Andres Munoz, and Sergei Vassilvtiskii. Bounding user contributions: A bias-variance trade-off in differential privacy. In International Conference on Machine Learning, pages 263–271. PMLR, 2019. 13",
+            "[3] Galen Andrew, Om Thakkar, H Brendan McMahan, and Swaroop Ramaswamy. Differentially private learning with adaptive clipping. Conference on Neural Information Processing Systems (NeurIPS), 2021. 5, 7, 8, 13, 17",
+            "[4] Rohan Anil, Badih Ghazi, Vineet Gupta, Ravi Kumar, and Pasin Manurangsi. Large-scale differentially private bert. arXiv preprint arXiv:2108.01624, 2021. 1",
+            "[5] Apple Privacy Team. Learning with privacy at scale. Available at https://machinelearning.apple. com / 2017 / 12 / 06 / learning - with - privacy - at-scale.html, 2017. 1",
+            "[6] Gwangbin Bae, Martin de La Gorce, Tadas Baltrusaitis,ˇ Charlie Hewitt, Dong Chen, Julien Valentin, Roberto Cipolla, and Jingjing Shen. Digiface-1m: 1 million digital face images for face recognition. In 2023 IEEE Winter Conference on Applications of Computer Vision (WACV). IEEE, 2023. 5, 8, 17",
+            "[7] Mark Bun and Thomas Steinke. Concentrated differential privacy: Simplifications, extensions, and lower bounds. In Theory of Cryptography Conference, pages 635–658. Springer, 2016. 3, 13",
+            "[8] Clement L Canonne, Gautam Kamath, and Thomas Steinke.´ The discrete gaussian for differential privacy. Advances in Neural Information Processing Systems, 33:15676–15688, 2020. 5",
+            "[9] Nicholas Carlini, Steve Chien, Milad Nasr, Shuang Song, Andreas Terzis, and Florian Tramer. Membership inference attacks from first principles. In 2022 IEEE Symposium on Security and Privacy (SP), pages 1897–1914. IEEE, 2022. 1",
+            "[10] Nicholas Carlini, Chang Liu, Ulfar Erlingsson, Jernej Kos,<sup>´</sup> and Dawn Song. The secret sharer: Evaluating and testing unintended memorization in neural networks. In 28th USENIX Security Symposium (USENIX Security 19), pages 267–284, 2019. 1",
+            "[11] Nicholas Carlini, Florian Tramer, Eric Wallace, Matthew Jagielski, Ariel Herbert-Voss, Katherine Lee, Adam Roberts, Tom Brown, Dawn Song, Ulfar Erlingsson, et al. Extracting training data from large language models. In 30th USENIX Security Symposium (USENIX Security 21), pages 2633– 2650, 2021. 1",
+            "[12] Yannis Cattan, Christopher A Choquette-Choo, Nicolas Papernot, and Abhradeep Thakurta. Fine-tuning with differential privacy necessitates an additional hyperparameter search. arXiv preprint arXiv:2210.02156, 2022. 16",
+            "[13] Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. A simple framework for contrastive learning",
+            "of visual representations. In International conference on machine learning, pages 1597–1607. PMLR, 2020. 13",
+            "[14] Liam Collins, Hamed Hassani, Aryan Mokhtari, and Sanjay Shakkottai. Fedavg with fine tuning: Local updates lead to representation learning. arXiv e-prints, pages arXiv–2205, 2022. 5",
+            "[15] Liam Collins, Aryan Mokhtari, Sewoong Oh, and Sanjay Shakkottai. Maml and anil provably learn representations. arXiv preprint arXiv:2202.03483, 2022. 5",
+            "[16] Soham De, Leonard Berrada, Jamie Hayes, Samuel L Smith, and Borja Balle. Unlocking high-accuracy differentially private image classification through scale. arXiv preprint arXiv:2204.13650, 2022. 1, 3, 4, 5",
+            "[17] Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou. Arcface: Additive angular margin loss for deep face recognition. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 4690–4699, 2019. 7, 13",
+            "[18] Bolin Ding, Janardhan Kulkarni, and Sergey Yekhanin. Collecting telemetry data privately. Advances in Neural Information Processing Systems, 30, 2017. 1",
+            "[19] Xin Dong, Sai Qian Zhang, Ang Li, and HT Kung. Spherefed: Hyperspherical federated learning. arXiv preprint arXiv:2207.09413, 2022. 13",
+            "[20] Vadym Doroshenko, Badih Ghazi, Pritish Kamath, Ravi Kumar, and Pasin Manurangsi. Connect the dots: Tighter discrete approximations of privacy loss distributions. arXiv preprint arXiv:2207.04380, 2022. 13, 14",
+            "[21] DP Team. Google’s differential privacy libraries., 2020. https://github.com/google/differentialprivacy. 14",
+            "[22] Cynthia Dwork. Differential privacy in new settings. In Proceedings of the twenty-first annual ACM-SIAM symposium on Discrete Algorithms, pages 174–183. SIAM, 2010. 1, 13",
+            "[23] Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. Calibrating noise to sensitivity in private data analysis. In Theory of cryptography conference, pages 265–284. Springer, 2006. 1, 13",
+            "[24] Cynthia Dwork, Aaron Roth, et al. The algorithmic foundations of differential privacy. Foundations and Trends® in Theoretical Computer Science, 9(3–4):211–407, 2014. 14",
+            "[25] Alessandro Epasto, Mohammad Mahdian, Jieming Mao, Vahab Mirrokni, and Lijie Ren. Smoothly bounding user contributions in differential privacy. Advances in Neural Information Processing Systems, 33:13999–14010, 2020. 13",
+            "[26] Jonathan Frankle, David J. Schwab, and Ari S. Morcos. Training batchnorm and only batchnorm: On the expressive power of random features in CNNs, 2021. 5, 16",
+            "[27] Robin C Geyer, Tassilo Klein, and Moin Nabi. Differentially private federated learning: A client level perspective. arXiv preprint arXiv:1712.07557, 2017. 3, 13",
+            "[28] Badih Ghazi, Ravi Kumar, and Pasin Manurangsi. Userlevel private learning via correlated sampling. arXiv preprint arXiv:2110.11208, 2021. 13",
+            "[29] Jean-Bastien Grill, Florian Strub, Florent Altche, Corentin´ Tallec, Pierre Richemond, Elena Buchatskaya, Carl Doersch,"
+        ],
+        "bbox": [
+            84,
+            114,
+            470,
+            185
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "7977",
+        "bbox": [
+            482,
+            944,
+            516,
+            957
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Bernardo Avila Pires, Zhaohan Guo, Mohammad Gheshlaghi Azar, et al. Bootstrap your own latent-a new approach to self-supervised learning. Advances in neural information processing systems, 33:21271–21284, 2020. 13",
+            "[30] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollar, and Ross Girshick. Masked autoencoders are scalable´ vision learners. In Proceedings ofthe IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16000– 16009, 2022. 13",
+            "[31] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 5",
+            "[32] Tzu-Ming Harry Hsu, Hang Qi, and Matthew Brown. Federated visual classification with real-world data distribution. In European Conference on Computer Vision, pages 76–92. Springer, 2020. 5, 8",
+            "[33] Sergey Ioffe and Christian Szegedy. Batch normalization: Accelerating deep network training by reducing internal covariate shift. In International conference on machine learning, pages 448–456. PMLR, 2015. 5",
+            "[34] Prateek Jain, John Rush, Adam Smith, Shuang Song, and Abhradeep Guha Thakurta. Differentially private model personalization. Advances in Neural Information Processing Systems, 34:29723–29735, 2021. 4, 13",
+            "[35] Sebastien Jean, Kyunghyun Cho, Roland Memisevic, and´ Yoshua Bengio. On using very large target vocabulary for neural machine translation. arXiv preprint arXiv:1412.2007, 2014. 3, 4",
+            "[36] Peter Kairouz, Brendan Mcmahan, Shuang Song, Om Thakkar, Abhradeep Thakurta, and Zheng Xu. Practical and private (deep) learning without sampling or shuffling. In International Conference on Machine Learning (ICML), pages 5213–5225, 2021. 1, 2, 3, 5, 6, 13, 14, 15, 16",
+            "[37] Peter Kairouz, H Brendan McMahan, Brendan Avent, Aurelien Bellet, Mehdi Bennis, Arjun Nitin Bhagoji, Kallista´ Bonawitz, Zachary Charles, Graham Cormode, Rachel Cummings, et al. Advances and open problems in federated learning. arXiv preprint arXiv:1912.04977, 2019. 13",
+            "[38] Peter Kairouz, Sewoong Oh, and Pramod Viswanath. The composition theorem for differential privacy. In International conference on machine learning, pages 1376–1385. PMLR, 2015. 1",
+            "[39] Sai Praneeth Karimireddy, Satyen Kale, Mehryar Mohri, Sashank Reddi, Sebastian Stich, and Ananda Theertha Suresh. Scaffold: Stochastic controlled averaging for federated learning. In International Conference on Machine Learning, pages 5132–5143. PMLR, 2020. 4",
+            "[40] Antti Koskela, Joonas Jalk¨ o, Lukas Prediger, and Antt¨ Honkela. Tight approximate differential privacy for discretevalued mechanisms using fft, 2020. 13, 14",
+            "[41] Ananya Kumar, Aditi Raghunathan, Robbie Jones, Tengyu Ma, and Percy Liang. Fine-tuning can distort pretrained features and underperform out-of-distribution. arXiv preprint arXiv:2202.10054, 2022. 7",
+            "[42] Alexey Kurakin, Steve Chien, Shuang Song, Roxana Geambasu, Andreas Terzis, and Abhradeep Thakurta. Toward",
+            "training at imagenet scale with differential privacy. arXiv preprint arXiv:2201.12328, 2022. 1, 4",
+            "[43] Yann LeCun, Leon Bottou, Yoshua Bengio, and Patrick´ Haffner. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11):2278–2324, 1998. 18",
+            "[44] Daniel Levy, Ziteng Sun, Kareem Amin, Satyen Kale, Alex Kulesza, Mehryar Mohri, and Ananda Theertha Suresh. Learning with user-level privacy. Advances in Neural Information Processing Systems, 34:12466–12479, 2021. 13",
+            "[45] Xuechen Li, Florian Tramer, Percy Liang, and Tatsunori Hashimoto. Large language models can be strong differentially private learners. arXiv preprint arXiv:2110.05679, 2021. 1, 4",
+            "[46] Yuhan Liu, Ananda Theertha Suresh, Felix Xinnan X Yu, Sanjiv Kumar, and Michael Riley. Learning discrete distributions: user vs item-level privacy. Advances in Neural Information Processing Systems, 33:20965–20976, 2020. 13",
+            "[47] Ziwei Liu, Ping Luo, Xiaogang Wang, and Xiaoou Tang. Deep learning face attributes in the wild. In Proceedings of International Conference on Computer Vision (ICCV), December 2015. 8",
+            "[48] Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas. Communicationefficient learning of deep networks from decentralized data. In AISTATS, pages 1273–1282. PMLR, 2017. 3, 4",
+            "[49] Brendan McMahan, Daniel Ramage, Kunal Talwar, and Li Zhang. Learning differentially private recurrent language models. In International Conference on Learning Representations (ICLR), 2018. 1, 2, 3, 5, 6, 13, 14",
+            "[50] Brendan McMahan and Abhradeep Thakurta. Federated learning with formal differential privacy guarantees, 2022. 1, 6",
+            "[51] H Brendan McMahan, Galen Andrew, Ulfar Erlingsson, Steve Chien, Ilya Mironov, Nicolas Papernot, and Peter Kairouz. A general approach to adding differential privacy to iterative training procedures. arXiv preprint arXiv:1812.06210, 2018. 4, 13, 14",
+            "[52] Qiang Meng, Feng Zhou, Hainan Ren, Tianshu Feng, Guochao Liu, and Yuanqing Lin. Improving federated learning face recognition via privacy-agnostic clusters. arXiv preprint arXiv:2201.12467, 2022. 13",
+            "[53] Ilya Mironov. Renyi differential privacy. In ´ 2017 IEEE 30th computer security foundations symposium (CSF), pages 263–275. IEEE, 2017. 5, 13",
+            "[54] Kevin Musgrave, Serge Belongie, and Ser-Nam Lim. A metric learning reality check. In European Conference on Computer Vision, pages 681–699. Springer, 2020. 13",
+            "[55] Nicolas Papernot and Thomas Steinke. Hyperparameter tuning with renyi differential privacy. arXiv preprint arXiv:2110.03620, 2021. 5",
+            "[56] Natalia Ponomareva, Hussein Hazimeh, Alex Kurakin, Zheng Xu, Carson Denison, H Brendan McMahan, Sergei Vassilvitskii, Steve Chien, and Abhradeep Thakurta. How to dp-fy ml: A practical guide to machine learning with differential privacy. arXiv preprint arXiv:2303.00654, 2023. 5, 15"
+        ],
+        "bbox": [
+            109,
+            93,
+            470,
+            147
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "7978",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[57] Swaroop Ramaswamy, Om Thakkar, Rajiv Mathews, Galen Andrew, H Brendan McMahan, and Franc¸oise Beaufays. Training production language models without memorizing user data. arXiv preprint arXiv:2009.10031, 2020. 1, 2, 6, 13",
+            "[58] Sashank J. Reddi, Zachary Charles, Manzil Zaheer, Zachary Garrett, Keith Rush, Jakub Konecnˇ y, Sanjiv Kumar, and´ Hugh Brendan McMahan. Adaptive federated optimization. In International Conference on Learning Representations, 2021. 3",
+            "[59] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al. Imagenet large scale visual recognition challenge. International journal of computer vision, 115(3):211–252, 2015. 5",
+            "[60] Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen. Mobilenetv2: Inverted residuals and linear bottlenecks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4510–4520, 2018. 5",
+            "[61] Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face recognition and clustering. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 815–823, 2015. 1, 3, 4, 13",
+            "[62] Zebang Shen, Jiayuan Ye, Anmin Kang, Hamed Hassani, and Reza Shokri. Share your representation only: Guaranteed improvement of the privacy-utility tradeoff in federated learning. In The Eleventh International Conference on Learning Representations, 2023. 13",
+            "[63] Reza Shokri, Marco Stronati, Congzheng Song, and Vitaly Shmatikov. Membership inference attacks against machine learning models. In 2017 IEEE symposium on security and privacy (SP), pages 3–18. IEEE, 2017. 1",
+            "[64] Hakim Sidahmed, Zheng Xu, Ankush Garg, Yuan Cao, and Mingqing Chen. Efficient and private federated learning with partially trainable networks. arXiv preprint arXiv:2110.03450, 2021. 5, 16",
+            "[65] Karan Singhal, Hakim Sidahmed, Zachary Garrett, Shanshan Wu, Keith Rush, and Sushant Prakash. Federated reconstruction: Partially local federated learning. Advances in Neural Information Processing Systems (NeurIPS), 2021. 4, 7, 13",
+            "[66] Yaniv Taigman, Ming Yang, Marc’Aurelio Ranzato, and Lior Wolf. Deepface: Closing the gap to human-level performance in face verification. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1701–1708, 2014. 3, 4, 13",
+            "[67] TFF Authors. TensorFlow Federated EMNIST dataset, 2022. https : / / www . tensorflow . org / federated / api\\_docs/python/tff/simulation/datasets/ emnist. 8, 15, 17",
+            "[68] TFF Authors. TensorFlow Federated Google Landmark v2 dataset, 2022. https : / / www . tensorflow . org / federated / api \\_ docs / python / tff / simulation/datasets/gldv2. 8, 15, 17",
+            "[69] TFF Authors. TensorFlow Federated iNaturalist dataset, 2022. https : / / www . tensorflow .",
+            "org / federated / api \\_ docs / python / tff / simulation / datasets / inaturalist. 8, 15, 17",
+            "[70] US Census Bureau. Disclosure avoidance for the 2020 census: An introduction, 2021. 1, 3, 6",
+            "[71] Salil Vadhan. The complexity of differential privacy. In Tutorials on the Foundations ofCryptography, pages 347–450. Springer, 2017. 14",
+            "[72] Sagar M Waghmare, Hang Qi, Huizhong Chen, Mikhail Sirotenko, and Tomer Meron. Efficient image representation learning with federated sampled softmax. arXiv preprint arXiv:2203.04888, 2022. 4, 13",
+            "[73] Jianyu Wang, Zachary Charles, Zheng Xu, Gauri Joshi, H Brendan McMahan, Blaise Aguera y Arcas, Maruan Al-Shedivat, Galen Andrew, Salman Avestimehr, Katharine Daly, et al. A field guide to federated optimization. arXiv:2107.06917, 2021. 3, 4, 5, 13, 14",
+            "[74] Jianyu Wang, Rudrajit Das, Gauri Joshi, Satyen Kale, Zheng Xu, and Tong Zhang. On the unreasonable effectiveness of federated averaging with heterogeneous data. arXiv preprint arXiv:2206.04723, 2022. 3",
+            "[75] Kilian Q Weinberger and Lawrence K Saul. Distance metric learning for large margin nearest neighbor classification. Journal of machine learning research, 10(2), 2009. 1",
+            "[76] Yandong Wen, Weiyang Liu, Adrian Weller, Bhiksha Raj, and Rita Singh. Sphereface2: Binary classification is all you need for deep face recognition. arXiv preprint arXiv:2108.01513, 2021. 13",
+            "[77] Tobias Weyand, Andre Araujo, Bingyi Cao, and Jack Sim. Google landmarks dataset v2-a large-scale benchmark for instance-level recognition and retrieval. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 2575–2584, 2020. 1, 8, 13",
+            "[78] Blake Woodworth, Kumar Kshitij Patel, Sebastian Stich, Zhen Dai, Brian Bullins, Brendan Mcmahan, Ohad Shamir, and Nathan Srebro. Is local sgd better than minibatch sgd? In International Conference on Machine Learning, pages 10334–10343. PMLR, 2020. 3",
+            "[79] Lin Wu, Chunhua Shen, and Anton van den Hengel. Personnet: Person re-identification with deep convolutional neural networks. arXiv preprint arXiv:1601.07255, 2016. 13",
+            "[80] Yuxin Wu and Kaiming He. Group normalization. In Proceedings of the European conference on computer vision (ECCV), pages 3–19, 2018. 5",
+            "[81] Da Yu, Saurabh Naik, Arturs Backurs, Sivakanth Gopi, Huseyin A Inan, Gautam Kamath, Janardhan Kulkarni, Yin Tat Lee, Andre Manoel, Lukas Wutschitz, et al. Differentially private fine-tuning of language models. arXiv preprint arXiv:2110.06500, 2021. 1, 4, 5",
+            "[82] Felix Yu, Ankit Singh Rawat, Aditya Menon, and Sanjiv Kumar. Federated learning with only positive labels. In International Conference on Machine Learning, pages 10946– 10956. PMLR, 2020. 4",
+            "[83] Jure Zbontar, Li Jing, Ishan Misra, Yann LeCun, and Stephane Deny. Barlow twins: Self-supervised learning via´ redundancy reduction. In International Conference on Machine Learning, pages 12310–12320. PMLR, 2021. 13"
+        ],
+        "bbox": [
+            78,
+            93,
+            470,
+            160
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "7979",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "[84] Chiyuan Zhang, Samy Bengio, and Yoram Singer. Are all layers created equal?, 2019. 5"
+        ],
+        "bbox": [
+            78,
+            93,
+            468,
+            119
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_number",
+        "text": "7980",
+        "bbox": [
+            482,
+            945,
+            516,
+            957
+        ],
+        "page_idx": 11
+    }
+]
