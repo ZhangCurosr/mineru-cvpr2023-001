@@ -1,0 +1,2898 @@
+[
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Coaching a Teachable Student"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                331,
+                130,
+                638,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Jimuyang Zhang Zanming Huang Eshed Ohn-Bar"
+                    }
+                ]
+            },
+            "bbox": [
+                267,
+                181,
+                702,
+                199
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Boston University"
+                    }
+                ]
+            },
+            "bbox": [
+                411,
+                199,
+                560,
+                217
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "{zhangjim, huangtom, eohnbar}@bu.edu"
+                    }
+                ]
+            },
+            "bbox": [
+                323,
+                218,
+                642,
+                234
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                233,
+                267,
+                313,
+                285
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We propose a novel knowledge distillationframeworkfor effectively teaching a sensorimotor student agent to drive from the supervision of a privileged teacher agent. Current distillationfor sensorimotor agents methods tend to result in suboptimal learned driving behavior by the student, which we hypothesize is due to inherent differences between the input, modeling capacity, and optimization processes of the two agents. We develop a novel distillation scheme that can address these limitations and close the gap between the sensorimotor agent and its privileged teacher. Our key insight is to design a student which learns to align their input features with the teacher’s privileged Bird’s Eye View (BEV) space. The student then can benefit from direct supervision by the teacher over the internal representation learning. To scaffold the difficult sensorimotor learning task, the student model is optimized via a student-paced coaching mechanism with various auxiliary supervision. We further propose a high-capacity imitation learned privileged agent that surpasses prior privileged agents in CARLA and ensures the student learns safe driving behavior. Our proposed sensorimotor agent results in a robust image-based behavior cloning agent in CARLA, improving over current models by over 20.6% in driving score without requiring LiDAR, historical observations, ensemble ofmodels, on-policy data aggregation or reinforcement learning."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                299,
+                472,
+                679
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                693,
+                209,
+                709
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Learning internal representations for making intricate driving decisions from images involves a complex optimization task [4, 43, 54]. The inherent challenge for end-to-end training of driving agents lies in the immense complexity of learning to map high-dimensional visual observations into general and safe navigational decisions [13, 20, 70]. Even given millions of training examples [4], today’s agents still fail to reliably learn an internal representation that can be used for robust processing of complex visual scenarios (e.g., dense urban settings with intricate layouts and dynamic obstacles) in a safe and task-driven manner [13, 20, 70]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                718,
+                470,
+                886
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To ease the challenging sensorimotor training task, recent approaches decompose the task into stages, e.g., by first training a high-capacity privileged network with complete knowledge of the world and distilling its knowledge into a less capable vision-based student network [11, 13, 23, 47, 79]. However, due to the inherent differences between the inputs and architectures of the two agents, current methods rely on limited supervisory mechanisms from the teacher, i.e., exclusively through the teacher’s output [11, 13] or knowledge distillation of a single final fully-connected layer [71, 79, 81]. Moreover, the privileged teacher’s demonstration targets may be noisy or difficult for the student to imitate, given the limited perspective [27]. In this work, we sought to develop a more effective knowledge distillation paradigm for training a sensorimotor agent to drive. Our key insight is to enable more extensive supervision from the teacher by reducing the gap between internal modeling and learning capabilities between the two agents."
+                    }
+                ]
+            },
+            "bbox": [
+                96,
+                885,
+                468,
+                901
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9e44147e1a70532221a118e031676e0560e68eb8cbad25aec05387d5d44d8cf7.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Effective Knowledge Distillation for Sensorimotor Agents. Our proposed CaT (Coaching a Teachable student) framework enables highly effective knowledge transfer between a privileged teacher and a sensorimotor (i.e., image-based) student. An alignment module learns to transform image-based features to the teacher’s BEV feature space, where the student can then leverage extensive and direct supervision on its learned intermediate representations. The student model is optimized via a coaching mechanism with extensive auxiliary supervision in order to further scaffold the difficult sensorimotor learning task."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                504,
+                268,
+                887,
+                429
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                594,
+                893,
+                852
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our proposed approach for holistic knowledge distillation is informed by human instruction, which often involves structured supervision in addition to high-level demonstrations, e.g., providing various hints to scaffold information in a way that the student can better understand [30]. When teaching others new and challenging skills, i.e., where a student may not be able to replicate the demonstration such as riding a bicycle or driving a vehicle, teachers may provide additional supervision regarding the underlying task structure and their own internal reasoning [64]. Analogously to our settings, the privileged teaching agent can potentially provide richer supervision when teaching a limited capacity sensorimotor student, i.e., through more careful and direct guidance of the underlying representation learning."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                236,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7805"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                472,
+                258
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In our work, we introduce CaT, a novel method for teaching a sensorimotor student to drive using supervision from a privileged teacher. Our key insights are threefold: 1) Effective Teacher: We propose to incorporate explicit safetyaware cues into the BEV space that facilitate a surprisingly effective teacher agent design. While prior privileged agents struggle to learn to drive in complex urban driving scenes, we demonstrate our learned agent to match expertlevel decision-making. 2) Teachable Student via Alignment: An IPM-based transformer alignment module can facilitate direct distillation of most of the teacher’s features and better guide the student learning process. 3) Studentpaced Coaching: A coaching mechanism for managing difficult samples can scaffold knowledge and lead to improved model optimization by better considering the ability of the student. By holistically tackling the complex knowledge distillation task with extensive teacher and auxiliary supervision, we are able to train a state-of-the-art imagebased agent in CARLA [21]. Through ablation studies, input design, and interpretable feature analysis, we also provide critical insights into current limitations in learning robust and generalized representations for driving agents."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                257,
+                472,
+                592
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                601,
+                220,
+                617
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Knowledge Distillation: We study knowledge distillation methods originally developed for model compression and acceleration [12,17,29,31,35,36,52,55,74,75] in the context of training sensorimotor. While approaches for feature distillation have been minimally explored in this context, we are motivated by their success in other domains, including image classification [2,38,40,42,60], object detection [67], semantic segmentation [46, 78], and natural language processing [3,68,73]. Yet, applying such techniques is not trivial given the drastically differing inputs between the privileged agent and student and the overwhelming sensorimotor task. Consequently, driving policy distillation methods only provide supervision either from the teacher’s output [11,13] or the features of a single fully-connected layer [71, 79, 81], which (we hypothesize) does not provide sufficient hints to guide the student training. In this work, we provide novel mechanisms to close this gap and enable extensive supervision through deep feature distillation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                628,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Imitation Learning to Drive: Recent approaches in imitation learning (IL) to drive can be traced to Pomerleau [54]. Recently, more elaborate IL-based approaches for driving have emerged [9, 10, 25, 45, 50, 76, 77, 80, 83]. Specifically, decomposing the imitation learning task into two stages, i.e., by first learning a privileged agent through behavior cloning [11,13] or reinforcement learning [8,62,71,79] and then training the sensorimotor agent to mimic the output of the privileged agent. Our study is motivated by such approaches, yet we explore the benefits of increased supervision by the privileged agent. Moreover, prior privileged agents produce noisy and sub-optimal demonstration supervision in complex urban scenarios (even when optimized with RL, as demonstrated by our analysis). While most current studies employ the RL-based teacher of [79], this can be problematic and inefficient in safety-critical conditions in the real-world. In our work, we introduce a novel privileged teacher which can greatly surpass prior agents while only relying on offline behavior cloning."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                90,
+                895,
+                381
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Intermediate Representation for Driving: Learning an effective 3D scene representation is crucial for safe autonomous driving. Researchers may obtain such representations by lifting the image to 3D using estimated depth and projecting the frustums into a BEV grid [32, 53]. Alternatively, transformer-based architectures can also enable mapping a camera image to the BEV space [14, 82], i.e., by attending to image-based information when populating a BEV-sampled grid. Related to our work is the study of Chen et al. [11], which learns a BEV representation from RGB image and LiDAR input. A motion planner is then used to generate future waypoints from the BEV. As this introduces significant challenges, we propose to leverage an IPM-based alignment module which can better structure to image-to-BEV projection task."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                390,
+                895,
+                618
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Curriculum and Self-paced Learning: Approaches for curriculum learning methods often structure learning from various difficulty samples [5,24,37,39,44,59,61,63,69,84]. To better consider the challenging sensorimotor task and limited capacity of the student, we adopt a curriculum (i.e., an imitation coach), with progressively more challenging samples. He et al. [27] also proposes training a coach across iterations of on-policy data collection [56]. In contrast, we implement and demonstrate the benefit of a coach over training iterations without a data aggregation part. This can facilitate more efficient model training. The approach is motivated by self-paced learning [41, 72], where the model selects easy samples dynamically at each iteration based on a defined loss. In contrast to such studies, we only smooth the targets of the hard samples (based on the student), instead of discarding them. We empirically find this to result in improved coaching, potentially due to improved scaffolding of the difficult samples."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                628,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7806"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Method"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                89,
+                168,
+                106
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Our goal is to decompose the challenging sensorimotor learning task and ease model optimization through effective supervision from a teacher agent. We first formulate the problem of privileged agent distillation in Sec. 3.1. Next, we address current limitations in privileged agent design to train a robust imitation learned teacher in Sec. 3.2. We then propose a transformer-based student architecture to resolve image-to-BEV feature alignment (Sec. 3.3). Finally, we train the sensorimotor student via extensive supervision and knowledge distillation (Sec. 3.4) via a progressive (i.e., coaching) mechanism (Sec. 3.5)."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                114,
+                472,
+                282
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Formulation"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                290,
+                212,
+                306
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Driving can be formulated as a sequential decisionmaking problem over a set of sensory observations "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { X } ^ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", a set of actions (motor commands) Y, and a policy function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\theta } ^ { s } \\colon \\mathcal { X } ^ { s }  \\mathcal { Y }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for mapping observations to actions at each time step [27,50,56]. We consider the task of learning a sensorimotor student agent via knowledge distillation [13, 23] from a teacher agent "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\psi } ^ { t } { : } \\mathcal { X } ^ { t }  \\mathcal { Y }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with privileged access to environmental information, e.g., ground-truth lanes, obstacles, and traffic light states. We parameterize the two agents as neural networks using weights "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "[ \\pmb \\theta , \\pmb \\psi ] \\in \\mathbb { R } ^ { d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", and denote "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } ^ { s } ( \\cdot ; \\pmb { \\theta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } ^ { t } ( \\cdot ; \\psi )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to be the feature maps for the sensorimotor student network and teacher network, respectively. Given a dataset "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { D }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "comprising sensory and privileged observations and a loss function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { L } } ,"
+                    },
+                    {
+                        "type": "text",
+                        "content": "the student can be optimized from the teacher using"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                313,
+                470,
+                541
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\underset { \\pmb { \\theta } } { \\mathrm { a r g m i n } } ~ \\mathbb { E } _ { ( \\mathbf { x } ^ { s } , \\mathbf { x } ^ { t } ) \\sim \\mathcal { D } } [ \\mathcal { L } ( \\mathcal { F } ^ { s } ( \\mathbf { x } ^ { s } ; \\pmb { \\theta } ) , \\mathcal { F } ^ { t } ( \\mathbf { x } ^ { t } ; \\pmb { \\psi } ) ) ]\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/d7be308c7689b0aacb7b45872f8b79dd6bd9019357c01f098b9d268e11f88ee1.jpg"
+                }
+            },
+            "bbox": [
+                98,
+                549,
+                411,
+                574
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where the loss may be defined over a final layer, i.e., to match the output of the teacher [11,13], or over internal layers as well, i.e., feature distillation [71, 79, 81]. Given the challenging end-to-end sensorimotor learning task, the role of the teacher is to provide effective supervision to the student, i.e., informative targets in Eqn. 1. However, as the two agents operate from drastically differing inputs, the knowledge transfer from the teacher to the student can become ineffective. Specifically, the task of the student is significantly more challenging than that of the teacher, i.e., due to inherent noise and uncertainty. Indeed, there is currently a substantial gap between the performance of current sensorimotor learning agents and their teaching agents, even assuming access to expensive and high-quality 3D observations such as LiDAR [11, 13, 16] (not used in our work). The teaching process should also ideally consider any limited capacity of the student to facilitate effective optimization and learning [27]. Moreover, learning an optimal and robust teacher in itself can be a challenging task [13], even assuming the simplified learning task such as solved perception, as we demonstrate in Sec. 4 and addressed in Sec. 3.2."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                583,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Problem Setup and Agent Observations: We develop our CaT framework in the context of the CARLA simulator [21]. Our objective is to train a goal-conditional sensorimotor agent [16, 18] for mapping image and goal observations to vehicle throttle and steering control [13, 48]. We follow standard conditional imitation learning [11, 16] and assume access to three (non-overlapping) RGB camera views "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { I } = [ \\mathbf { I } _ { 0 } , \\mathbf { I } _ { 1 } , \\mathbf { I } _ { 2 } ] \\in \\mathbb { R } ^ { W \\times H \\times 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", a categorical navigational command "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "c \\in \\{ 1 , \\ldots , 6 \\}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(i.e., turn left, turn right, follow, forward, left lane changing and right lane changing) and an intermediate noisy goal "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { g } \\in \\mathbb { R } ^ { \\bar { 2 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sampled from a GNSS (Global Navigation Satellite System) [11]. We note that both the command and GNSS observations can be easily obtained by today’s vehicles, i.e., through generation of an "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { A } ^ { * }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "plan [26] from a static map and coarse positioning system. The GNSS goals are sampled every 50- 100 meters and reflect real-world measurement errors [11]. We compute a BEV "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { B } \\in \\{ 0 , 1 \\} ^ { W _ { B } \\times H _ { B } \\times C _ { B } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by rendering privileged (i.e., ground-truth) information from the underlying simulation, including 3D location and state of lanes, pedestrians, vehicles, and traffic lights [79]. While prior work has generally leveraged a standardized BEV representation [13, 32, 34, 57, 76], we find its design to be crucial to training an optimal teacher policy as will be discussed in Sec 3.2. We let "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } ^ { s } ~ = ~ ( \\mathbf { I } , \\mathbf { g } , c ) ~ \\in ~ \\mathcal { X } ^ { s }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } ^ { t } = ( \\mathbf { B } , \\mathbf { g } , c ) \\in { \\mathcal { X } } ^ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "be the student and teacher observations, respectively. Given these observations at each time step, the agent learns to predict 10 future 2D waypoints in top-down vehicle coordinates for the next 2.5 seconds of driving. These are then given to a lateral and longitudinal PID controllers [13, 48, 66] to generate the final action."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                559
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given this formulation, we next discuss our teacher agent design and training process. In particular, we aim to learn a privileged agent which can not only effectively solve the goal-oriented navigation task, but also facilitate effective distillation and coaching of a sensorimotor student policy, as will be discussed in Sec. 3.4."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                560,
+                893,
+                651
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Learning an Effective Teacher"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                664,
+                769,
+                680
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In our formulation, learning a student agent begins with training an effective privileged agent "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\psi } ^ { t } ."
+                    },
+                    {
+                        "type": "text",
+                        "content": ". However, we find this itself to be a complex task. Even with complete knowledge of perfect BEV perception, current privileged agents are suboptimal, significantly under-performing CARLA’s built-in autopilot [13, 79]. In this section, we uncover the underlying reason for this under-performance through the BEV design. Informed by this key finding, we train a highly effective imitation-learned teacher that surpasses prior privileged agents and matches expert-level performance in CARLA without requiring extensive data collection [56] or reinforcement learning [79]. Our proposed privileged agent can then enable effective supervision of the student in Sec. 3.3."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                689,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7807"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/0936b95769eca3dde9de9d24fcb5970fbccfb3af63fda6d79b2d9d1bb0aceb38.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. Overview of Architecture and Distillation Process of CaT. We first train a high-capacity privileged teacher agent (colored in red) which takes an augmented BEV representation as input, and produces a set of future waypoints conditioned on command and short-term goal. Our teachable student agent (colored in blue) maps the image features to the BEV space using an alignment module, which is trained by distillation of intermediate features (arrows colored in blue) and final output (arrow colored in green). Additionally, we leverage supervision from auxiliary segmentation (arrow colored in red) and command prediction tasks (arrow colored in purple) interlaced throughout the network to facilitate the learning of task-relevant features."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                89,
+                890,
+                311
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Teacher Training via Direct Expert Imitation: In imitation learning, an oracle (i.e., expert driver) "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f ^ { * } \\colon { \\mathcal { X } } ^ { t } \\ \\to \\ { \\mathcal { Y } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is defined for demonstrating optimal actions "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { y } ^ { * }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "In CARLA [21], the expert is defined using longitudinal and lateral PID controllers which are carefully tuned and augmented by a collection of manually specified rules for handling diverse scenarios (e.g., sudden braking) over the underlying simulation state. The designed expert can then be used to generate trajectories as supervised data for learning the privileged policy function "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "f _ { \\psi } ^ { t }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with behavior cloning [18, 19, 48]. Our privileged agent is a ResNet-18 model [28], as shown in Fig. 2 (further increasing modeling capacity was not found to be beneficial). The ResNet model is followed by a GRU-based conditional waypoint predictor [11, 16]. Due to the complexity of our dense urban navigation task, e.g., with multi-lane roads, intersections, and merging, we incrementally refine the waypoints using two GRUs within each conditional branch. The first GRU regresses the preliminary set of waypoints via sequential waypoints directly from the embedded features. Subsequently, the second GRU takes the predicted waypoints together with the short-term goal and embedded features, to produce a refined set of waypoint targets."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                434,
+                472,
+                784
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Even assuming perfect perception, we find it difficult to train privileged agents that exhibit robust planning behavior in complex urban driving scenarios. Specifically, when using the most challenging CARLA benchmark (Longest6 [16], also detailed in Sec 4) using the standard BEV representation of Chen et al. [13] leads to 26% driving score compared to 72% by the rule-based expert. The reinforcement learning agent of Zhang et al. [79] achieves 60% on this task. We sought to explore the limits of behavior cloning for this task, as a noisy and sub-optimal teacher can hinder the training of the student model. In particular, we hypothesize that the reason for the poor performance lies in the increased complexity of the BEV state representation in dense scenarios. In such scenarios, learning to extract taskrelevant details can become more challenging. To address this issue, we propose to introduce additional channels (akin to affordances [9,22,58]) that can more easily translate into safety-critical decision-making, simplify the learning task, and provide an expert-level teaching agent."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                795,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                433,
+                893,
+                617
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "BEV with Safety Hints: Our BEV encodes state information into distinct channels, including drivable road regions, the desired route based on the command and layout, lane markings, and dynamic obstacles (see Fig. 3). Given the low performance of prior privileged agents, in particular around dynamic objects, the agent could benefit from more explicit safety-driven cues in the BEV. We propose to add two types of channels of (1) predicted agents’ future and (2) entity attention. First, we utilize a kinematics bicycle model [16] in order to efficiently predict future trajectories of dynamic objects. This enables us to iteratively predict and represent short-term future position, orientation, and speed of agents (our supplementary contains additional information regarding this process). Secondly, we encode an explicit attention channel for highlighting potential future infractions, i.e., based on the kinematics bicycle model applied to the ego-vehicle. While this assumes that the current vehicle throttle and steering remain unchanged, the entity attention channel helps the agent better reason over safety while correlating states with actions. Surprisingly, the additions of the safety hints channels provide a strong teacher with offline behavior cloning alone, even improving over the rule-based expert (Table 1, 73% vs. 72%). We note that many of the remaining failures are due to simulation timeout in crowded intersections. Our boosted teacher agent will be critical for effective distillation in Sec. 3.4."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                628,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7808"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/643e847302deae6c4a0bf7753aa2aa0abd22d4a744f742d4b033c57d11cb6595.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(a) Baseline [79]"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                81,
+                107,
+                233,
+                226
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b3230aaabca58a11ea96f60306a83b8d956a9fd082e723e8b6ec185bd4d3ee70.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(b) With Safety Hints"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                236,
+                106,
+                388,
+                234
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/7dcb4e7b3d3768c5334d5e0fccaa8438bf033f78a9643496246f917efba5e471.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(g) Pedestrians"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                395,
+                104,
+                488,
+                241
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/1859670f0edd613928eacac4e4cbef9dfd3fcf04fc340dcbbf6c9dc04e68791a.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(h) Traffic Lights"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                496,
+                87,
+                617,
+                241
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/61ff94336fe9004e4fa110b695269747f959ab23e4f9bcce05fac13151c7593d.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "(i) Agent Forecast"
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                633,
+                87,
+                736,
+                242
+            ]
+        },
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/791d4e4e895d14bf607e19b6ab8354db3d9a2a8c6d7be04901f538bec694947f.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. Visualization of Our Proposed BEV with Safety Hints. (a) and (b) visualize the baseline and our proposed BEV by encoding different channels into colors. Roads are shown in dark grey, Desired Route is shown in light grey, Lane Marks are shown in magenta, Vehicles are shown in blue with past trajectories shown in decreasing saturation with time into the past, Pedestrians are shown in light blue, Traffic Lights are shown in red or green according to its state, Agent Forecasts are shown in purple with decreasing saturation with time into the future, Entity Attention is shown in orange. (c) - (j) shows the different channels separately."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                769,
+                88,
+                890,
+                261
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                349,
+                470,
+                470
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Learning a Teachable Student"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                496,
+                344,
+                512
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Due to differing inputs and modeling capacities, it can be difficult to align the image-based student features and output with the BEV-based privileged teacher. We propose to alleviate misalignment by designing a teachable student network, i.e., a model that matches as much of the teacher architecture as possible. Specifically, we propose to improve teacher-student model alignment by leveraging an internal image-to-BEV alignment module. As shown in Fig. 2, the three residual blocks following the alignment module can consequently facilitate knowledge transfer via direct distillation ofmost ofthe teacher’sfeatures in Sec. 3.4."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                525,
+                470,
+                693
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "IPM-based Transformer Alignment Module: Explicitly mapping images to BEV space for downstream tasks can be challenging. While this can be achieved via depth estimation and lifting [32,53], we sought to incorporate an efficient and differentiable module which can effectively attend and reason over various features while mapping from front view to BEV. A transformer-based architecture [14,65] provides a natural choice as it can be optimized end-to-end with respect to the driving task while also carefully aligning features among spaces with arbitrary dimensionalities. As shown in Fig. 2, we sample queries "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { Q } _ { i n i t } \\in \\mathbb { R } ^ { L _ { H } \\times L _ { W } \\times L _ { C } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using a spatial parameterization of the BEV space and process them using a self-attention module [14,65]. The output of self-attention module Q can be formulated as"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                703,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                349,
+                818,
+                363
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { Q } = \\operatorname { s o f t m a x } \\left( \\frac { \\mathbf { Q } _ { i n i t } \\mathbf { K } _ { i n i t } ^ { T } } { \\sqrt { d } } \\right) \\mathbf { V } _ { i n i t }\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1c0370b1327d988f6990d08a9a49c2e1368e50c55b78007deafe791aa108dcb6.jpg"
+                }
+            },
+            "bbox": [
+                575,
+                368,
+                816,
+                402
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\bf K } _ { i n i t } , { \\bf V } _ { i n i t } \\in \\mathbb { R } ^ { L _ { H } \\times L _ { W } \\times L _ { C } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "provide the key-value pairs and d is the dimension of the query. Subsequently, each query point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\textbf { q } \\in { \\textbf { \\textsf { Q } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is mapped to its corresponding reference point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { p } \\in \\mathbb { R } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(homogeneous coordinates) in the image features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\begin{array} { r l r } { \\bar { \\mathcal { F } } _ { R G B } } & { { } \\in } & { \\mathbb { R } ^ { Z _ { H } \\times Z _ { W } \\times Z _ { C } } } \\end{array}"
+                    },
+                    {
+                        "type": "text",
+                        "content": "using an Inverse Perspective Mapping (IPM)"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                407,
+                893,
+                500
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { p } = s \\mathbf { P } _ { k } \\mathbf { R } _ { k } ( \\mathbf { q } - \\mathbf { t } _ { k } )\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0582a40ddb4f7d78cce88e318ad7637a130165ad08d0ded47275c36d1c654334.jpg"
+                }
+            },
+            "bbox": [
+                622,
+                502,
+                767,
+                517
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where s is a scale factor, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf P _ { k } \\in \\mathbb R ^ { 3 \\times 3 } , \\mathbf R _ { k } \\ \\in \\mathbb R ^ { 3 \\times 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { t } _ { k } \\ \\in \\ \\mathrm { ~ \\mathbb ~ { R } ^ { 3 } ~ }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "camera intrinsics, rotation and translation relative to the center of the ego-vehicle, respectively [6]. Note that we employ a different IPM mapping for each camera view to perform the projection."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                518,
+                892,
+                594
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To populate the student’s BEV features "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { F } _ { B E V } \\in \\dot { \\mathbb { R } } ^ { H _ { B } \\times W _ { B } \\times C _ { B } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(i.e., the output of the alignment module in Fig. 2), we leverage a deformable cross-attention mechanism based on deformable DETR [85]. This enables the network to attend to multiple regions around the reference point in the image features when transforming to BEV feature space. The reference point p and the learned deformable offsets can then be used as keys K, with their corresponding features from the extracted images features the values V, for a cross-attention module"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                594,
+                893,
+                747
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { F } _ { B E V } = \\mathrm { D e f o r m A t t n } \\left( \\mathbf { Q } , \\mathcal { F } _ { R G B } , \\mathbf { H } \\right)\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/cdce3bcf85a6faf61d5d510a5419b4b46a28b95bef87f791bf82e9418397aabc.jpg"
+                }
+            },
+            "bbox": [
+                568,
+                752,
+                821,
+                768
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { H } = \\{ \\mathbf { P } _ { k } , \\mathbf { R } _ { k } , t _ { k } \\} _ { k = 1 } ^ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "contains the combined multiview IPM parameters from Eqn. 3. In addition to the proposed alignment and teachable modules, we also incorporate prediction modules for auxiliary tasks (i.e., BEV prediction [16]), discussed in Sec. 3.4."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                773,
+                892,
+                851
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "GRU-based Waypoint Predictor: The transformed imageto-BEV features are inputted to three residual blocks and a GRU-based conditional branch based on the command [11]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7809"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                514,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Student Loss"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                90,
+                214,
+                106
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Even with our carefully designed architecture, the student’s image-based learning task remains significantly more challenging than the teacher’s. Thus, both optimization and alignment with the teacher can benefit from extensive supervision and gradual student instruction, i.e., to scaffold supervision and better match the student’s ability. Our distillation process provides ample beneficial supervision for the student through three holistic mechanisms. First, we incorporate deep distillation losses, i.e., both over output (i.e., waypoint regression task) and feature maps, as shown in Fig. 2, that can more directly supervise internal layers. Second, we incorporate additional auxiliary losses that regularize the optimization process. This includes ground-truth supervised losses, e.g., defined over segmentation and control command, and a geometric loss defined over the postalignment features that supervises for correct BEV structure. Finally, we leverage a student-paced coaching mechanism for gradually increasing the difficulty of the waypoint prediction task throughout the iterations in Sec. 3.5."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                114,
+                472,
+                404
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Loss Functions: Our optimization objective for guiding the distillation process is a weighted sum over both distillation and auxiliary tasks:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                410,
+                470,
+                455
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { C a T } = \\mathcal { L } _ { o u t } + \\mathcal { L } _ { f e a t } + \\mathcal { L } _ { s e g } + \\mathcal { L } _ { c m d }\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/8f9282f58e9bf0f5ef8268439b7c77d5916d7c879ffbf4188a32490547f8b318.jpg"
+                }
+            },
+            "bbox": [
+                140,
+                469,
+                405,
+                487
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The various loss terms enable guiding holistic aspects of student learning."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                500,
+                470,
+                531
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Output Distillation: We leverage an "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "L _ { 1 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "loss computed over all of the conditional branches for each instance"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                537,
+                468,
+                569
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } _ { o u t } = \\sum _ { c = 1 } ^ { C } \\lVert f _ { \\pmb { \\theta } } ^ { s } ( \\mathbf { x } ^ { s } , c ) - f _ { \\psi } ^ { t } ( \\mathbf { x } ^ { t } , c ) \\rVert _ { 1 }\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/2cc2a7410b12ed692e5e060b55b54bafbe73d3ee3c6f16fbc875f451b67e04a7.jpg"
+                }
+            },
+            "bbox": [
+                147,
+                582,
+                397,
+                625
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "This can be done by sampling from the teacher with different commands c (following Chen et al. [13])."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                635,
+                467,
+                667
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Feature Distillation Loss: Our proposed student architecture provides BEV-space feature alignment, i.e., for direct internal feature matching between the student and the teacher (the first term in our loss in Eqn. 7). This is in contrast to current methods which distill the output or a final fully-connected layer [11, 13, 71, 79]. However, while this can provide rich supervision for the student, the two models should not match entirely, i.e., due to differences in information processing for a perception-based planning task. Moreover, the BEV-based features can be highly sparse and structured, with slight feature offsets being less meaningful than obtaining a task and scene-relevant representation. To flexibly account for the student-based task and effectively represent structural information in BEV space, our feature loss is computed as"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                674,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r l } {  { \\mathcal { L } _ { f e a t } = \\sum _ { i = 1 } ^ { 3 } \\biggl [ \\| \\mathcal { F } _ { i } ^ { s } ( \\mathbf { x } ^ { s } ) - \\mathcal { F } _ { i } ^ { t } ( \\mathbf { x } ^ { t } ) \\| _ { 2 } + } \\quad } & { } \\\\ { \\| T _ { i } ^ { s } ( \\mathcal { F } _ { i } ^ { s } ( \\mathbf { x } ^ { s } ) ) - T _ { i } ^ { t } ( \\mathcal { F } _ { i } ^ { t } ( \\mathbf { x } ^ { t } ) ) \\| _ { 2 } + } \\\\ & { ~ \\lambda _ { C D } \\| \\mathcal { F } _ { i } ^ { s } ( \\mathbf { x } ^ { s } ) - \\mathcal { F } _ { i } ^ { t } ( \\mathbf { x } ^ { t } ) ) \\| _ { C D } \\biggr ] } \\quad  \\end{array}\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/7cf5aee2f4f2b5c98d47b8430352f4aeee62c3e95fa11d55bde4d629e83cd54c.jpg"
+                }
+            },
+            "bbox": [
+                555,
+                87,
+                834,
+                178
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where we use "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ \\mathcal { F } } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to denote layers within the networks (as shown in Fig. 2, we directly distill three layers), "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "indicates the features following several convolutional layers (trained jointly with the student network model), and CD stands for a Chamfer Distance [51] (we set "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { C D } = 0 . 1 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". The final term is computed over thresholded activations and a spatial soft-argmax [13] from each feature map."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                188,
+                893,
+                295
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Task-oriented Auxiliary Tasks: To ensure essential taskrelevant information is preserved throughout the distillation process, we leverage regularizing supervision in the form of segmentation and command-based auxiliary tasks interlaced throughout the network [16, 49]. Our segmentation loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { s e g }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a cross-entropy loss, computed over the groundtruth BEV and averaged across the segmentation prediction heads. Our command prediction loss "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathcal { L } _ { c m d }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is binary crossentropy supervised by the ground-truth command c, which facilitates learning task-relevant features [11, 19]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                300,
+                893,
+                453
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.5. Student-paced Coaching"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                462,
+                725,
+                478
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "While Sec. 3.4 provides ample supervision on the student’s internal representations, the teacher’s targets may still be difficult to imitate for the student. To better consider the learning ability of the student, we propose to leverage a student-paced training mechanism which can gradually coach the student, i.e., through increasingly difficult samples. When computing the loss in Eqn. 5, we define a coach,"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                484,
+                893,
+                592
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { F } ^ { t }  \\lambda _ { i } \\mathcal { F } ^ { s } + ( 1 - \\lambda _ { i } ) \\mathcal { F } ^ { t } , \\mathrm { i f } \\mathcal { L } _ { C a T } > \\tau _ { i }\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1225e5921610e1276dd3a3e656a61ed04c315a47712f220218726fd7033fd8d8.jpg"
+                }
+            },
+            "bbox": [
+                555,
+                595,
+                836,
+                613
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "which interpolates the teaching targets with the student’s predictions and features. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\lambda _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a hyperparameter which is linearly decreased to 0 over training iteration i. The modified targets are only computed over the hard samples at each batch. Within each batch, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\tau _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is a threshold defining the lowest 50% of the scored samples for the loss with respect to the privileged teacher. While smoothing the targets in this manner may seem counterintuitive, i.e., compared to techniques which mine hard examples, the coaching mechanism aims to stabilize training by reducing the difficulty when the student is unable to perform the optimal action. Eqn. 8 enables adjusting the learning rate in a sample-selective manner (initially supressing difficult samples)."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                619,
+                893,
+                818
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                829,
+                633,
+                847
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We use the CARLA simulator (version 0.9.10.1) [21] for data generation and closed-loop evaluation of the proposed CaT framework. We also use open-loop evaluation on nuScenes [7, 33, 77] (ADE, FDE, and collision rate). In Carla, we leverage the Longest6 Benchmark [16], which uses the six longest routes of each town (Town01 - Town06) from the set of 76 routes provided by the official CARLA leaderboard [1] (a total of 36 routes). We note in addition to the standard cross weather and time of day generalization evaluation, the long and dense traffic conditions in Longest6 present the most challenging settings across the various CARLA-based benchmarks. To evaluate our models, we follow standard metrics and report Route Completion (RC, in terms of completed route percentage), Infraction Score (IS, a penalty factor over infractions), and Driving Score (DS, computed from the prior two) [1, 11, 16])."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                854,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7810"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/86c92e7b901ac2356941f03214a2c917057a94bca9912956f60cc1894b50e9cb.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 1. Quantitative Evaluation on the Longest6 Benchmark. Comparison of CaT with prior methods in terms of Driving Score (DS), Route Completion (RC), and Infraction Score (IS). Additional infraction metrics (Pedestrian Collisions (Ped), Vehicle Collisions (Veh), Layout Collisions (LC), Red Light Violations (Red), Off-road Infraction (OR), Route deviation (Dev), Route Timeouts (TO), Agent Blocked (Blk)) are shown. FD refers to Feature Distillation, SH refers to Safety Hints. *-re-trained by us using the publicly available code. Mean and standard deviation are computed over three runs. CaT outperforms the state-of-the-art by a large margin in terms of DS."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>RGB</td><td>LiDAR</td><td>DS ↑</td><td>RC↑</td><td>IS↑</td><td>Ped↓</td><td>Veh↓</td><td>LC↓</td><td>Red↓</td><td>OR↓</td><td>Dev↓</td><td>TO↓</td><td>Blk↓</td></tr><tr><td>LAV [11]</td><td>√</td><td>√</td><td>48.41±3.40</td><td>80.71±0.84</td><td>0.60±0.04</td><td>0.00</td><td>0.50</td><td>0.19</td><td>0.07</td><td>0.20</td><td>0.07</td><td>0.01</td><td>0.29</td></tr><tr><td>TransFuser [16]</td><td>√</td><td>1</td><td>46.20±2.57</td><td>83.61±1.16</td><td>0.57±0.00</td><td>0.29</td><td>0.38</td><td>0.28</td><td>0.04</td><td>0.07</td><td>0.07</td><td>0.00</td><td>0.32</td></tr><tr><td>WOR [10]</td><td>√</td><td>x</td><td>17.36±2.95</td><td>43.46±2.99</td><td>0.54±0.06</td><td>0.05</td><td>0.64</td><td>0.15</td><td>0.84</td><td>0.15</td><td>0.89</td><td>0.04</td><td>0.45</td></tr><tr><td>NEAT [15]</td><td>√</td><td>x</td><td>24.08±3.30</td><td>59.94±0.50</td><td>0.49±0.02</td><td>0.01</td><td>0.71</td><td>0.21</td><td>0.18</td><td>0.18</td><td>0.00</td><td>0.02</td><td>2.83</td></tr><tr><td>TCP* [71]</td><td>√</td><td>x</td><td>42.86±0.63</td><td>61.83±4.19</td><td>0.71±0.04</td><td>0.01</td><td>0.42</td><td>0.11</td><td>0.04</td><td>0.08</td><td>0.01</td><td>0.01</td><td>0.75</td></tr><tr><td>CaT (w/o Alignment, Coaching, FD)</td><td>√</td><td>x</td><td>39.48±0.67</td><td>60.96±1.65</td><td>0.68±0.01</td><td>0.03</td><td>1.29</td><td>0.20</td><td>0.08</td><td>0.84</td><td>0.00</td><td>0.02</td><td>1.49</td></tr><tr><td>CaT (w/o Alignment, Coaching)</td><td>√</td><td>x</td><td>40.64±0.98</td><td>62.45±0.46</td><td>0.67±0.01</td><td>0.02</td><td>1.07</td><td>0.33</td><td>0.14</td><td>0.38</td><td>0.00</td><td>0.02</td><td>1.11</td></tr><tr><td>CaT (w/o Coaching, FD, SH)</td><td>√</td><td>x</td><td>44.10±0.40</td><td>65.84±5.55</td><td>0.72±0.03</td><td>0.01</td><td>0.26</td><td>0.05</td><td>0.11</td><td>0.15</td><td>0.00</td><td>0.00</td><td>0.66</td></tr><tr><td>CaT (w/o Coaching, SH)</td><td>√</td><td>x</td><td>49.69±2.28</td><td>81.10±0.58</td><td>0.64±0.02</td><td>0.01</td><td>0.78</td><td>0.03</td><td>0.08</td><td>0.20</td><td>0.00</td><td>0.02</td><td>0.51</td></tr><tr><td>CaT (w/o Coaching)</td><td></td><td>x</td><td> $5 5 . 5 5 { \\pm } 1 . 4 1 $ </td><td>81.97±2.34</td><td>0.68±0.01</td><td>0.02</td><td>0.30</td><td>0.05</td><td>0.07</td><td>0.06</td><td>0.00</td><td>0.02</td><td>0.35</td></tr><tr><td>CaT</td><td>√√</td><td>x</td><td>58.36±2.24</td><td>78.79±1.50</td><td>0.77±0.02</td><td>0.01</td><td>0.20</td><td>0.02</td><td>0.05</td><td>0.30</td><td>0.00</td><td>0.04</td><td>0.44</td></tr><tr><td>Privileged Agents:</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>RL Expert (Roach) [79]</td><td></td><td></td><td>60.14±2.40</td><td>85.83±0.60</td><td>0.69±0.03</td><td>0.06</td><td>0.22</td><td>0.00</td><td>0.01</td><td>0.00</td><td>0.00</td><td>0.04</td><td>0.07</td></tr><tr><td>Rule-based Expert</td><td></td><td></td><td>71.96±2.13</td><td>77.46±3.11</td><td>0.91±0.00</td><td>0.01</td><td>0.06</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.03</td><td>0.41</td></tr><tr><td>Basic BEV Agent [13]</td><td></td><td></td><td>24.08±2.83</td><td>73.36±1.08</td><td>0.31±0.06</td><td>0.01</td><td>1.45</td><td>2.45</td><td>0.09</td><td>0.27</td><td>0.11</td><td>0.01</td><td>0.24</td></tr><tr><td>+ History and Desired Path</td><td></td><td></td><td>52.81±1.79</td><td>79.34±3.65</td><td>0.71±0.06</td><td>0.02</td><td>0.30</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.02</td><td>0.53</td></tr><tr><td>+ Agent Forecast</td><td></td><td></td><td>65.73±0.93</td><td>83.50±1.18</td><td>0.79±0.02</td><td>0.01</td><td>0.21</td><td>0.00</td><td>0.02</td><td>0.00</td><td>0.00</td><td>0.01</td><td>0.28</td></tr><tr><td>+ Entity Attention</td><td></td><td></td><td>73.30±1.07</td><td>87.44±0.28</td><td>0.83±0.02</td><td>0.05</td><td>0.11</td><td>0.00</td><td>0.02</td><td>0.00</td><td>0.00</td><td>0.02</td><td>0.12</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                78,
+                162,
+                892,
+                372
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                387,
+                472,
+                585
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Comparison with Prior Methods"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                603,
+                364,
+                619
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "CARLA Results: As shown in Table 1, using feature distillation, safety hints-based BEV for the teacher, and the proposed coaching mechanism, CaT is able to obtain a 58.36% DS. Specifically, we achieve state-of-the-art performance among all prior agents, including LiDAR-based approaches [11, 16] (by 20.6% in terms of DS, from 48.41 to 58.36, and 28.3% in terms of IS). We also note that such approaches provide strong baselines, due to various LiDAR-based safety checks that the agents perform on top of the trained policy, which we do not employ. Moreover, CaT outperforms the prior RGB-only state-of-the-art agent TCP [71] by 36.16% DS. To further validate the generalization of CaT, we discuss an additional benchmark split from TCP [71] and LAV [11] in the supplementary. We also find that removal of the alignment module degrades DS from 44.10% to 39.48%, and is shown to only slightly benefit from feature distillation (40.64% DS) indicating the effectiveness of the proposed architecture."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                628,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/0df5860e8bd6efe4a696accce1dfe4e844e5f77b66b9ca08fb019a7af481518f.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Open-Loop Evaluation on nuScenes."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>ADE (m) ↓</td><td>FDE (m) ↓</td><td>Coll. (%) ↓</td></tr><tr><td>BEV Agent</td><td>0.33</td><td>0.52</td><td>0.49</td></tr><tr><td>CaT (w/o Coaching, FD, SH)</td><td>0.48</td><td>0.43</td><td>0.68</td></tr><tr><td>CaT</td><td>0.41</td><td>0.36</td><td>0.27</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                508,
+                401,
+                883,
+                459
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Real-World Evaluation: To further analyse the benefits of CaT in realistic driving settings, Table 2 shows openloop evaluation (ADE, FDE, and Collision rate [77]) for nuScenes [7]. On the official validation split, the privileged agent performs best with an ADE of 0.33. CaT achieves 0.41 ADE, improving by 14.6% gain over an agent without distillation and coaching. Moreover, we find a significant reduction in the collision rate by 60.3% compared to the baseline. Additional details regarding nuScenes evaluation can be found in the supplementary."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                474,
+                893,
+                627
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Ablation Studies"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                638,
+                665,
+                655
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Teacher Comparison: Table 1 depicts our teacher model ablation. Specifically, we find the proposed BEV channels to drastically improve the privileged agent’s performance by simplifying the learning task (73.30% DS, surpassing the built-in rule-based expert of 71.96%). We note that our behavior cloning agent also significantly outperforms an RL-based expert [79] (60.14%), simply through an effective BEV design. Thus, our findings apply to real-world scenarios where interactive agent training may be unsafe. We also observe that the improved teacher benefits the student agent. Specifically, incorporating the proposed BEV-based safety hints results in student performance gains, from 49.69% to 55.55%."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                665,
+                895,
+                862
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Impact of Feature Distillation: Table 3 presents the benefits of our proposed multi-layer feature distillation framework. We note that prior methods only distill one final fully connected layer (before the prediction head [71, 79], referred to as ‘one layer’ in Table 3). We note that such approaches result in minimal gains, whereas CaT is able to benefit from the extensive feature distillation (improving from 45.23% to 55.55%). Incorporating multiple types of feature distillation losses also benefits performance."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                869,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7811"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/b78b9bce9e74ebfe7b660b31c30f4fe4a9b64d94a700e9e349c5c052fba2f873.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Visualization of Model Input and Features. We show the BEV ground truth (BEV) and RGB image ground truth (Image) on the top row. Next, we visualize the intermediate layer activations of a sensorimotor agent without the proposed alignment module [71] (No Alignment Module), privileged teacher agent (Privileged), student agent trained with output distillation only (Output Distillation), and the proposed agent (CaT). We demonstrate that our teacher agent with proposed knowledge distillation is able to guide the student agent in learning scene-relevant representations and attend to safety-critical entities (circled in red)."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                156,
+                88,
+                808,
+                363
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/ae4f830625ef6c0c22ccbc33e69617d04046a003c63503ee93c0ca1cc4d94a3c.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 3. Ablation Study on Feature Distillation Layers. All loss terms in Eqn. 7 benefit training with deep feature distillation."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td>Method</td><td>DS↑</td><td>RC↑</td><td>IS↑</td></tr><tr><td>No Distillation</td><td>44.10</td><td>65.84</td><td>0.72</td></tr><tr><td>One Layer [71,79]</td><td>45.23</td><td>69.33</td><td>0.68</td></tr><tr><td>Three Layers  $\\mathcal { L } _ { 2 }$ </td><td>49.31</td><td>66.92</td><td>0.78</td></tr><tr><td>Three Layers  $\\mathcal { L } _ { 2 } + \\mathcal { L } _ { C D }$ </td><td>51.95</td><td>62.82</td><td>0.87</td></tr><tr><td>Three Layers  $\\mathcal { L } _ { f e a t }$ </td><td>55.55</td><td>81.97</td><td>0.68</td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                101,
+                483,
+                444,
+                585
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                611,
+                470,
+                718
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Feature Visualization"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                727,
+                279,
+                741
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Fig. 4 depicts the learned features of the initial feature distilled layer (out of the three in Fig. 2). We visualize activations from two channels, to better understand the learned representation by the agents. Interestingly, the visualization shows how traditionally trained sensorimotor agents (i.e., without the proposed alignment module) mostly operate in image-space features in this layer despite the BEV waypoint prediction task. This validates our main hypothesis, that such agents have limited ability to learn from a BEV-based agent, even with BEV-based auxiliary prediction tasks. We also find that output distillation provides a weak supervision for critical components of the BEV, including layout and object features. After feature distillation, the features of our CaT model are able to not only keep the drivingrelated semantic information i.e., drivable road and route, but also focus on safety-critical entities. More visualization examples are provided in the supplementary."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                750,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                452,
+                893,
+                559
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                577,
+                620,
+                593
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We present CaT, a novel knowledge distillation method for effectively training a sensorimotor student agent using the supervision from a privileged agent. We leverage an alignment module to better map image features to the BEV space, thus enabling extensive supervision from a BEV-based teacher over the intermediate feature learning. As both agents can be trained offline via imitation learning, our findings are directly relevant to real-world settings where on-policy interactions may be unsafe to perform. Finally, we carefully account for inherent differences between the student and the teacher using a student-paced coaching mechanism with various auxiliary supervision tasks. Through the improved knowledge distillation process, our experiments result in a state-of-the-art camera-based agent in CARLA. Our ablation into input and model design guides future directions through interpretable analysis into current limitations of end-to-end driving models."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                604,
+                893,
+                862
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgments: We thank the Red Hat Collaboratory for supporting this research."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                869,
+                892,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7812"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                174,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Carla autonomous driving leaderboard. https://leaderboard.carla.org/, 2022. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Yonathan Aflalo, Asaf Noy, Ming Lin, Itamar Friedman, and Lihi Zelnik. Knapsack pruning with inner distillation. arXiv preprint arXiv:2002.08258, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Gustavo Aguilar, Yuan Ling, Yu Zhang, Benjamin Yao, Xing Fan, and Chenlei Guo. Knowledge distillation from internal representations. In AAAI, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] Mayank Bansal, Alex Krizhevsky, and Abhijit Ogale. ChauffeurNet: Learning to drive by imitating the best and synthesizing the worst. In RSS, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Yoshua Bengio, Jer´ ome Louradour, Ronan Collobert, and Ja-ˆ son Weston. Curriculum learning. In ICML, 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Massimo Bertozzi, Alberto Broggi, and Alessandra Fascioli. An extension to the inverse perspective mapping to handle non-flat roads. In IV, 1998. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. nuscenes: A multimodal dataset for autonomous driving. In CVPR, 2020. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Raphael Chekroun, Marin Toromanoff, Sascha Hornauer, and Fabien Moutarde. Gri: General reinforced imitation and its application to vision-based autonomous driving. arXiv preprint arXiv:2111.08575, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Chenyi Chen, Ari Seff, Alain L. Kornhauser, and Jianxiong Xiao. DeepDriving: Learning affordance for direct perception in autonomous driving. In ICCV, 2015. 2, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] Dian Chen, Vladlen Koltun, and Philipp Krahenb¨ uhl. Learn-¨ ing to drive from a world on rails. In ICCV, 2021. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Dian Chen and Philipp Krahenb¨ uhl. Learning from all vehi-¨ cles. In CVPR, 2022. 1, 2, 3, 4, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Defang Chen, Jian-Ping Mei, Yuan Zhang, Can Wang, Zhe Wang, Yan Feng, and Chun Chen. Cross-layer distillation with semantic calibration. In AAAI, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Dian Chen, Brady Zhou, Vladlen Koltun, and Philipp Krahenb ¨ uhl. Learning by cheating. In ¨ CoRL, 2020. 1, 2, 3, 4, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Li Chen, Chonghao Sima, Yang Li, Zehan Zheng, Jiajie Xu, Xiangwei Geng, Hongyang Li, Conghui He, Jianping Shi, Yu Qiao, et al. Persformer: 3d lane detection via perspective transformer and the openlane benchmark. arXiv preprint arXiv:2203.11089, 2022. 2, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Kashyap Chitta, Aditya Prakash, and Andreas Geiger. Neat: Neural attention fields for end-to-end autonomous driving. In ICCV, 2021. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Kashyap Chitta, Aditya Prakash, Bernhard Jaeger, Zehao Yu, Katrin Renz, and Andreas Geiger. Transfuser: Imitation with transformer-based sensor fusion for autonomous driving. arXiv preprint arXiv:2205.15997, 2022. 3, 4, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Inseop Chung, SeongUk Park, Jangho Kim, and Nojun Kwak. Feature-map-level online adversarial knowledge distillation. In ICML, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Felipe Codevilla, Matthias Miiller, Antonio Lopez, Vladlen´ Koltun, and Alexey Dosovitskiy. End-to-end driving via conditional imitation learning. In ICRA, 2018. 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Felipe Codevilla, Eder Santana, Antonio M Lopez, and´ Adrien Gaidon. Exploring the limitations of behavior cloning for autonomous driving. In ICCV, 2019. 4, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Pim de Haan, Dinesh Jayaraman, and Sergey Levine. Causal confusion in imitation learning. In NeurIPS, 2019. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Alexey Dosovitskiy, German Ros, Felipe Codevilla, Antonio Lopez, and Vladlen Koltun. CARLA: An open urban driving simulator. In CoRL, 2017. 2, 3, 4, 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] James J Gibson. The ecological approach to visual perception: classic edition. Psychology press, 2014. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Jianping Gou, Baosheng Yu, Stephen J Maybank, and Dacheng Tao. Knowledge distillation: A survey. In IJCV, 2021. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Sheng Guo, Weilin Huang, Haozhi Zhang, Chenfan Zhuang, Dengke Dong, Matthew R Scott, and Dinglong Huang. Curriculumnet: Weakly supervised learning from large-scale web images. In ECCV, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Saurabh Gupta, James Davidson, Sergey Levine, Rahul Sukthankar, and Jitendra Malik. Cognitive mapping and planning for visual navigation. In CVPR, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Peter E Hart, Nils J Nilsson, and Bertram Raphael. A formal basis for the heuristic determination of minimum cost paths. IEEE transactions on Systems Science and Cybernetics, 1968. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] He He, Jason Eisner, and Hal Daume. Imitation learning by coaching. In NeurIPS, 2012. 1, 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In CVPR, 2016. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Byeongho Heo, Jeesoo Kim, Sangdoo Yun, Hyojin Park, Nojun Kwak, and Jin Young Choi. A comprehensive overhaul of feature distillation. In ICCV, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Roger Hiemstra and Burton Sisco. Individualizing Instruction. Making Learning Personal, Empowering, and Successful. 1990. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] Geoffrey Hinton, Oriol Vinyals, Jeff Dean, et al. Distilling the knowledge in a neural network. arXiv preprint arXiv:1503.02531, 2(7), 2015. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Anthony Hu, Zak Murez, Nikhil Mohan, Sof´ıa Dudas, Jeffrey Hawke, Vijay Badrinarayanan, Roberto Cipolla, and Alex Kendall. Fiery: Future instance prediction in bird’seye view from surround monocular cameras. In ICCV, 2021. 2, 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Peiyun Hu, Aaron Huang, John Dolan, David Held, and Deva Ramanan. Safe local motion planning with selfsupervised freespace forecasting. In CVPR, 2021. 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Zanming Huang, Zhongkai Shangguan, Jimuyang Zhang, Gilad Bar, Matthew Boyd, and Eshed Ohn-Bar. ASSISTER: Assistive navigation via conditional instruction generation. In ECCV, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Zehao Huang and Naiyan Wang. Like what you like: Knowledge distill via neuron selectivity transfer. arXiv preprint arXiv:1707.01219, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Mingi Ji, Byeongho Heo, and Sungrae Park. Show, attend and distill: Knowledge distillation via attention-based feature matching. In AAAI, 2021. 2"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                467,
+                142
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7813"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Lu Jiang, Zhengyuan Zhou, Thomas Leung, Li-Jia Li, and Li Fei-Fei. Mentornet: Learning data-driven curriculum for very deep neural networks on corrupted labels. In ICML, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Jangho Kim, SeongUk Park, and Nojun Kwak. Paraphrasing complex network: Network compression via factor transfer. In NeurIPS, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Tom Kocmi and Ondrej Bojar. Curriculum learning and minibatch bucketing in neural machine translation. arXiv preprint arXiv:1707.09533, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Animesh Koratana, Daniel Kang, Peter Bailis, and Matei Zaharia. Lit: Learned intermediate representation training for model compression. In ICML, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] M Kumar, Benjamin Packer, and Daphne Koller. Self-paced learning for latent variable models. In NeurIPS, 2010. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Ravi Kumar Kushawaha, Saurabh Kumar, Biplab Banerjee, and Rajbabu Velmurugan. Distilling spikes: Knowledge distillation in spiking neural networks. In ICPR, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Sergey Levine, Chelsea Finn, Trevor Darrell, and Pieter Abbeel. End-to-end training of deep visuomotor policies. The Journal of Machine Learning Research, 17(1):1334– 1373, 2016. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Dong Li, Jia-Bin Huang, Yali Li, Shengjin Wang, and Ming-Hsuan Yang. Weakly supervised object localization with progressive domain adaptation. In CVPR, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] Guohao Li, Matthias Mueller, Vincent Casser, Neil Smith, Dominik L Michels, and Bernard Ghanem. Oil: Observational imitation learning. In RSS, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Yuang Liu, Wei Zhang, and Jun Wang. Source-free domain adaptation for semantic segmentation. In CVPR, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Takahiro Miki, Joonho Lee, Jemin Hwangbo, Lorenz Wellhausen, Vladlen Koltun, and Marco Hutter. Learning robust perceptive locomotion for quadrupedal robots in the wild. Science Robotics, 7(62), 2022. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Matthias Muller, Alexey Dosovitskiy, Bernard Ghanem, and¨ Vladlen Koltun. Driving policy transfer via modularity and abstraction. In CoRL, 2018. 3, 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Eshed Ohn-Bar, Aditya Prakash, Aseem Behl, Kashyap Chitta, and Andreas Geiger. Learning situational driving. In CVPR, 2020. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Takayuki Osa, Joni Pajarinen, Gerhard Neumann, J Andrew Bagnell, Pieter Abbeel, Jan Peters, et al. An algorithmic perspective on imitation learning. Foundations and Trends® in Robotics, 2018. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Despoina Paschalidou, Angelos Katharopoulos, Andreas Geiger, and Sanja Fidler. Neural parts: Learning expressive 3D shape abstractions with invertible neural networks. In CVPR, 2021. 6"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Nikolaos Passalis and Anastasios Tefas. Learning deep representations with probabilistic knowledge transfer. In ECCV, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Jonah Philion and Sanja Fidler. Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unprojecting to 3D. In ECCV, 2020. 2, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Dean A Pomerleau. ALVINN: An autonomous land vehicle in a neural network. In NeurIPS, 1989. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Adriana Romero, Nicolas Ballas, Samira Ebrahimi Kahou, Antoine Chassang, Carlo Gatta, and Yoshua Bengio. Fitnets: Hints for thin deep nets. arXiv preprint arXiv:1412.6550, 2014. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[56] Stephane Ross, Geoffrey Gordon, and Drew Bagnell. A re-´ duction of imitation learning and structured prediction to noregret online learning. In AISTATS, 2011. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[57] Avishkar Saha, Oscar Mendez, Chris Russell, and Richard Bowden. Translating images into maps. In ICRA, 2022. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[58] Axel Sauer, Nikolay Savinov, and Andreas Geiger. Conditional affordance learning for driving in urban environments. In CoRL, 2018. 4"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[59] Miaojing Shi and Vittorio Ferrari. Weakly supervised object localization using size estimates. In ECCV, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[60] Suraj Srinivas and Francois Fleuret. Knowledge transfer with Jacobian matching. In ICML, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[61] Yuxing Tang, Xiaosong Wang, Adam P Harrison, Le Lu, Jing Xiao, and Ronald M Summers. Attention-guided curriculum learning for weakly supervised classification and localization of thoracic diseases on chest radiographs. In MLMI, 2018. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[62] Marin Toromanoff, Emilie Wirbel, and Fabien Moutarde. End-to-end model-free reinforcement learning for urban driving using implicit affordances. In CVPR, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[63] Radu Tudor Ionescu, Bogdan Alexe, Marius Leordeanu, Marius Popescu, Dim P Papadopoulos, and Vittorio Ferrari. How hard can it be? estimating the difficulty of visual search in an image. In CVPR, 2016. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[64] Rachel R Van Der Stuyf. Scaffolding as a teaching strategy. Adolescent learning and development, 2002. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[65] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In NeurIPS, 2017. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[66] Antonio Visioli. Practical PID control. Springer Science & Business Media, 2006. 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[67] Tao Wang, Li Yuan, Xiaopeng Zhang, and Jiashi Feng. Distilling object detectors with fine-grained feature imitation. In CVPR, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[68] Wenhui Wang, Hangbo Bao, Shaohan Huang, Li Dong, and Furu Wei. Minilmv2: Multi-head self-attention relation distillation for compressing pretrained transformers. arXiv preprint arXiv:2012.15828, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[69] Wei Wang, Isaac Caswell, and Ciprian Chelba. Dynamically composing domain-data selection with clean-data selection by” co-curricular learning” for neural machine translation. arXiv preprint arXiv:1906.01130, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[70] Chuan Wen, Jierui Lin, Trevor Darrell, Dinesh Jayaraman, and Yang Gao. Fighting copycat agents in behavioral cloning from observation histories. In NeurIPS, 2020. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[71] Penghao Wu, Xiaosong Jia, Li Chen, Junchi Yan, Hongyang Li, and Yu Qiao. Trajectory-guided control prediction for end-to-end autonomous driving: A simple yet strong baseline. arXiv preprint arXiv:2206.08129, 2022. 1, 2, 3, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[72] Liuyu Xiang, Guiguang Ding, and Jungong Han. Learning from multiple experts: Self-paced knowledge distillation for long-tailed classification. In ECCV, 2020. 2"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                468,
+                147
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7814"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[73] Canwen Xu, Wangchunshu Zhou, Tao Ge, Furu Wei, and Ming Zhou. Bert-of-theseus: Compressing bert by progressive module replacing. arXiv preprint arXiv:2002.02925, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[74] Jing Yang, Brais Martinez, Adrian Bulat, and Georgios Tzimiropoulos. Knowledge distillation via adaptive instance normalization. arXiv preprint arXiv:2003.04289, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[75] Junho Yim, Donggyu Joo, Jihoon Bae, and Junmo Kim. A gift from knowledge distillation: Fast optimization, network minimization and transfer learning. In CVPR, 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[76] Jimuyang Zhang and Eshed Ohn-Bar. Learning by watching. In CVPR, 2021. 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[77] Jimuyang Zhang, Ruizhao Zhu, and Eshed Ohn-Bar. SelfD: Self-learning large-scale driving policies from the web. In CVPR, 2022. 2, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[78] Pan Zhang, Bo Zhang, Ting Zhang, Dong Chen, and Fang Wen. Robust mutual learning for semi-supervised semantic segmentation. arXiv preprint arXiv:2106.00609, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[79] Zhejun Zhang, Alexander Liniger, Dengxin Dai, Fisher Yu, and Luc Van Gool. End-to-end urban driving by imitating a reinforcement learning coach. In ICCV, 2021. 1, 2, 3, 4, 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[80] Albert Zhao, Tong He, Yitao Liang, Haibin Huang, Guy Van den Broeck, and Stefano Soatto. Lates: Latent space distillation for teacher-student driving policy learning. arXiv preprint arXiv:1912.02973, 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[81] Albert Zhao, Tong He, Yitao Liang, Haibin Huang, Guy Van den Broeck, and Stefano Soatto. Sam: Squeeze-andmimic networks for conditional visual driving policy learning. CoRL, 2020. 1, 2, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[82] Brady Zhou and Philipp Krahenb¨ uhl. Cross-view transform-¨ ers for real-time map-view semantic segmentation. In CVPR, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[83] Brady Zhou, Philipp Krahenb ¨ uhl, and Vladlen Koltun. Does¨ computer vision matter for action? Science Robotics, 4(30), 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[84] Yikai Zhou, Baosong Yang, Derek F Wong, Yu Wan, and Lidia S Chao. Uncertainty-aware curriculum learning for neural machine translation. In ACL, 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[85] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable transformers for end-to-end object detection. arXiv preprint arXiv:2010.04159, 2020. 5"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                470,
+                146
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "7815"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ]
+]
