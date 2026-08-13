@@ -1,0 +1,314 @@
+# Learning to Generate Language-supervised and Open-vocabulary Scene Graph using Pre-trained Visual-Semantic Space
+
+Yong Zhang<sup>†</sup>, Yingwei Pan<sup>‡</sup>, Ting Yao<sup>‡</sup>, Rui Huang<sup>†\*</sup>, Tao Mei<sup>‡</sup>, and Chang-Wen Chen<sup>§</sup> <sup>†</sup> The Chinese University of Hong Kong, Shenzhen <sup>‡</sup> HiDream.ai Inc. <sup>§</sup> The Hong Kong Polytechnic University yongzhang@link.cuhk.edu.cn, {panyw.ustc, tingyao.ustc}@gmail.com, ruihuang@cuhk.edu.cn, tmei@hidream.ai, changwen.chen@polyu.edu.hk
+
+## Abstract
+
+Scene graph generation (SGG) aims to abstract an image into a graph structure, by representing objects as graph nodes and their relations as labeled edges. However, two knotty obstacles limit the practicability of current SGG methods in real-world scenarios: 1) training SGG models requires time-consuming ground-truth annotations, and 2) the closed-set object categories make the SGG models limited in their ability to recognize novel objects outside of training corpora. To address these issues, we novelly exploit a powerful pre-trained visual-semantic space (VSS) to trigger language-supervised and open-vocabulary SGG in a simple yet effective manner. Specifically, cheap scene graph supervision data can be easily obtained by parsing image language descriptions into semantic graphs. Next, the noun phrases on such semantic graphs are directly grounded over image regions through region-word alignment in the pre-trained VSS. In this way, we enable open-vocabulary object detection by performing object category name grounding with a text prompt in this VSS. On the basis of visually-grounded objects, the relation representations are naturally built for relation recognition, pursuing open-vocabulary SGG. We validate our proposed approach with extensive experiments on the Visual Genome benchmark across various SGG scenarios (i.e., supervised / language-supervised, closed-set / open-vocabulary). Consistent superior performances are achieved compared with existing methods, demonstrating the potential of exploiting pre-trained VSS for SGG in more practical scenarios.
+
+## 1. Introduction
+
+Scene graph [10] is a structured representation for describing image semantics. It abstracts visual objects as graph nodes and represents their relations as labeled graph edges. The task of scene graph generation (SGG) [6, 14,
+
+![](images/4d317104471c404caf831e42f7c73f0c3bf7cae1a75be68c92caf0b88da23561.jpg)  
+Figure 1. An illustration of exploiting a pre-trained visualsemantic space (VSS) to trigger language-supervised and openvocabulary scene graph generation (SGG). (a) We acquire weak scene graph supervision by semantically parsing the image language description and grounding noun phrases on image regions via VSS. (b) At SGG inference time, thanks to the openvocabulary generalization naturally rooted in VSS, the novel object name (e.g., player) in the text prompt input can be well aligned to one image region, which is regarded as its detection.
+
+20, 26, 40, 47, 48, 50, 51, 57, 60, 63, 64] plays an important role for fine-grained visual understanding, which has shown promising results in facilitating various downstream applications, such as image-text retrieval [24,38,49], image captioning [2,22,32,35,52,54,55,66], cross-media knowledge graph construction [18, 45] and robot planning [1].
+
+Though great effort has been made, SGG of the current stage still faces two knotty obstacles that limit its practicability in real-world scenarios. 1) Training SGG mod els requires massive ground-truth scene graphs that are expensive for manual annotation. Annotators have to draw bounding boxes for all objects in an image and connect possible interacted object pairs, and assign object/relation labels. Since assigned labels might be ambiguous, further verification and canonicalization processing are usually required [14]. Finally, a scene graph in the form of a set of ⟨subject, predicate, object⟩ triplets with subject and object bounding boxes is constructed. Such annotating process is time-consuming and tedious, costing much human labor and patience. 2) Almost all existing SGG methods [20,21,26,47,48,50,51,60] involve a pre-defined closed set of object categories, making them limited in recognizing novel objects outside of training corpora. However, realworld scenes contain a boarder set of visual concepts than any pre-defined category pool. It is very likely to encounter unseen/novel categories. When this happens, current SGG models either classify novel objects to a known category or fail to detect them like background regions. Accordingly, the prediction of their interactions/relations with other objects is negatively affected or just neglected. This may lead to problems. For example, a real-world robot may take inappropriate actions using such closed-set SGG models [1,42].
+
+Recently, there is a trend of leveraging free-form language supervision for benefiting visual recognition tasks via large-scale language-image pre-training [7, 15, 17, 36, 53, 59, 67]. These methods (e.g., CLIP [36]) perform pre-training on massive easily-obtained image-text pairs to learn a visual-semantic space (VSS), and have demonstrated great zero-shot transferability. Especially, the recent grounded language-image pre-training (GLIP) [17] has learned an object-level and semantic-rich VSS. Based on the learned VSS, it has established new state-of-the-art performances in phrase grounding and zero-shot object detection. This indicates such pre-trained VSS has powerful multi-modal alignment ability $( \mathrm { i . e . , }$ image regions and text phrases that have similar semantics get close embeddings) and open-vocabulary generalization ability (i.e., covering virtually any concepts in the pre-training image-text corpus). This inspires our thought of addressing the aforementioned obstacles in SGG using the pre-trained VSS. On the one hand, taking advantage of its multi-modal alignment ability, we can cheaply acquire scene graph supervision from an image description $( \mathrm { e . g . }$ , retrieving image regions aligned with noun phrases and re-arranging the description into a scene-graph-like form). On the other hand, by leveraging its open-vocabulary generalization ability, it is promising to enable novel category prediction in SGG.
+
+In this work, we investigate the opportunity of fully exploiting the VSS learned by language-image pre-training to trigger language-supervised and open-vocabulary SGG. Specifically, we obtain weak scene graph supervision by semantically parsing an image language description into a semantic graph, then grounding its noun phrases over image regions through region-word alignment in the pre-trained VSS (Figure 1 (a)). Moreover, we propose a novel SGG model, namely Visual-Semantic Space for Scene graph generation $\mathbf { ( V S ^ { 3 } ) }$ . It takes a raw image and a text prompt containing object category names as inputs, and projects them into the shared VSS as embeddings. Next, $\mathrm { V S ^ { 3 } }$ performs object detection by aligning the embeddings of category names and image regions. Based on high-confidence detected objects, $\mathrm { V S ^ { 3 } }$ builds relation representations for object pairs with a devised relation embedding module that fully mines relation patterns from visual and spatial perspectives. Finally, a relation prediction module takes relation representations to infer relation labels. The predicted scene graph is composed by combining object detections and inferred relation labels. During training, visually-grounded semantic graphs parsed from image descriptions could be used as weak scene graph supervision, achieving languagesupervised SGG. At SGG inference time, when using a text prompt input containing novel categories, $\mathrm { V S ^ { 3 } }$ manages to detect novel objects thanks to the open-vocabulary generalization ability natually rooted in VSS, hence allowing for open-vocabulary SGG (Figure 1 (b)).
+
+In summary, we have made the following contributions: (1) the exploitation of a pre-trained VSS provides an elegant solution for addressing obstacles to triggering both language-supervised and open-vocabulary SGG, making a solid step toward real-world usage of SGG. (2) The proposed $\mathrm { V } \bar { \mathrm { S } } ^ { 3 }$ model is a new and versatile framework, which effectively transfers language-image pre-training knowledge for benefiting SGG. (3) We fully validate the effectiveness of our approach through extensive experiments on the Visual Genome benchmark, and have set new state-of-theart performances spanning across all settings (i.e., supervised / language-supervised, closed-set / open-vocabulary).
+
+## 2. Related Work
+
+Fully supervised SGG. The concept of scene graph as a structured image representation is first introduced in [10]. Next, the Visual Genome benchmark [14] is manually annotated with large-scale scene graphs on images. Such annotated dataset triggers a series of innovations [6,20,26,40,47, 48, 50, 51, 57, 60] for the fully supervised SGG task. Typically, an object detector (e.g., Faster-RCNN [37]) is trained to retrieve image regions as scene graph nodes. Then, relation representations of object pairs are constructed from visual, spatial and language perspectives, and are used for relation classification to label scene graph edges. To achieve desirable SGG, researchers have devised message-passing mechanisms [20, 26, 48, 50, 60] to exploit contextual information, derived contrastive loss functions [62] or incorporated external knowledge [6, 40, 57]. However, all these methods rely on training with expensive scene graph annotations. Our proposed $\mathrm { V S ^ { 3 } }$ model is compatible with fully supervised SGG, but we seek to make SGG training cheaper, which is more practical in real-world applications.
+
+Language-supervised SGG. This task aims to train SGG models using language descriptions. It has recently attracted increasing attention [21,41,56,58,65], which is also referred as weakly supervised SGG in [21, 41, 58]. Particularly, based on a graph alignment algorithm, VSPNet [58] first proposes to supervise SGG training with scene graphs that have no object locations. Subsequent works [21,41,65] extract entities and relations from image captions to compose such unlocalized scene graph, which is achieved via an off-the-shelf language parser [31, 39]. They next follow a common paradigm: first grounding text entities on image regions, and then leveraging grounded scene graphs as pseudo labels to train standard SGG models. To acquire entity groundings, Shi et al [41] devise an efficient graph matching module optimized via contrastive learning; Zhong et al [65] simply match text entity names with predicted object labels from a pre-trained object detector using semantic rules such as WordNet [33] synsets matching. More recently, Li et al [21] integrate interaction-aware knowledge distilled from pre-trained language-image models [16] for enhancing grounding reliability. Instead, we propose to obtain groundings through region-word alignment in a pretrained VSS, which is much simple yet more effective to collect scene graph supervision from language.
+
+Language-image pre-training. This has been shown effective for boosting various vision-language downstream tasks [11, 16, 23, 29, 30, 34, 43], e.g., image-text retrieval, image captioning. Also, recent studies present remarkable results on transferring pre-trained language-image knowledge to solve vision recognition problems, such as zeroshot image classification [9,36], open-vocabulary object detection [7, 17, 53, 59, 67] and zero-shot semantic segmentation [15]. For example, CLIP [36] and ALIGN [9] learn separate encoders to embed image and text into a shared space by pre-training on massive image-text pairs using a contrastive loss. They have demonstrated remarkable generalization ability on zero-shot image classification after pretraining. Distinct from CLIP and ALIGN that learn imagelevel representations, GLIP [17] focuses on learning objectlevel visual representations through region-word alignment. It has attained strong zero-shot and few-shot transferability to various object-level recognition tasks such as object detection and phrase grounding. Most recently, He et al [8] investigate a visual-relation pre-training and prompt-based fine-tuning method for open-vocabulary SGG. However, its image encoder relies on a pre-trained region proposal extractor, which is a bottleneck for achieving open-vocabulary SGG under the SGDET protocol. Unlike [8], our proposed $\mathrm { V S ^ { 3 } }$ directly encodes an image into region tokens, avoiding the bottleneck of region proposals. More importantly, our approach addresses obstacles to achieving both language-supervised and open-vocabulary SGG using a unified framework, while He et al [8] only focus on the latter.
+
+## 3. Approach
+
+## 3.1. Notation & Overview
+
+The task of scene graph generation (SGG) aims to map an image into an abstract graph $S G = \{ O , R \}$ , where graph nodes ${ \cal O } = \{ o _ { 1 } , . . . , o _ { N } \}$ correspond to image objects, and graph edges $\boldsymbol { R } \ : = \ : \{ r _ { 1 } , . . . , r _ { M } \}$ represents their relations. Each object $o _ { i } = \{ { \bf b } _ { i } , l _ { i } \} \in O$ contains the bounding box coordinates $\mathbf { b } _ { i } \in \mathbb { R } ^ { 4 }$ and its class label information $l _ { i } \in \mathcal { C } _ { o } .$ where $\scriptstyle { \mathcal { C } } _ { o }$ denotes the set of object categories. Each relation $r _ { m } \in R$ is a ⟨subject, predicate, object⟩ triplet, and we represent it as $r _ { m } = r _ { i  j } = \{ o _ { i } , p _ { i j } , o _ { j } \}$ , in which $p _ { i j }$ is the predicate/relation label belonging to category set $\mathcal { C } _ { r }$
+
+<table><tr><td rowspan=3 colspan=1> $\overbrace { S G } ^ { \substack { \longleftrightarrow } } \overbrace { C _ { o } ^ { t a r g e t } } ^ { \substack { \longleftrightarrow } { c _ { o } ^ { t a r g e t } } }$ </td><td></td><td></td></tr><tr><td rowspan=2 colspan=1>Not containingnovel object classes</td><td></td></tr><tr><td rowspan=1 colspan=1>Containingnovel object classes</td></tr><tr><td rowspan=1 colspan=1>Manually annotated</td><td rowspan=1 colspan=1>fully supervised&amp; closed-set</td><td rowspan=1 colspan=1>fully supervised&amp; open-vocabulary</td></tr><tr><td rowspan=1 colspan=1>Automatically parsedfrom image descriptions</td><td rowspan=1 colspan=1>language-supervised&amp; closed-set</td><td rowspan=1 colspan=1>language-supervised&amp; open-vocabulary</td></tr></table>
+
+Table 1. Definitions of different SGG settings, according to scene graph supervision SG and the object set at inference $\mathcal { C } _ { o } ^ { t a r g e t }$
+
+Most existing SGG methods require expensive manually annotated scene graphs SG as supervision. And they involve a closed set of object categories $\scriptstyle { \mathcal { C } } _ { o }$ in both training and inference. These issues limit SGG for practical usage. In this work, we propose to fully exploit a pre-trained VSS to push SGG towards language-supervised and openvocabulary scenarios. We illustrate the definitions of different SGG settings in Table 1. Concretely, from the perspective of scene graph supervision SG, SGG is categorized into fully supervised and language-supervised, using SG from manual annotation and language respectively. From the other perspective of object categories $\mathcal { C } _ { o } ^ { t a r g e t }$ at inference, it is referred to as open-vocabulary or closed-set according to whether or not $\mathcal { C } _ { o } ^ { t a r g e t }$ contains novel objects.
+
+Next, in Section 3.2, we present a new SGG model named $\mathrm { V S ^ { 3 } }$ , which is versatile to handle with all SGG settings in Table 1. In Section 3.3, we devise a scheme to obtain scene graph supervision from language descriptions, allowing for language-supervised SGG. Finally, Section 3.4 details the strategy of transferring the proposed $\mathrm { V S ^ { 3 } }$ to pursue open-vocabulary SGG.
+
+## 3.2. The Proposed VS<sup>3</sup> Model
+
+We propose the $\mathrm { V S ^ { 3 } }$ model for tackling the SGG task by extending the GLIP [17] framework with relation recognition modules, as shown in Figure 2.
+
+Preliminary. GLIP unifies object detection and phrase grounding into one framework. It has an image encoder Enc (e.g., Swin Transformer backbone [28]) and a text encoder Enc<sub>L</sub> (e.g., BERT [12]). Enc<sub>I</sub> extracts region/box features $\bar { O } \in \mathbb { R } ^ { \bar { N } \times d }$ from an input image, where $\bar { N }$ is the number of regions and d is the feature dimension. Enc<sub>L</sub> encodes a text input into contextualized word/token embeddings $\bar { P } ~ \in ~ \bar { \mathbb { R } ^ { T \times d } }$ , where $\bar { T }$ is the text length. Further, GLIP uses a cross-modal fusion module to achieve feature communication between $\bar { O }$ and ${ \bar { P } } ,$ resulting in enriched region embeddings $\tilde { O } \in \mathbb { R } ^ { \tilde { N } \times d }$ and word embeddings $\tilde { P } ~ \in ~ \mathbb { R } ^ { \tilde { T } \times d }$ Finally, the region-word alignment scores $\hat { S } _ { g r o u n d } \ : = \ : \tilde { O } \tilde { P } ^ { \top } \in \mathbb { R } ^ { \tilde { N } \times \bar { T } }$ and the predicted locations $\mathring { B } \ = \ b o x . p r e d i c t o r ( \tilde { O } ) \ \in \ \mathbb { R } ^ { \bar { N } \times { 4 } }$ are supervised by ground-truth text grounding data. After large-scale pretraining, Enc<sub>I</sub> and Enc $L$ embed the input image and text into a joint VSS, which aligns multi-modal embeddings and covers open-vocabulary concepts. $\mathrm { V S ^ { 3 } }$ inherits Enc<sub>I</sub>, Enc $\scriptstyle { \mathrm { : } } L$ and the cross-module fusion module from GLIP.
+
+![](images/c493d519d510c4ac0717bb1e5bf9110c2ce47aaa388cd85f64c807b73031234b.jpg)  
+Figure 2. An overview of the proposed Visual-Semantic Space for Scene graph generation $( \mathrm { V S } ^ { 3 } )$ model. It inherits the image encoder, the text encoder and the cross-modal fusion module from GLIP [17], so as to project image regions and text prompt words in a pre-trained visual-semantic space (VSS). Object regions are detected by aligning the embeddings of category names and image regions in VSS. Next, high-confidence detected results are retained to compose subject-object pairs. After that, the relation embedding module constructs their relation representations by extracting visual and spatial features, on which relation prediction is performed. At test time, thanks to the open vocabulary generalization ability of VSS, VS<sup>3</sup> manages to detect novel objects by switching to a text prompt containing novel classes.
+
+Text prompt. Considering that object detection has been reformulated as phrase grounding, $\mathrm { \dot { V } S ^ { 3 } }$ also requires a text prompt input except for the image input. Following GL $\varLambda  { \mathrm { P } } ^ { \prime }  { \mathrm { s } }$ design, we set the text prompt for object detection in the form of $^ { \bullet \bullet } n a m e ( c _ { 1 } )$ $n a m e ( c _ { 2 } ) . . . \ n a m e ( c _ { | { \mathcal { C } } _ { o } | } ) . ^ { , }$ , where $c _ { i } \in \mathcal { C } _ { o }$ and name(c<sub>i</sub>) gets the category name of $c _ { i } \ ( \mathrm { e . g . }$ 9 person). Hence, an object is detected according to the alignment score between a region embedding $\tilde { \mathbf { o } } _ { i } \in \tilde { O }$ (the ith row) and the category name embeddings $\tilde { P } .$
+
+Relation embedding module. To further enable $\mathrm { V S ^ { 3 } }$ with relation recognition ability, we devise the relation embedding module to build relation representations. Based on the region/box features $\tilde { O }$ after cross-modal fusion, we first sample a subset of regions $\tilde { O } ^ { \prime } \in \mathbb { R } ^ { N ^ { \prime } \times d }$ that are most likely to be valid objects. This is achieved by matching predicted bounding boxes $\hat { B }$ with ground-truth objects during training, and by retaining top- $N ^ { \prime }$ regions with the highest confidence scores after non-maximum suppression (NMS) at inference. Next, we construct relation representations for all possible subject-object pairs. Given an object pair $( \tilde { \mathbf { o } } _ { i } , \tilde { \mathbf { o } } _ { j } )$ and their normalized bounding boxes $( \mathbf { b } _ { i } , \mathbf { b } _ { j } )$ , the pairwise relation representation is represented as $\mathbf { p a i r } _ { i  j } = c a t [ \mathbf { p a i r } _ { i  j } ^ { v i s u a l } , \mathbf { p a i r } _ { i  j } ^ { s p a t i a l } ]$ . This is the concatenation of features mined from the visual and spatial perspectives. The visual feature is computed by
+
+$$
+\mathbf { p a i r } _ { i  j } ^ { v i s u a l } = \pmb { f } _ { d i f f } \big ( \tilde { \mathbf { o } } _ { i } - \tilde { \mathbf { o } } _ { j } \big ) + \pmb { f } _ { s u m } \big ( \tilde { \mathbf { o } } _ { i } + \tilde { \mathbf { o } } _ { j } \big ) ,\tag{1}
+$$
+
+where $f _ { d i f f }$ and $f _ { s u m }$ are two mapping functions implemented as 2-layer MLPs (multi-layer perceptron). By defining the normalized center coordinates of two involved objects as $( c t _ { i } ^ { x } , c t _ { i } ^ { y } )$ and $( c t _ { j } ^ { x } , c t _ { j } ^ { y } )$ , the spatial feature is measured as
+
+$$
+\mathbf { p a i r } _ { i  j } ^ { s p a t i a l } = c a t [ \mathbf { b } _ { i } , \mathbf { b } _ { j } , d x , d y , d i s , \theta , A _ { i } , A _ { j } , I , U ] ,\tag{2}
+$$
+
+where dx $\begin{array} { r c l } { { \mathrm { ~  ~ \Gamma ~ } = } } & { { c t _ { i } ^ { x } \mathrm { ~  ~ - ~ } c t _ { j } ^ { x } , d y } } & { { = } } & { { c t _ { i } ^ { y } \mathrm { ~  ~ - ~ } c t _ { j } ^ { y } , } } \end{array}$ dis = $\begin{array} { r } { \sqrt { d x ^ { 2 } + d y ^ { 2 } } , \theta = a r c t a n ( \frac { d y } { d x } ) . ~ A _ { i } , A _ { j } , I , U } \end{array}$ denote the areas of the subject, the object, their intersection, and union boxes, respectively.
+
+Relation prediction. Conditioned on the relation representation pair $\cdot _ { i  j }$ of each object pair, we predict a relateness score $\hat { z } _ { i  j } = f _ { r e l a t e n e s s } ( \mathbf { p a i r } _ { i  j } ) \in [ 0 , 1 ]$ and a semantic label probability $\hat { { \bf y } } _ { i  j } = f _ { s e m a n t i c } ( { \bf p a i r } _ { i  j } ) \in$ $[ 0 , 1 ] ^ { | { \mathcal { C } } _ { r } | }$ . The relateness $\hat { z } _ { i  j }$ represents the probability that relations exist between the object pair. $f _ { r e l a t e n e s s }$ is implemented with an MLP coupled with Sigmoid activation. $f _ { s e m a n t i c }$ is implemented with another MLP using Softmax activation. The total loss for relation recognition $L _ { r e l \_ r c g }$ is measured as
+
+$$
+L _ { r e l a t e n e s s } = F L ( \hat { z } _ { i  j } , z _ { i  j } ) ,
+$$
+
+$$
+L _ { s e m a n t i c } = C E ( \hat { \bf { y } } _ { i  j } , { \bf { y } } _ { i  j } ) ,\tag{3}
+$$
+
+(4)
+
+$$
+L _ { r e l . r c g } = L _ { r e l a t e n e s s } + L _ { s e m a n t i c } ,\tag{5}
+$$
+
+where $F L$ and $C E$ denote focal loss [25] and cross-entropy loss functions. $z _ { i \to j }$ and $\pmb { y } _ { i  j }$ represent the ground-truth relateness label and predicate category label respectively.
+
+Training & inference. During training, we initialize parameters from pre-trained GLIP models for inherited modules in $\mathrm { V S ^ { 3 } }$ . To ease training difficulty, we freeze the image encoder and text encoder, and only fine-tune the cross-modal fusion module and devised modules for relation recognition. This also avoids the degeneration of the pre-trained VSS. At inference, by retaining high-confidence detected objects and further predicting their relations, we generate an image scene graph representation.
+
+## 3.3. Obtaining Language Scene Graph Supervision
+
+Ground-truth scene graphs are time-consuming to annotate. Alternatively, we can parse semantic graphs from image language descriptions, and obtain noun phrase groundings through region-word alignment in the pre-trained VSS (implemented with an off-the-shelf GLIP). This is a much cheaper way to obtain weak scene graph supervision.
+
+Semantic graph parsing. Concretely, for each image language description, we parse it into a semantic graph $S G ^ { t e x t } = \{ O ^ { t e x t } , R ^ { t e x t } \}$ using the Standard Scene Graph Parser based on [39]. The parser not only extracts noun phrases as entities/objects $( O ^ { t e x t } )$ but also extracts the words describing their relations $( R ^ { t e x t } )$ . For example, the sentence “a woman is playing the piano in the room.” is parsed to the $S G ^ { t e x t } ,$ of which $O ^ { t e x t } \ : = \ : \{ w o m a n$ , piano, room} and $R ^ { t e x t } =$ $\left\{ \langle 0 , p l a y i n g , 1 \rangle , \langle 0 , i n , 2 \rangle \right\}$ (numbers denote object indices). Considering that parsed object/relation words are free-form, we map them to our concerning categories (e.g., VG150 object/relation categories in experiments) by rules such as direct string matching and WordNet [33] synsets matching following [65].
+
+Semantic graph grounding. Note that each element of $O ^ { t e x t }$ only contains a text label name so far, and its bounding box information is still missing. To obtain grounding boxes, we construct a text prompt using triplets in $S G ^ { t e x t }$ $\mathrm { e . g . }$ , “woman playing piano. woman in room.”. Then, we feed such text prompt together with the raw image into a pre-trained GLIP, in order to acquire grounding boxes of $O ^ { t e x t }$ . Specifically, for each element in $O ^ { t e x t }$ , we select the image region that has the highest alignment score with its category name as its grounding box. Since there might be multiple objects in $O ^ { t e x t }$ that actually refer to the same object, we perform a post-processing NMS to merge boxes with the same label and high IoU (intersection over union) scores $( \geq 0 . 9 )$ . Finally, with box information, the visuallygrounded $S G ^ { t e x t }$ is ready to be used as weak supervision for training SGG models, e.g., the proposed VS<sup>3</sup>.
+
+## 3.4. Transferring to Open-vocabulary SGG
+
+Open-vocabulary SGG [8] aims to train SGG models that can recognize objects of novel categories and their involved relations. Formally, we train the SGG model with scene graphs containing objects in the base category set $\mathcal { C } _ { o } ^ { b a s e }$ . At inference, the object category set is $\mathcal { C } _ { o } ^ { t a r g e t }$ , which contains novel categories in $\mathcal { C } _ { o } ^ { n o v e \bar { l } } = \bar { \mathcal { C } } _ { o } ^ { t a r g e t } \backslash \bar { \mathcal { C } } _ { o } ^ { b a s e } \neq \emptyset$
+
+Back to our proposed $\mathrm { V S ^ { 3 } }$ , an open-vocabulary VSS is maintained by freezing the image and text encoders. Taking this advantage, we devise a scheme to adapt $\mathrm { V S ^ { 3 } }$ for openvocabulary SGG. Concretely, during training, we set the text prompt as $^ {  } n a m e ( c _ { 1 } )$ . $n a m e ( c _ { 2 } ) . \dots n a m e ( c _ { | \mathcal { C } _ { o } ^ { b a s e } | } ) . ^ { \prime \prime }$ where $c _ { i } ~ \in ~ \mathcal { C } _ { o } ^ { b a s e }$ And only relation triplets involving base object categories are kept for training. At inference, the text prompt is switched to be $^ { \bullet \bullet } n a m e ( c _ { 1 } )$ . name(c<sub>2</sub>). $\begin{array} { r l } { . . . } & { { } n a m e ( c _ { | \mathcal { C } _ { o } ^ { t a r g e t } | } ) . ^ { , } } \end{array}$ , where $c _ { i } ~ \in ~ \mathcal { C } _ { o } ^ { t a r g e t }$ . In this way, a novel object class (e.g., lady) may have an embedding close to a base category (e.g., woman) embedding. This makes the novel class also able to find well-aligned image regions. Note that relation representations are constructed from visual and spatial cues, which are usually class-agnostic. Hence, the following relation recognition in $\mathrm { V S ^ { 3 } }$ will not be affected when encountering novel objects.
+
+## 4. Experiments
+
+## 4.1. Datasets and Experimental Settings
+
+Datasets. To evaluate the SGG task, we adopt the widely-used VG150 version [50] of the Visual Genome (VG) dataset [14]. VG150 retains the most frequent 150 categories and 50 relation/predicate categories in VG. It contains ∼108K images, of which 70% images are used for training (including 5K for validation), and the remaining 30% images are used for testing. The annotated scene graph of each image has 11.5 objects and 6.2 relation triplets on average. In addition, images of VG are densely annotated with region descriptions, about 50 descriptions for each image. We refer to these descriptions as VG caption, which provides a text source for evaluating the languagesupervised SGG setting. Moreover, we consider the challenging setting of using image-text pairs in COCO caption [4] for training SGG models. This dataset contains 123K images in total. Each image has 5 human-annotated captions. We keep ∼106k images by filtering out those images that also exist in the VG150 test split.
+
+Evaluation protocols and metrics. We mainly adopt the SGDET [47,50] protocol, which generates a scene graph from the input image without any given box information. We report the performance on Recall@K (K=20/50/100) following previous works [21, 41, 47, 50, 56, 65], which measures the fraction of correctly predicted relation triplets in top K predictions. A triplet prediction is considered as correct when its subject, object, predicate labels and both the subject and object regions match with (same label or IoU>0.5) a ground-truth triplet. Note that we obtain triplet predictions using graph constraint, which limits each subject-object pair to have only the most confident predicate. All recall metrics across different SGG settings in experiments are computed over VG150 test images. Considering that the adopted GLIP pre-trained VSS has seen part of images in the original VG150 test split (∼26k) during pre-training, we exclude these images and get a new split of ∼15k test images. We have validated that such VG150 test split is sufficiently large for computing stable metrics as the original, by comparing computed metrics of several SGG models (in codebase [46]) on these two splits $( < 0 . 1 5$ points variation, see supplementary materials).
+
+Implementation details. We initialize $\mathrm { V S ^ { 3 } }$ from pretrained GLIP [17] models, i.e., the GLIP-T and the larger GLIP-L trained with more data. Both construct a VSS of dimension $d = 2 5 6$ . We retain the top 36 object detections per image for pairwise relation recognition. The whole framework is fine-tuned on 8 Nvidia 2080Ti GPUs with AdamW optimizer. During fine-tuning, we freeze the parameters of the image and text encoder; and set the learning rate for the cross-modal fusion module as 1e-5 and 10x larger learning rates for the relation embedding and prediction modules. The maximum fine-tuning epoch number is 10, with learning rates dropping by 10x after 6 epochs.
+
+## 4.2. Fully Supervised SGG
+
+Setup. We first evaluate our proposed $\mathrm { V S ^ { 3 } }$ under the conventional fully supervised SGG setting. This setting trains SGG models using manually annotated scene graphs, consisting of object labels coupled with bounding boxes, and relation labels. We adopt VG150 for training and evaluation following previous methods [3, 19, 26, 27, 48, 50, 60, 61, 65]. All these methods involve a closed set of object categories. Specifically, the text prompt input of $\mathrm { V S ^ { 3 } }$ is constructed from VG150 object category names, i.e., “airplane. animal. ... zebra.”. We train $\mathrm { V S ^ { 3 } }$ by fine-tuning over two GLIP variants: GLIP-T with the Swin-T [28] backbone, GLIP-L with the Swin-L [28] backbone.
+
+Comparison with state-of-the-arts. The results are summarized in Table 2. Our proposed $\mathrm { V S ^ { 3 } }$ model using the Swin-T backbone already achieves competitive recall metrics. When upgrading to the larger Swin-L variant, the performance improvements become significant (1.8 to 3.4 points improvement than the previous best results). Note that previous methods [26, 50, 60] build their models upon an off-the-shelf object detector, and they usually design heavy message-passing modules to incorporate context information. Instead, $\mathrm { V } \bar { \mathrm { S } } ^ { \bar { 3 } }$ devises a light-weighted relation recognition head (including the relation embedding and prediction modules) over a pre-trained VSS. The superior performances clearly suggest the merits of transferring language-image pre-trained models for boosting SGG.
+
+Ablation on relation representation. Next, we carry out ablation studies on relation representation construction in the relation embedding module. As shown in Table 2, by removing visual and spatial feature components, the relation triplet recalls drop accordingly. Also notice that the removal of visual features which is built from subject and object region embeddings leads to relatively larger performance drops than spatial. This suggests the region embeddings in the pre-trained VSS provide strong cues for relation recognition. Overall, these observations validate the effectiveness of our design to mine relation patterns.
+
+<table><tr><td>SGG model</td><td>Detector</td><td>Backbone</td><td>R@20</td><td>R@50</td><td>R@100</td></tr><tr><td>FCSGG [27]</td><td></td><td>HRNetW48</td><td>16.1</td><td>21.3</td><td>25.1</td></tr><tr><td>SGTR [19]</td><td>DETR</td><td>R-101</td><td></td><td>24.6</td><td>28.4</td></tr><tr><td>IMP [50]</td><td>Faster-RCNN</td><td>VGG-16</td><td>14.6</td><td>20.7</td><td>24.5</td></tr><tr><td>KERN [3]</td><td>Faster-RCNN</td><td>VGG-16</td><td></td><td>27.1</td><td>29.8</td></tr><tr><td>MOTIFS [60]</td><td>Faster-RCNN</td><td>VGG-16</td><td>21.4</td><td>27.2</td><td>30.3</td></tr><tr><td>RelDN [62]</td><td>Faster-RCNN</td><td>VGG-16</td><td>21.1</td><td>28.3</td><td>32.7</td></tr><tr><td>VTransE [61]</td><td>Faster-RCNN</td><td>RX-101</td><td>23.0</td><td>29.7</td><td>34.3</td></tr><tr><td>MOTIFS [60]</td><td>Faster-RCNN</td><td>RX-101</td><td>25.1</td><td>32.1</td><td>36.9</td></tr><tr><td>VCTREE [48]</td><td>Faster-RCNN</td><td>RX-101</td><td>24.7</td><td>31.5</td><td>36.2</td></tr><tr><td>SGNLS [65]</td><td>Faster-RCNN</td><td>RX-101</td><td>24.6</td><td>31.8</td><td>36.3</td></tr><tr><td>HL-Net [26]</td><td>Faster-RCNN</td><td>RX-101</td><td>26.0</td><td>33.7</td><td>38.1</td></tr><tr><td>VS3</td><td></td><td>Swin-T</td><td>26.1</td><td>34.5</td><td>39.2</td></tr><tr><td>w/o visual</td><td></td><td>Swin-T</td><td>23.1</td><td>31.6</td><td>36.7</td></tr><tr><td>w/o spatial</td><td></td><td>Swin-T</td><td>24.3</td><td>32.8</td><td>37.8</td></tr><tr><td>VS3</td><td></td><td>Swin-L</td><td>27.8</td><td>36.6</td><td>41.5</td></tr></table>
+
+Table 2. Experimental results of fully supervised SGG. w/o visual and w/o spatial indicate removing spatial and visual features in the relation embedding module for relation representation. All metrics are computed under the SGDET protocol on VG150 test images.
+
+## 4.3. Language-supervised SGG
+
+Setup. Language-supervised SGG [21, 41, 56, 65] explores to train SGG models with language descriptions of images. Concretely, we parse each image description into a semantic graph, in the form of a set of ⟨subject, predicate, object⟩ triplets. Note that parsed object/relation phrases from language descriptions are freeform, we map them to VG150 categories by semantic rules following [65], such as WordNet [33] synsets matching. This makes the learned SGG model compatible for evaluating on VG150. Next, the parsed semantic graph is grounded to image regions using grounding methods, i.e., the pretrained GLIP-L [17] in our approach. Finally, the visuallygrounded semantic graphs are used as weak supervision to train our proposed $\mathrm { V S ^ { 3 } }$ like the fully supervised setting.
+
+Particularly, we have trained $\mathrm { V S ^ { 3 } }$ with text triplets parsed from three different sources of text following [21, 65]. 1) The unlocalized graph setting uses ground-truth triplet annotations in VG. 2) The VG caption setting uses triplets that are automatically parsed from natural image descriptions in VG. 3) The COCO caption setting leverages triplets parsed from captions in COCO. This setting is the most challenging since COCO captions are image-level descriptions. Such captions are different from the region-level descriptions in VG, which focus on describing object interactions. Also, note that the number of annotated captions for each COCO image (average 5) is much less than the number for each VG image (average ∼50).
+
+Comparison with state-of-the-arts. The experimental results compared with previous methods are presented in Table 3. All evaluation metrics are computed on the VG150 test set under the SGDET protocol. Specifically, under the unlocalized scene graphs setting, $\mathrm { V S ^ { 3 } }$ with the Swin-T backbone $( \mathrm { V S ^ { 3 } } _ { ( S w i n - T ) } )$ obtains substantial improvements on recall metrics over existing best results (R@20/50/100 from $9 . 5 7 / 1 1 . 8 0 / 1 3 . 1 5$ to 18.02/23.89/28.19). Since relation frequency statistics are available in this setting, we use them as frequency biases [60] in predicate classification, leading to further performance gains $( \mathrm { V S ^ { 3 } } _ { ( S w i n - T + F r e q B i a s ) } )$ . When using the stronger Swin-L backbone $( \mathrm { V S ^ { 3 } } _ { ( S w i n - L + F r e q B i a s ) } )$ , we attain the highest performances $( R @ 2 0 / 5 0 / 1 0 0 = 2 2 . 1 8 / 2 9 . 8 1 / 3 4 . 9 6 )$ which even outperform many fully supervised methods (see Table 2). The VG caption setting provides weaker scene graph supervision via language parsing. We observe that our approach also outperforms previous state-ofthe-art methods significantly. As for the most challenging COCO caption setting, it suffers from the additional domain shift problem since it trains on COCO but evaluates on VG150. As expected, the performances are lower than in the two aforementioned settings. But when comparing with previous works using the same text source, our approach still manages to achieve better performances. Overall, our approach consistently surpasses previous methods for language-supervised SGG. This demonstrates the benefits brought by pre-trained language-image models in terms of both grounding box acquirement and task transferring to tackle SGG.
+
+<table><tr><td></td><td>SGG model</td><td>Grounding</td><td>R@20</td><td>R@50</td><td>R@100</td></tr><tr><td rowspan="3">Unud zaadph</td><td>VSPNet [58] LSWS [56] MOTIFS [60]</td><td>一 WSGM [41]</td><td>–</td><td>4.70 7.30</td><td>5.40 8.73 6.45</td></tr><tr><td>MOTIFS [60] MOTIFS [60]</td><td>SGNLS [65] Li et.al [21] SGNLS [65]</td><td>4.12 7.23 9.09 7.81</td><td>5.59 9.28 11.39</td><td>10.71 12.89</td></tr><tr><td>Uniter† [5] Uniter† [5]  $\overline { { \mathbf { V } \mathbf { S } _ { \perp } ^ { 3 } ( S w i n - T ) } }$   $\mathrm { V S } _ { \phantom { 3 } _ { \alpha } ( S w i n - T + F r e q B i a s ) } ^ { 3 }$ </td><td>Li et.al [21] GLIP-L [17] GLIP-L [17]</td><td>9.57 18.02 20.06</td><td>10.03 11.80 23.89 26.72</td><td>11.50 13.15 28.19 31.75</td></tr><tr><td rowspan="2">Vcd on</td><td> $\underline { { \mathrm { V S } ^ { 3 } } } _ { ( S w i n - L + F r e q B i a s ) }$  LSWS [56] MOTIFS [60] MOTIFS [60] Uniter† [5]</td><td>GLIP-L [17] SGNLS [65] Li et.al [21]</td><td>22.18 6.31 8.25</td><td>29.81 3.85 8.05 10.50</td><td>34.96 4.04 9.21 11.98</td></tr><tr><td>Uniter† [5]  $\overline { { \mathbf { V S } ^ { 3 } { } _ { ( S w i n - T ) } } }$   ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - L ) }$ </td><td>SGNLS [65] Li et.al [21] GLIP-L [17] GLIP-L [17]</td><td>8.90 11.78 13.01</td><td>9.20 10.93 16.25 17.38</td><td>10.30 12.14 19.7 20.54</td></tr><tr><td>Cocdpo Ccon</td><td> $\overline { { \mathrm { ~ L S W S ~ } [ 5 6 ] } }$  MOTIFS [60]  $\mathrm { U n i t e r } ^ { \dagger } \left[ 5 \right]$   $\mathrm { U n i t e r ^ { \dagger } \left[ 5 \right] }$   $\overline { { \mathrm { V S } ^ { 3 } ( S w i n - T ) } }$   ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - L ) }$ </td><td>Li et.al [21] SGNLS [65] Li et.al [21] GLIP-L [17] GLIP-L [17]</td><td>5.02 5.42 5.59 6.04</td><td>3.28 6.40 5.80 6.74 7.30 8.15</td><td>3.69 7.33 6.70 7.62 8.62 9.90</td></tr></table>
+
+Table 3. Comparison with state-of-the-art language-supervised SGG methods, using weak scene graph supervision from three different text sources: unlocalized scene graphs, VG caption and COCO caption. All metrics are computed under the SGDET protocol on VG150 images. (<sup>†</sup> indicates adapted for SGG.)
+
+Ablation on scene graph parsing strategy. We also conduct ablation studies on different scene graph parsing strategies for obtaining language SGG supervision. The results are shown in Table 4. Note that each image in COCO is annotated with 5 captions, and these captions are usually complimentary in describing image content. At first, we compare the performances between training with triplets from a single caption and all captions. We see the recalls achieve relative 10% performance boosts by replacing triplets from a single caption with all captions. This suggests the completeness of extracted scene graphs from image descriptions is a non-negligible factor for training a high-quality SGG model.
+
+<table><tr><td>SG from</td><td>SG parser</td><td>R@20/50/100</td></tr><tr><td>Single caption</td><td>Simple</td><td>5.07 / 6.25 / 7.36</td></tr><tr><td>All captions</td><td>Simple</td><td>5.42 / 6.82 / 7.93</td></tr><tr><td>All captions</td><td>Advanced</td><td>5.59 / 7.30 / 8.62</td></tr></table>
+
+Table 4. Ablation on scene graph parsing strategies for languagesupervised SGG. Results are obtained with ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - T ) }$ trained on scene graph supervision parsed from COCO captions.
+
+Moreover, we compare two language parsers for extracting ⟨subject, predicate, object⟩ triplets: the simple SG parser [31], and the advanced SG parser [39]. Both parsers apply pre-defined rules to extract object and relation concepts from the semantic graphs of image language descriptions. Compared with the simple SG parser, the advanced SG parser covers additional features for dealing with complex quantificational modifiers (e.g., a lot of), resolving pronouns (e.g., it) and handling plural nouns (e.g., three men). The performance boosts of the advanced SG parser over the simple one (recalls from 5.42/6.82/7.93 to 5.59/7.30/8.62), indicates that the quality of semantic parsing is also important for language-supervised SGG.
+
+## 4.4. Open-vocabulary SGG
+
+Setup. Following [8], we train the proposed $\mathrm { V S ^ { 3 } }$ with the same 70% object categories of VG150 as base categories. With the aid of the pre-trained VSS, we hope $\mathrm { V S ^ { 3 } }$ can generalize to recognize the remaining 30% novel objects and their involved relations at inference. Concretely, we compute evaluation metrics over two object category sets: 70% base + 30% novel objects (dubbed as openvocabulary SGG (Ov-SGG) evaluation), and 30% novel objects (dubbed as zero-shot SGG (ZsO-SGG) evaluation).
+
+In addition, we adopt the PREDCLS and SGDET evaluation protocols [50]. PREDCLS assumes object information given, yet SGDET generates scene graphs from the raw image using predicted objects. Since $\mathrm { V S ^ { 3 } }$ detects objects in a one-stage manner, we implement PREDCLS by selecting image regions that best match the ground-truth objects in post-processing, then performing relation recognition. We neglect the SGCLS protocol that assumes bounding box information given. This is because given bounding boxes can be directly used as region proposals in two-stage detectors, while the adopted one-stage manner in $\mathrm { V S ^ { 3 } }$ has no region proposal counterpart.
+
+<table><tr><td rowspan="2">Method</td><td colspan="2">Ov-SGG (70%+30%)</td><td colspan="2">ZsO-SGG (30%)</td></tr><tr><td>PREDCLS</td><td>SGDET</td><td>PREDCLS</td><td>SGDET</td></tr><tr><td>IMP [50]</td><td>40.02 / 43.40</td><td></td><td>37.01 / 39.46</td><td></td></tr><tr><td>MOTIFS [60]</td><td>41.14 /44.70</td><td></td><td>39.53 / 41.14</td><td></td></tr><tr><td>VCTREE [48]</td><td>42.56 / 45.84</td><td></td><td>41.27 / 42.52</td><td></td></tr><tr><td>TDE [47]</td><td>38.29 / 40.38</td><td></td><td>34.15 / 36.37</td><td></td></tr><tr><td>GCA [13]</td><td>43.48 / 46.26</td><td></td><td>42.56 / 43.18</td><td></td></tr><tr><td>EBM [44]</td><td>44.09 / 46.95</td><td></td><td>43.27 / 44.03</td><td></td></tr><tr><td>SVRP [8]</td><td>47.62 / 49.94</td><td></td><td>45.75 / 48.39</td><td></td></tr><tr><td> $\overline { { \mathbf { V S } _ { - } ^ { 3 } ( S w i n - T ) } }$ </td><td>50.10 / 52.05</td><td>15.07 / 18.73</td><td>46.91 / 49.13</td><td>10.08 / 13.65</td></tr><tr><td> ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - L ) }$ </td><td>55.88 / 58.18</td><td>23.13 / 28.49</td><td>54.44 / 57.35</td><td>21.51 / 27.62</td></tr></table>
+
+Table 5. Evaluation results (R@50/100) of fully supervised openvocabulary SGG. Ov-SGG evaluates on 70% base categories + 30% novel categories in VG150, while ZsO-SGG only evaluates on 30% novel categories.
+
+Fully supervised results. We first conduct experiments using manually annotated scene graphs. The results are presented in Table 5. For both Ov-SGG and ZsO-SGG, $\mathrm { V S ^ { 3 } }$ achieves substantial performance improvements under PREDCLS. When upgrading to the stronger backbone Swin-L, more significant improvements are obtained. More importantly, we report performances for the challenging and more practical SGDET, which are neglected by all previous methods since their used object detector cannot handle open-vocabulary detection [8]. The SGDET performances $( R @ 5 0 / 1 0 0 = 1 0 . 0 8 / 1 3 . 6 5 )$ of ZsO-SGG using $\mathrm { V S ^ { 3 } }$ are even higher than SGCLS metrics of SVRP (R@50/100 = 9.30/11.32 in [8]). This reveals the superiority of our approach to recognizing novel objects thanks to the openvocabulary generalization ability of the pre-trained VSS.
+
+Language-supervised results. Next, we evaluate the most challenging setting, i.e., open-vocabulary SGG using language supervision. To our knowledge, we are the first to propose such a new and practical SGG setting, and present the benchmark performances in Table 5. Not surprisingly, the recalls obtained via language-supervised training (i.e., SG from VG caption or COCO caption) are lower than supervised results (i.e., SG from annotated). When comparing ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - T ) }$ and ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - L ) }$ that is transferred from a stronger pre-trained model, the latter gets substantially higher Ov-SGG and ZsO-SGG performances. More importantly, we observe the performance gap between Ov-SGG and ZsO-SGG get closer in ${ \mathrm { V S } } ^ { 3 } { \mathrm { } } _ { ( S w i n - L ) } , { \mathrm { e . g . } }$ ., the R@50 gap under the VG caption setting becomes $I 2 . 9 8 – I O . 7 I = 2 . 2 7$ from $7 . 6 I - 4 . 0 6 = 3 . 5 5$ . This is due to the better generalization ability for recognizing novel classes. Moreover, the superior performances obtained by VG caption over COCO caption, indicate that using dense region-level descriptions and avoiding domain shift will help improve languagesupervised open-vocabulary SGG in practice.
+
+Qualitative analysis. We further showcase qualitative results of open-vocabulary SGG in Figure 3. The results demonstrate that our approach manages to detect novel objects and their relations with other objects. We also find that, compared with the fully supervised setting, the languagesupervised results bias to predict simple relations such as ‘on’, ‘of’. Presumably, it’s because scene graph supervision parsed from language is more likely to extract such simple words as relation predicates.
+
+<table><tr><td>Method</td><td>SG supervision</td><td>Ov-SGG (70%+30%)</td><td>ZsO-SGG (30%)</td></tr><tr><td rowspan="3"> ${ \mathrm { V S } } ^ { 3 } { } _ { ( S w i n - T ) }$ </td><td>Manual annotation</td><td>15.07 / 18.73</td><td>10.08 / 13.65</td></tr><tr><td>VG caption</td><td>7.61 / 9.60</td><td>4.06 / 5.58</td></tr><tr><td>COCO caption</td><td> $4 . 3 9 / 5 . 6 3$ </td><td>3.65 / 4.73</td></tr><tr><td rowspan="3"> ${ \mathrm { V S } } ^ { 3 } { \mathrm { } } _ { ( S w i n - L ) }$ </td><td>Manual annotation</td><td> $\overline { { 2 3 . 1 3 / 2 8 . 4 9 } }$ </td><td>21.51 / 27.62</td></tr><tr><td>VG caption</td><td>12.98 / 16.29</td><td>10.71 / 13.70</td></tr><tr><td>COCO caption</td><td>6.76 / 8.45</td><td>6.26 / 7.89</td></tr></table>
+
+Table 6. Evaluation results (R@50/100) of open-vocabulary SGG using three different scene graph supervisions: manual annotation, VG caption and COCO caption (language-supervised). Ov-SGG evaluates on 70% base categories + 30% novel categories in VG150, while ZsO-SGG only evaluates on 30% novel categories.
+
+![](images/84e0c141656482210d70c0ae1a458acee4f7356efcaefb61be18923c15b09fe0.jpg)  
+Figure 3. Qualitative results of open-vocabulary SGG, particularly from fully supervised and language-supervised (VG caption) settings. Note that dotted nodes denote novel objects. For clarity, we only show triplets among the top 20 predictions that depict relations of highlighted image regions (i.e., boxes on input images).
+
+## 5. Conclusion
+
+In this work, we have proposed a novel approach to exploit a powerful pre-trained VSS for triggering languagesupervised and open-vocabulary SGG. Particularly, we obtain cheap scene graph supervision by semantically parsing image language descriptions into semantic graphs and grounding the noun phrases through region-word alignment in the VSS. In addition, we devise the $\mathrm { V S ^ { 3 } }$ model, which performs object detection as category name grounding in the VSS and naturally builds relation representations for relation recognition. Thanks to the open-vocabulary generalization ability of the VSS, $\mathrm { V S ^ { 3 } }$ manages to detect novel objects and their relations with other objects, achieving open-vocabulary SGG. We validate our approach on the Visual Genome benchmark across supervised, languagesupervised and open-vocabulary SGG settings, and have set new state-of-the-art performances. This demonstrates the merits of transferring pre-training knowledge to push SGG toward more practical scenarios.
+
+Acknowledgment. This work was supported in part by the Shenzhen Science and Technology Program under Grant JCYJ20220818103006012 and ZDSYS20211021111415025.
+
+## References
+
+[1] Saeid Amiri, Kishan Chandan, and Shiqi Zhang. Reasoning with scene graphs for robot planning under partial observability. IEEE Robotics and Automation Letters, 7(2):5560– 5567, 2022. 1, 2
+
+[2] Shizhe Chen, Qin Jin, Peng Wang, and Qi Wu. Say as you wish: Fine-grained control of image caption generation with abstract scene graphs. In CVPR, 2020. 1
+
+[3] Tianshui Chen, Weihao Yu, Riquan Chen, and Liang Lin. Knowledge-embedded routing network for scene graph generation. In CVPR, 2019. 6
+
+[4] Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dollar, and C Lawrence Zitnick.´ Microsoft coco captions: Data collection and evaluation server. arXiv preprint arXiv:1504.00325, 2015. 5
+
+[5] Yen-Chun Chen, Linjie Li, Licheng Yu, Ahmed El Kholy, Faisal Ahmed, Zhe Gan, Yu Cheng, and Jingjing Liu. Uniter: Universal image-text representation learning. In ECCV, 2020. 7
+
+[6] Jiuxiang Gu, Handong Zhao, Zhe Lin, Sheng Li, Jianfei Cai, and Mingyang Ling. Scene graph generation with external knowledge and image reconstruction. In CVPR, 2019. 1, 2
+
+[7] Xiuye Gu, Tsung-Yi Lin, Weicheng Kuo, and Yin Cui. Open-vocabulary object detection via vision and language knowledge distillation. In ICLR, 2021. 2, 3
+
+[8] Tao He, Lianli Gao, Jingkuan Song, and Yuan-Fang Li. Towards open-vocabulary scene graph generation with promptbased finetuning. In ECCV, 2022. 3, 5, 7, 8
+
+[9] Chao Jia, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham, Quoc Le, Yun-Hsuan Sung, Zhen Li, and Tom Duerig. Scaling up visual and vision-language representation learning with noisy text supervision. In ICLR, 2021. 3
+
+[10] Justin Johnson, Ranjay Krishna, Michael Stark, Li-Jia Li, David Shamma, Michael Bernstein, and Li Fei-Fei. Image retrieval using scene graphs. In CVPR, 2015. 1, 2
+
+[11] Aishwarya Kamath, Mannat Singh, Yann LeCun, Gabriel Synnaeve, Ishan Misra, and Nicolas Carion. Mdetrmodulated detection for end-to-end multi-modal understanding. In ICCV, 2021. 3
+
+[12] Jacob Devlin Ming-Wei Chang Kenton and Lee Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding. In Proceedings of NAACL-HLT, 2019. 3
+
+[13] Boris Knyazev, Harm de Vries, Cat˘ alina Cangea, Graham W˘ Taylor, Aaron Courville, and Eugene Belilovsky. Generative compositional augmentations for scene graph prediction. In ICCV, 2021. 8
+
+[14] Ranjay Krishna, Yuke Zhu, Oliver Groth, Justin Johnson, Kenji Hata, Joshua Kravitz, Stephanie Chen, et al. Visual genome: Connecting language and vision using crowdsourced dense image annotations. IJCV, 2017. 1, 2, 5
+
+[15] Boyi Li, Kilian Q Weinberger, Serge Belongie, Vladlen Koltun, and Rene Ranftl. Language-driven semantic segmentation. In ICLR, 2021. 2, 3
+
+[16] Junnan Li, Ramprasaath Selvaraju, Akhilesh Gotmare, Shafiq Joty, Caiming Xiong, and Steven Chu Hong Hoi.
+
+Align before fuse: Vision and language representation learning with momentum distillation. NeurIPS, 2021. 3
+
+[17] Liunian Harold Li, Pengchuan Zhang, Haotian Zhang, Jianwei Yang, Chunyuan Li, et al. Grounded language-image pre-training. In CVPR, 2022. 2, 3, 4, 6, 7
+
+[18] Manling Li, Alireza Zareian, Qi Zeng, Spencer Whitehead, Di Lu, Heng Ji, and Shih-Fu Chang. Cross-media structured common space for multimedia event extraction. arXiv preprint arXiv:2005.02472, 2020. 1
+
+[19] Rongjie Li, Songyang Zhang, and Xuming He. Sgtr: Endto-end scene graph generation with transformer. In CVPR, 2022. 6
+
+[20] Rongjie Li, Songyang Zhang, Bo Wan, and Xuming He. Bipartite graph network with adaptive message passing for unbiased scene graph generation. In CVPR, 2021. 1, 2
+
+[21] Xingchen Li, Long Chen, Wenbo Ma, Yi Yang, and Jun Xiao. Integrating object-aware and interaction-aware knowledge for weakly supervised scene graph generation. In ACM MM, 2022. 2, 3, 5, 6, 7
+
+[22] Yehao Li, Yingwei Pan, Jingwen Chen, Ting Yao, and Tao Mei. X-modaler: A versatile and high-performance codebase for cross-modal analytics. In ACM MM, 2021. 1
+
+[23] Yehao Li, Yingwei Pan, Ting Yao, Jingwen Chen, and Tao Mei. Scheduled sampling in vision-language pretraining with decoupled encoder-decoder network. In AAAI, 2021. 3
+
+[24] Yongzhi Li, Duo Zhang, and Yadong Mu. Visual-semantic matching by exploring high-order attention and distraction. In CVPR, 2020. 1
+
+[25] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollar. Focal loss for dense object detection. In´ ICCV, 2017. 4
+
+[26] Xin Lin, Changxing Ding, Yibing Zhan, Zijian Li, and Dacheng Tao. Hl-net: Heterophily learning network for scene graph generation. In CVPR, 2022. 1, 2, 6
+
+[27] Hengyue Liu, Ning Yan, Masood Mortazavi, and Bir Bhanu. Fully convolutional scene graph generation. In CVPR, 2021. 6
+
+[28] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In ICCV, 2021. 3, 6
+
+[29] Jiasen Lu, Dhruv Batra, Devi Parikh, and Stefan Lee. Vilbert: Pretraining task-agnostic visiolinguistic representations for vision-and-language tasks. NeurIPS, 2019. 3
+
+[30] Jianjie Luo, Yehao Li, Yingwei Pan, Ting Yao, Hongyang Chao, and Tao Mei. Coco-bert: Improving video-language pre-training with contrastive cross-modal matching and denoising. In ACM MM, 2021. 3
+
+[31] Jiayuan Mao. Scenegraphparser, 2019. https : / / github . com / vacancy / SceneGraphParser (Access date: 2022-8-11). 3, 7
+
+[32] Victor Milewski, Marie-Francine Moens, and Iacer Calixto. Are scene graphs good enough to improve image captioning? arXiv preprint arXiv:2009.12313, 2020. 1
+
+[33] George A Miller. Wordnet: a lexical database for english. Communications ofthe ACM, 38(11):39–41, 1995. 3, 5, 6
+
+[34] Yingwei Pan, Yehao Li, Jianjie Luo, Jun Xu, Ting Yao, and Tao Mei. Auto-captions on gif: A large-scale video-sentence dataset for vision-language pre-training. In ACM Multimedia, 2022. 3
+
+[35] Yingwei Pan, Ting Yao, Yehao Li, and Tao Mei. X-linear attention networks for image captioning. In CVPR, 2020. 1
+
+[36] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICLR, 2021. 2, 3
+
+[37] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: towards real-time object detection with region proposal networks. IEEE TPAMI, 2016. 2
+
+[38] Brigit Schroeder and Subarna Tripathi. Structured querybased image retrieval using scene graphs. In CVPR Workshops, 2020. 1
+
+[39] Sebastian Schuster, Ranjay Krishna, Angel Chang, Li Fei-Fei, and Christopher D Manning. Generating semantically precise scene graphs from textual descriptions for improved image retrieval. In Proceedings of the fourth workshop on vision and language, 2015. 3, 5, 7
+
+[40] Sahand Sharifzadeh, Sina Moayed Baharlou, and Volker Tresp. Classification by attention: Scene graph classification with prior knowledge. arXivpreprint arXiv:2011.10084, 2020. 1, 2
+
+[41] Jing Shi, Yiwu Zhong, Ning Xu, Yin Li, and Chenliang Xu. A simple baseline for weakly-supervised scene graph generation. In ICCV, 2021. 2, 3, 5, 6, 7
+
+[42] Motoharu Sonogashira, Masaaki Iiyama, and Yasutomo Kawanishi. Towards open-set scene graph generation with unknown objects. IEEE Access, 10:11574–11583, 2022. 2
+
+[43] Weijie Su, Xizhou Zhu, Yue Cao, Bin Li, Lewei Lu, Furu Wei, and Jifeng Dai. Vl-bert: Pre-training of generic visuallinguistic representations. In ICLR, 2019. 3
+
+[44] Mohammed Suhail, Abhay Mittal, Behjat Siddiquie, Chris Broaddus, Jayan Eledath, Gerard Medioni, and Leonid Sigal. Energy-based learning for scene graph generation. In CVPR, 2021. 8
+
+[45] Rui Sun, Xuezhi Cao, Yan Zhao, Junchen Wan, Kun Zhou, Fuzheng Zhang, Zhongyuan Wang, and Kai Zheng. Multimodal knowledge graphs for recommender systems. In Proceedings of the 29th ACM International Conference on Information & Knowledge Management, 2020. 1
+
+[46] Kaihua Tang. A scene graph generation codebase in pytorch, 2020. https://github.com/KaihuaTang/ Scene-Graph-Benchmark.pytorch. 6
+
+[47] Kaihua Tang, Yulei Niu, Jianqiang Huang, Jiaxin Shi, and Hanwang Zhang. Unbiased scene graph generation from biased training. In CVPR, 2020. 1, 2, 5, 8
+
+[48] Kaihua Tang, Hanwang Zhang, Baoyuan Wu, Wenhan Luo, and Wei Liu. Learning to compose dynamic tree structures for visual contexts. In CVPR, 2019. 1, 2, 6, 8
+
+[49] Sijin Wang, Ruiping Wang, Ziwei Yao, Shiguang Shan, and Xilin Chen. Cross-modal scene graph matching for relationship-aware image-text retrieval. In WACV, 2020. 1
+
+[50] Danfei Xu, Yuke Zhu, Christopher B Choy, and Li Fei-Fei. Scene graph generation by iterative message passing. In CVPR, 2017. 1, 2, 5, 6, 7, 8
+
+[51] Jianwei Yang, Jiasen Lu, Stefan Lee, Dhruv Batra, and Devi Parikh. Graph r-cnn for scene graph generation. In ECCV, 2018. 1, 2
+
+[52] Xu Yang, Kaihua Tang, Hanwang Zhang, and Jianfei Cai. Auto-encoding scene graphs for image captioning. In CVPR, 2019. 1
+
+[53] Lewei Yao, Jianhua Han, Youpeng Wen, Xiaodan Liang, Dan Xu, Wei Zhang, Zhenguo Li, Chunjing Xu, and Hang Xu. Detclip: Dictionary-enriched visual-concept paralleled pre-training for open-world detection. arXiv preprint arXiv:2209.09407, 2022. 2, 3
+
+[54] Ting Yao, Yingwei Pan, Yehao Li, and Tao Mei. Exploring visual relationship for image captioning. In ECCV, 2018. 1
+
+[55] Ting Yao, Yingwei Pan, Yehao Li, and Tao Mei. Hierarchy parsing for image captioning. In ICCV, 2019. 1
+
+[56] Keren Ye and Adriana Kovashka. Linguistic structures as weak supervision for visual scene graph generation. In CVPR, 2021. 2, 5, 6, 7
+
+[57] Alireza Zareian, Svebor Karaman, and Shih-Fu Chang. Bridging knowledge graphs to generate scene graphs. In ECCV, 2020. 1, 2
+
+[58] Alireza Zareian, Svebor Karaman, and Shih-Fu Chang. Weakly supervised visual semantic parsing. In CVPR, 2020. 2, 7
+
+[59] Alireza Zareian, Kevin Dela Rosa, Derek Hao Hu, and Shih-Fu Chang. Open-vocabulary object detection using captions. In CVPR, 2021. 2, 3
+
+[60] Rowan Zellers, Mark Yatskar, Sam Thomson, and Yejin Choi. Neural motifs: Scene graph parsing with global context. In CVPR, 2018. 1, 2, 6, 7, 8
+
+[61] Hanwang Zhang, Zawlin Kyaw, Shih-Fu Chang, and Tat-Seng Chua. Visual translation embedding network for visual relation detection. In CVPR, 2017. 6
+
+[62] Ji Zhang, Kevin J Shih, Ahmed Elgammal, Andrew Tao, and Bryan Catanzaro. Graphical contrastive losses for scene graph parsing. In CVPR, 2019. 2, 6
+
+[63] Yong Zhang, Yingwei Pan, Ting Yao, Rui Huang, Tao Mei, and Chang-Wen Chen. Exploring structure-aware transformer over interaction proposals for human-object interaction detection. In CVPR, 2022. 1
+
+[64] Yong Zhang, Yingwei Pan, Ting Yao, Rui Huang, Tao Mei, and Chang-Wen Chen. Boosting scene graph generation with visual relation saliency. ACM TOMM, 2023. 1
+
+[65] Yiwu Zhong, Jing Shi, Jianwei Yang, Chenliang Xu, and Yin Li. Learning to generate scene graph from natural language supervision. In ICCV, 2021. 2, 3, 5, 6, 7
+
+[66] Yiwu Zhong, Liwei Wang, Jianshu Chen, Dong Yu, and Yin Li. Comprehensive image captioning via scene graph decomposition. In ECCV, 2020. 1
+
+[67] Yiwu Zhong, Jianwei Yang, Pengchuan Zhang, Chunyuan Li, Noel Codella, Liunian Harold Li, Luowei Zhou, Xiyang Dai, Lu Yuan, Yin Li, et al. Regionclip: Region-based language-image pretraining. In CVPR, 2022. 2, 3
