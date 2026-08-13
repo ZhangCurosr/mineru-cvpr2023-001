@@ -1,0 +1,2920 @@
+[
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/9b42c56ca0ca4c0ab649897d4547c095962a639966a43dab4dd7627958408172.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 1. Given a set of severe motion blurred images, our bundle adjusted deblur NeRF (BAD-NeRF) jointly learns the neural radianc fields and recovers the camera motion trajectories within exposure time. It synthesizes novel images of higher quality than prior works."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                78,
+                241,
+                885,
+                454
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "BAD-NeRF: Bundle Adjusted Deblur Neural Radiance Fields"
+                    }
+                ],
+                "level": 1
+            },
+            "bbox": [
+                174,
+                130,
+                794,
+                151
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Peng Wang<sup>1,2</sup> Lingzhe Zhao<sup>2</sup> Ruijie Ma<sup>2</sup> Peidong Liu<sup>2†</sup> <sup>1</sup>Zhejiang University <sup>2</sup>Westlake University {wangpeng, zhaolingzhe, maruijie, liupeidong}@westlake.edu.cn"
+                    }
+                ]
+            },
+            "bbox": [
+                215,
+                179,
+                759,
+                234
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "Abstract"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                235,
+                501,
+                313,
+                517
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Neural Radiance Fields (NeRF) have received considerable attention recently, due to its impressive capability in photo-realistic 3D reconstruction and novel view synthesis, given a set of posed camera images. Earlier work usually assumes the input images are ofgood quality. However, image degradation (e.g. image motion blur in low-light conditions) can easily happen in real-world scenarios, which would further affect the rendering quality of NeRF. In this paper, we present a novel bundle adjusted deblur Neural Radiance Fields (BAD-NeRF), which can be robust to severe motion blurred images and inaccurate camera poses. Our approach models the physical imageformation process ofa motion blurred image, andjointly learns theparameters of NeRF and recovers the camera motion trajectories during exposure time. In experiments, we show that by directly modeling the real physical image formation process, BAD-NeRF achieves superior performance over prior works on both synthetic and real datasets. Code and data are available at https://github.com/WU-CVGL/BAD-NeRF."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                525,
+                470,
+                814
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "1. Introduction"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                821,
+                209,
+                838
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acquiring accurate 3D scene geometry and appearance from a set of 2D images has been a long standing problem in computer vision. As a fundamental block for many vision applications, such as novel view image synthesis and robotic navigation, great progress has been made over the last decades. Classic approaches usually represent the 3D scene explicitly, in the form of 3D point cloud [8, 52], triangular mesh [4, 5, 10] or volumetric grid [31, 45]. Recent advancements in implicit 3D representation by using a deep neural network, such as Neural Radiance Fields (NeRF) [27], have enabled photo-realistic 3D reconstruction and novel view image synthesis, given well posed multi-view images."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                847,
+                470,
+                878
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                503,
+                893,
+                670
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "NeRF takes a 5D vector (i.e. for spatial location and viewing direction of the sampled 3D point) as input and predicts its radiance and volume density via a multilayer perceptron. The corresponding pixel intensity or depth can then be computed by differentiable volume rendering [19, 25]. While many methods have been proposed to further improve NeRF’s performance, such as rendering efficiency [11,28], training with inaccurate poses [20] etc., limited work has been proposed to address the issue of training with motion blurred images. Motion blur is one of the most common artifacts that degrades images in practical application scenarios. It usually occurs in low-light conditions where longer exposure times are necessary. Motion blurred images would bring two main challenges to existing NeRF training pipeline: a) NeRF usually assumes the rendered image is sharp (i.e. infinitesimal exposure time), motion blurred image thus violates this assumption; b) accurate camera poses are usually required to train NeRF, however, it is difficult to obtain accurate poses from blurred images only, since each of them usually encodes information of the motion trajectory during exposure time. On the other hand, it is also challenging itself to recover accurate poses (e.g., via COLMAP [41]) from a set of motion blurred images, due to the difficulties of detecting and matching salient keypoints. Combining both factors would thus further degrade NeRF’s performance if it is trained with motion blurred images."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                672,
+                895,
+                902
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": []
+            },
+            "bbox": [
+                104,
+                2,
+                181,
+                41
+            ]
+        },
+        {
+            "type": "page_header",
+            "content": {
+                "page_header_content": [
+                    {
+                        "type": "text",
+                        "content": "This CVPR paper is the Open Access version, provided by the Computer Vision Foundation. Except for this watermark, it is identical to the accepted version; the final published version of the proceedings is available on IEEE Xplore."
+                    }
+                ]
+            },
+            "bbox": [
+                235,
+                1,
+                810,
+                46
+            ]
+        },
+        {
+            "type": "page_footnote",
+            "content": {
+                "page_footnote_content": [
+                    {
+                        "type": "text",
+                        "content": "<sup>†</sup>Corresponding author."
+                    }
+                ]
+            },
+            "bbox": [
+                99,
+                886,
+                230,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4170"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                273
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In order to address those challenges, we propose to integrate the real physical image formation process of a motion blurred image into the training of NeRF. We also use a linear motion model in the SE(3) space to represent the camera motion trajectory within exposure time. During the training stage, both the network weights of NeRF and the camera motion trajectories are estimated jointly. In particular, we represent the motion trajectory of each image with both poses at the start and end of the exposure time respectively. The intermediate camera poses within exposure time can be linearly interpolated in the SE(3) space. This assumption holds in general since the exposure time is typically small. We can then follow the real physical image formation model of a motion blurred image to synthesize the blurry images. In particular, a sequence of sharp images along the motion trajectory within exposure time can be rendered from NeRF. The corresponding motion blurred image can then be synthesized by averaging those virtual sharp images. Both NeRF and the camera motion trajectories are estimated by minimizing the difference between the synthesized blurred images and the real blurred images. We refer this modified model as BAD-NeRF, i.e. bundle adjusted deblur NeRF."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                273,
+                472,
+                621
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We evaluate BAD-NeRF with both synthetic and real datasets. The experimental results demonstrate that BAD-NeRF achieves superior performance compared to prior state of the art works (e.g. as shown in Fig. 1), by explicitly modeling the image formation process of the motion blurred image. In summary, our contributions are as follows:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                621,
+                470,
+                713
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We present a photo-metric bundle adjustment formulation for motion blurred images under the framework of NeRF, which can be potentially integrated with other vision pipelines (e.g. a motion blur aware camera pose tracker [21]) in future."
+                    }
+                ]
+            },
+            "bbox": [
+                94,
+                720,
+                470,
+                797
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We show how this formulation can be used to acquire high quality 3D scene representation from a set of motion blurred images."
+                    }
+                ]
+            },
+            "bbox": [
+                94,
+                803,
+                470,
+                848
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "• We experimentally validate that our approach is able to deblur severe motion blurred images and synthesize high quality novel view images."
+                    }
+                ]
+            },
+            "bbox": [
+                94,
+                854,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "2. Related Work"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                89,
+                643,
+                106
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We review two main areas of related works: neural radiance fields, and image deblurring."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                116,
+                892,
+                148
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Neural Radiance Field. NeRF demonstrates impressive novel view image synthesis performance and 3D scene representation capability [27]. Many variants of NeRF have been proposed recently. For example, [11, 17, 37, 39, 40, 53, 56] proposed methods to improve the rendering efficiency of NeRF, such that it can render images in realtime. [13, 20, 23, 24, 26] proposed to improve the training performance of NeRF with inaccurate posed images or images captured under challenging conditions. There are also methods that extend NeRF for large scale scene representations [47, 49, 54] and non-rigid object reconstructions (e.g. human body) [1, 9, 34–36, 38, 40, 51]. NeRF is also recently being used for 3D aware image generation models [6, 12, 22, 30, 32, 50]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                152,
+                895,
+                364
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We will mainly detailed review those methods which are the closest to our work in this section. BARF proposed to optimize camera poses of input images as additional variables together with parameters of NeRF [20]. They propose to gradually apply the positional encoding to better train the network as well as the camera poses. A concurrent work from Jeong et al. [13] also proposed to learn the scene representation and camera parameters (i.e. both extrinsic and intrinsic parameters) jointly. Different from BARF [20] and the work from [13], which estimate the camera pose at a particular timestamp, our work proposes to optimize the camera motion trajectory within exposure time. Deblur-NeRF aims to train NeRF from a set of motion blurred images [23]. They obtain the camera poses from either ground truth or COLMAP [41], and fix them during training stage. Severe motion blurred images challenge the pose estimations (e.g. from COLMAP), which would thus further degrade the training performance of NeRF. Instead of relying heavily on the accurately posed images, our method estimates camera motion trajectories together with NeRF parameters jointly. The resulting pipeline is thus robust to inaccurate initialized camera poses due to severe motion blur."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                364,
+                895,
+                699
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Image Deblurring. Existing techniques to solve motion deblurring problem can be generally classified into two main categories: the first type of approach formulates the problem as an optimization problem, where the latent sharp image and the blur kernel are optimized using gradient descent during inference [2,7,15,18,33,43,55]. Another type of approaches phrases the task as an end-to-end learning problem. Building upon the recent advances of deep convolution neural networks, state-of-the-art results have been obtained for both single image deblurring [16, 29, 48] and video deblurring [46]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                703,
+                895,
+                869
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The closest work to ours is from Park et al. [33], which jointly recovers the camera poses, dense depth maps, and latent sharp images from a set of multi-view motion blurred images. They formulate the problem under the classic optimization framework, and aim to maximize both the self-view photo-consistency and cross-view photoconsistencies. Instead of representing the 3D scene as a set of multi-view dense depth maps and latent sharp images, we represent it with NeRF implicitly, which can better preserve the multi-view consistency and enable novel view image synthesis."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                869,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4171"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                92,
+                470,
+                228
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3. Method"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                241,
+                168,
+                257
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this section, we present the details of our bundle adjusted deblur NeRF (BAD-NeRF). BAD-NeRF learns both the 3D scene representation and recovers the camera motion trajectories, given a set of motion blurred images as shown in Fig. 2. We follow the real physical image formation process of a motion blurred image to synthesize blurry images from NeRF. Both NeRF and the motion trajectories are estimated by maximizing the photo-metric consistency between the synthesized blurry images and the real blurry images. We will detail each component as follows."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                267,
+                470,
+                420
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.1. Neural Radiance Fields"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                429,
+                295,
+                444
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We follow the general architecture of NeRF [27] to represent the 3D scene implicitly using two Multi-layer Perceptrons (MLP). To query the pixel intensity I(x) at pixel location x for a particular image with pose "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { c } ^ { w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", we can shoot a ray into the 3D space. The ray is defined by connecting the camera center and the corresponding pixel. We can then compute the pixel intensity by volume rendering along the ray [25]. This process can be formally described as follows."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                452,
+                470,
+                588
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given a particular 3D point "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { X } ^ { w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with depth λ along the ray, we can obtain its coordinate defined in the world coordinate frame as:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                588,
+                470,
+                633
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { d } ^ { c } = \\mathbf { K } ^ { - 1 } \\left[ \\mathbf { \\Sigma } _ { 1 } ^ { \\mathbf { x } } \\right] ,\\tag{1}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0706e5f441b41e81628cff312ba1e1153b6f535d27da14ca6bfc3f7cbfc80210.jpg"
+                }
+            },
+            "bbox": [
+                217,
+                642,
+                333,
+                676
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { X } ^ { w } = \\mathbf { T } _ { c } ^ { w } \\cdot \\lambda \\mathbf { d } ^ { c } ,\\tag{2}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/c8c919cdf386387672624d48255809391e902d36b619d507c40b4b7a5d72536b.jpg"
+                }
+            },
+            "bbox": [
+                212,
+                678,
+                330,
+                695
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where x is the pixel location, K is the camera intrinsic parameters by assuming a simple pinhole camera model, d<sup>c</sup> is the ray direction defined in the camera coordinate frame, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { c } ^ { w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the camera pose defined from camera frame to world frame. We can then query NeRF for its corresponding viewdepend color c and volume density σ using MLPs:"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                707,
+                470,
+                799
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\begin{array} { r } { ( \\pmb { c } , \\sigma ) = \\mathbf { F } _ { \\boldsymbol { \\theta } } ( \\mathbf { X } ^ { w } , \\quad \\mathbf { R } _ { c } ^ { w } \\cdot \\mathbf { d } ^ { c } ) , } \\end{array}\\tag{3}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/e81680ef04772fb243dbddc93f18dc2549da0032a63ec09a943b6e3c86493b87.jpg"
+                }
+            },
+            "bbox": [
+                171,
+                810,
+                374,
+                828
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { \\theta }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the Multi-layer Perceptrons parameterized with learnable parameters θ, R<sup>w</sup> is the rotation matrix which transforms the viewing direction d<sup>c</sup> from camera coordinate frame to world coordinate frame. Following Mildenhall et al. [27], which showed that coordinate-based approaches struggle with learning details from low-dimensional inputs, we also use their proposed Fourier embedding γ(X) representation of a 3D point X and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\gamma ( \\mathbf { d } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "representation of the viewing direction d, to map the low-dimensional inputs to high-dimensional space."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                839,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                90,
+                893,
+                181
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Following the definition of volume rendering [25], we can then compute the pixel intensity by sampling 3D points along the ray as follows:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                181,
+                893,
+                228
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { I } ( \\mathbf { x } ) = \\sum _ { i = 1 } ^ { n } T _ { i } ( 1 - \\exp ( - \\sigma _ { i } \\delta _ { i } ) ) { c _ { i } } ,\\tag{4}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/37eb4b03ea45f149e987986dd46def3a0235cdd8f7ea370f68100c53070d1135.jpg"
+                }
+            },
+            "bbox": [
+                576,
+                233,
+                813,
+                273
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where n is the number of sampled 3D points along the ray, both "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "c _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are the predicted color and volume density of the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sampled 3D point via "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { \\theta } , \\delta _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the distance between the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( i + 1 ) ^ { t { \\bar { h } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sampled point, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the transmittance factor which represents the probability that the ray does not hit any particle until the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sampled point. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "T _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be formally defined as:"
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                280,
+                893,
+                386
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "T _ { i } = \\exp ( - \\sum _ { k = 1 } ^ { i - 1 } \\sigma _ { k } \\delta _ { k } ) ,\\tag{5}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1de0239069df0492a405512814df216113514e9193e5bef1e5cb43c220bd175f.jpg"
+                }
+            },
+            "bbox": [
+                616,
+                392,
+                774,
+                434
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\sigma _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the predicted volume density for "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "point by "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { \\theta } , \\sigma _ { k }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the corresponding distance between neighboring points."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                440,
+                892,
+                487
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The above derivations show that the rendered pixel intensity I(x) is a function of the MLPs with learnable parameters θ, as well as the corresponding camera pose "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { c } ^ { w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "It can also be derived that I(x) is differentiable with respect to both θ and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { c } ^ { w }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which lays the foundations for our bundle adjustment formulation with a set of motion blurred images."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                487,
+                893,
+                579
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.2. Motion Blur Image Formation Model"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                585,
+                825,
+                602
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The physical image formation process refers to a digital camera collecting photons during the exposure time and converting them into measurable electric charges. The mathematical modeling of this process involves integrating over a set of virtual sharp images:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                608,
+                893,
+                684
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { B } ( \\mathbf { x } ) = \\phi \\int _ { 0 } ^ { \\tau } \\mathbf { I } _ { \\mathrm { t } } ( \\mathbf { x } ) \\mathrm { d t } ,\\tag{6}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/183c6fea1a205a6444ac68e70c69b05c0be5cdc8d342bdcce48cb84153fe4f62.jpg"
+                }
+            },
+            "bbox": [
+                616,
+                690,
+                774,
+                723
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { B } ( \\mathbf { x } ) \\in \\mathbb { R } ^ { \\mathrm { W \\times H \\times 3 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the captured image, W and H are the width and height of the image respectively, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { x } \\in \\mathbb { R } ^ { 2 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "represents the pixel location, ϕ is a normalization factor, τ is the camera exposure time, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { I } _ { \\mathrm { t } } ( \\mathbf { x } ) \\in \\mathbb { R } ^ { \\mathrm { W } \\times \\mathrm { H } \\times 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the virtual sharp image captured at timestamp t within the exposure time. A blurred image B(x) caused by camera motion during the exposure time, is formed by different virtual images "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "{ { \\mathbf { I } } _ { \\mathrm { t } } } ( \\mathbf { x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for each t. The model can be discretely approximated as"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                729,
+                893,
+                866
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { B } ( \\mathbf { x } ) \\approx \\frac { 1 } { n } \\sum _ { i = 0 } ^ { n - 1 } \\mathbf { I } _ { \\mathrm { i } } ( \\mathbf { x } ) ,\\tag{7}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/3778b68573b2a5aceebb183db0f55ae08daa67a26fbc883a3ddeee7c7753d826.jpg"
+                }
+            },
+            "bbox": [
+                622,
+                863,
+                767,
+                904
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4172"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/fc24945cb226c1a1f63356ea754f51f5492049924b324a3a31f8406310cc9d04.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 2. The pipeline of BAD-NeRF. Given a set of motion blurred images, we train NeRF to learn the 3D scene representation. Different from prior works, which usually model the camera pose at a fixed timestamp, we represent the motion trajectory of each image with both poses at the start and end of the exposure time respectively. Intermediate virtual camera poses can then be linearly interpolated in SE3 space. We then follow the standard neural rendering procedures of NeRF to synthesize those virtual sharp images within exposure time. The blurry image can then be synthesized by averaging those virtual images, which obeys the real physical image formation process of a motion blurred image. The whole network and both the start and end poses are jointly estimated by minimizing the photo-metric los between the synthesized and real blurry images."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                119,
+                88,
+                848,
+                279
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where n is the number of discrete samples."
+                    }
+                ]
+            },
+            "bbox": [
+                76,
+                396,
+                362,
+                410
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The degree of motion blur in an image thus depends on the camera motion during the exposure time. For example, a fast-moving camera causes little relative motion for shorter exposure time, whereas a slow-moving camera leads to a motion blurred image for long exposure time (e.g. in low light conditions). It can be further derived that B(x) is differentiable with respect to each of virtual sharp images "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { I } _ { i } ( \\mathbf { x } )"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                411,
+                470,
+                532
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.3. Camera Motion Trajectory Modeling"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                540,
+                400,
+                556
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "As derived in Eq. (7), we need to model the corresponding poses of each latent sharp image within exposure time, so that we can render them from NeRF "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\operatorname { i . e . } \\ \\mathbf { F } _ { \\theta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We approximate the camera motion with a linear model during exposure time which is usually small "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "( \\mathrm { e . g . } \\leq 2 0 0 \\ : \\mathrm { m s } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Specifically, two camera poses are parameterized, one at the beginning of the exposure "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } } \\in \\mathbf { S } \\mathbf { E } ( 3 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and one at the end "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } } \\in \\mathbf { S } \\mathbf { E } ( 3 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". Between these two poses, we linearly interpolate poses in the Lie-algebra of SE(3). The virtual camera pose at time "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "t \\in [ 0 , \\tau ]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can thus be represented as"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                564,
+                470,
+                715
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathbf { T } _ { t } = \\mathbf { T } _ { \\mathrm { s t a r t } } \\cdot \\exp ( \\frac { t } { \\tau } \\cdot \\log ( \\mathbf { T } _ { \\mathrm { s t a r t } } ^ { - 1 } \\cdot \\mathbf { T } _ { \\mathrm { e n d } } ) ) ,\\tag{8}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/a45c118d3ded353e6380155207b635a7c64adb0aac82ba7cd2901dd42821dad3.jpg"
+                }
+            },
+            "bbox": [
+                129,
+                724,
+                415,
+                753
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where τ is the exposure time. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\frac { t } { \\tau }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "can be further derived as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\scriptstyle { \\frac { i } { n - 1 } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "i ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "sampled virtual sharp image (i.e. with pose as "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { i } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", when there are n images being sampled in total. It can be derived that "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { i }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is differentiable with respect to both "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". For more details on the interpolation and derivations of the related Jacobian, please refer to prior work from Liu et al. [21]. The goal of BAD-NeRF is now to estimate both "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for each frame, as well as the learnable parameters of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { \\theta }"
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                762,
+                470,
+                901
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Besides the linear interpolation approach, we also explore the trajectory representation with a higher order spline (i.e. cubic B-Spline), which can represent more complex camera motions. Since the exposure time is usually relatively short, we find that a linear interpolation can already deliver satisfying performance from the experimental results. More details on the cubic B-Spline formulation can be found in our supplementary material."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                396,
+                893,
+                517
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "3.4. Loss Function"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                525,
+                647,
+                540
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Given a set of K motion blurred images, we can then estimate the learnable parameters θ of NeRF as well as the camera motion trajectories for each image (i.e. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "by minimizing the photo-metric loss:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                547,
+                893,
+                609
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\mathcal { L } = \\sum _ { k = 0 } ^ { K - 1 } \\left\\| \\mathbf { B } _ { k } ( \\mathbf { x } ) - \\mathbf { B } _ { k } ^ { g t } ( \\mathbf { x } ) \\right\\| ,\\tag{9}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/b05429ef232a50a7d2055777527ff95c6bff4f2c63cdf3c93dfa885cbb7abbbe.jpg"
+                }
+            },
+            "bbox": [
+                591,
+                617,
+                799,
+                659
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "where "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { B } _ { k } ( { \\mathbf { x } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "k ^ { t h }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "blurry image synthesized from NeRF by following the above image formation model, "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { B } _ { k } ^ { g t } ( { \\bf x } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "is the corresponding real captured blurry image."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                667,
+                892,
+                714
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To optimize the learnable parameter "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\theta , \\mathrm { { \\bf T } _ { \\mathrm { { s t a r t } } } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "for each image, we need to have the corresponding Jacobians:"
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                713,
+                892,
+                758
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\mathcal { L } } { \\partial \\pmb { \\theta } } = \\sum _ { k = 0 } ^ { K - 1 } \\frac { \\partial \\mathcal { L } } { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } \\cdot \\frac { 1 } { n } \\sum _ { i = 0 } ^ { n - 1 } \\frac { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } \\frac { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } { \\partial \\pmb { \\theta } } ,\\tag{10}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/4fec5b80f7ca7b1414a9f7da250b75a455ecf62df0d37d14a73140469e87ca87.jpg"
+                }
+            },
+            "bbox": [
+                529,
+                765,
+                836,
+                808
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\mathcal { L } } { \\partial \\mathbf { T } _ { \\mathrm { { s t a r t } } } } = \\sum _ { k = 0 } ^ { K - 1 } \\frac { \\partial \\mathcal { L } } { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } \\cdot \\frac { 1 } { n } \\sum _ { i = 0 } ^ { n - 1 } \\frac { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } \\frac { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } { \\partial \\mathbf { T } _ { \\mathrm { { s t a r t } } } } ,\\tag{11}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/0c871bead27e65222e6e404a390f39c724e71224d22f8c7e02a9d8aac5f28a3a.jpg"
+                }
+            },
+            "bbox": [
+                511,
+                815,
+                851,
+                858
+            ]
+        },
+        {
+            "type": "equation_interline",
+            "content": {
+                "math_content": "\\frac { \\partial \\mathcal { L } } { \\partial \\mathbf { T } _ { \\mathrm { e n d } } } = \\sum _ { k = 0 } ^ { K - 1 } \\frac { \\partial \\mathcal { L } } { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } \\cdot \\frac { 1 } { n } \\sum _ { i = 0 } ^ { n - 1 } \\frac { \\partial \\mathbf { B } _ { k } ( \\mathbf { x } ) } { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } \\frac { \\partial \\mathbf { I } _ { i } ( \\mathbf { x } ) } { \\partial \\mathbf { T } _ { \\mathrm { e n d } } } .\\tag{12}",
+                "math_type": "latex",
+                "image_source": {
+                    "path": "images/1542a5d650b2cec9d28463a35c5e0c6c49fb136392dca716d32e363c5fd14464.jpg"
+                }
+            },
+            "bbox": [
+                517,
+                863,
+                846,
+                904
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4173"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "We parameterize both "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "with their corresponding Lie algebras of "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { S E } ( 3 )"
+                    },
+                    {
+                        "type": "text",
+                        "content": ", which can be represented by a 6D vector respectively."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                90,
+                470,
+                137
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4. Experiments"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                150,
+                210,
+                167
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.1. Experimental details"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                76,
+                174,
+                274,
+                191
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Benchmark datasets. To evaluate the performance of our network, we use both the synthetic datasets and real datasets from prior works, i.e. the datasets from Deblur-NeRF [23] and MBA-VO [21]. The synthetic dataset from Deblur-NeRF [23] is synthesized by using Blender [3]. The datasets are generated from 5 virtual scenes, assuming the camera motion is in constant velocity within exposure time. Both the anchor camera poses and camera velocities (i.e. in 6 DoFs) within exposure time are randomly sampled, i.e. they are not sampled along a continuous motion trajectory. The blurry image is then generated by averaging the sampled virtual images within the exposure time for each camera. To synthesize more realistic blurry images, we increase the number of virtual images to 51 from 10 and keep the other settings fixed. They also capture a real blurry dataset by deliberately shaking a handheld camera."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                202,
+                472,
+                444
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To investigate the performance of our method more thoroughly, we also evaluate our method on a dataset for motion blur aware visual odometry benchmark (i.e. MBA-VO [21]). The dataset contains both synthetic and real blurry images. The synthetic images are synthesized from an Unreal game engine and the real images are captured by a handheld camera within indoor environment. Different from the synthetic dataset from Deblur-NeRF [23], the synthetic images from MBA-VO [21] are generated based on real motion trajectories (i.e. not constant velocity) from the ETH3D dataset [42]."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                444,
+                470,
+                611
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Baseline methods and evaluation metrics. We evaluate our method against several state-of-the-art learning-based deblurring methods, i.e. SRNDeblurNet [48], PVD [44], MPR [57], Deblur-NeRF [23] as well as a classic multiview image deblurring method from Park et al. [33]. For deblurring evaluation, we synthesize images corresponding to the middle virtual camera poses (i.e. the one at the middle of the exposure time) from the trained NeRF, and evaluate its performance against the other methods. Since SRNDeblurNet [48], PVD [44] and MPR [57] are primarily designed for single image deblurring, they are not generically suitable for novel view image synthesis. We thus firstly apply them to each blurry image to get the restored images, and then input those restored images to NeRF [27] for training. For novel view image synthesis evaluation, we render novel-view images with their corresponding poses from those trained NeRF. All the methods use the estimated poses from COLMAP [41] for NeRF training. To investigate the sensitivity of Deblur-NeRF [23] to the accuracy of the camera poses, we also train it with the ground-truth poses provided by Blender during dataset generation."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                613,
+                472,
+                902
+            ]
+        },
+        {
+            "type": "chart",
+            "content": {
+                "image_source": {
+                    "path": "images/fae8db54c8192a9529722ad81d09721b8597a3da71a2009c3312c3c8af7aa62a.jpg"
+                },
+                "content": "",
+                "chart_caption": [],
+                "chart_footnote": []
+            },
+            "bbox": [
+                504,
+                92,
+                852,
+                214
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/bec267dfd23f6460c62db0d5561c1478068e41c10d9cad9762b121415f170cf0.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 3. The effect of the number of interpolated virtual cameras. The results demonstrate that the performance saturates as the number increases."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Table 1. Ablation studies on the effect of trajectory representations. The results demonstrate that spline-based methods perform better than that of directly optimizing N poses. It also demonstrates that linear interpolation achieves comparably performance as that of cubic B-Spline, due to the short time interval within camera exposure."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\"></td><td colspan=\"2\">Deblur-NeRF</td><td colspan=\"2\">MBA-VO</td></tr><tr><td>PSNR↑ SSIM↑LPIPS↓</td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td></tr><tr><td rowspan=\"2\">Direct optimization Cubic B-Spline</td><td>29.99 .8737</td><td>.0996</td><td>28.86 .8454</td><td>.2044</td></tr><tr><td>30.89 .8941</td><td>.0884</td><td>29.93 .8643</td><td>.1922</td></tr><tr><td>Linear Interpolation</td><td>30.94 .8946</td><td>.0916</td><td>29.67 .8620</td><td>.1982</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                501,
+                263,
+                887,
+                335
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                431,
+                892,
+                462
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "The quality of the rendered image is evaluated with the commonly used metrics, i.e. the PSNR, SSIM and LPIPS [58] metrics. We also evaluate the absolute trajectory error (ATE) against the method from Park et al. [33] and BARF [20] on the evaluation of the estimated camera poses. The ATE metric is commonly used for visual odometry evaluations [21]."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                462,
+                893,
+                568
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Implementation and training details. We implement our method with PyTorch. We adopt the MLP network (i.e. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { F } _ { \\theta } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "structure of the original NeRF from Mildenhall et al. [27] without any modification. Both the network parameters and the camera poses (i.e. "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } } )"
+                    },
+                    {
+                        "type": "text",
+                        "content": "are optimized with the two separate Adam optimizer [14]. The learning rate of the NeRF optimizer and pose optimizer exponentially decays from 5× "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 0 ^ { - 4 } : 0 5 \\times 1 0 ^ { - 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 \\times 1 0 ^ { - 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "1 \\times 1 0 ^ { - 5 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": ". We set number of interpolated poses between "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "(n in Eq. 7) as 7. A total number of 128 points are sampled along each ray. We train our model for 200K iterations on an NVIDIA RTX 3090 GPU. We use COLMAP [41] to initialize the camera poses for our method."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                570,
+                893,
+                768
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.2. Ablation study"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                776,
+                651,
+                792
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Number of virtual poses. We evaluate the effect of the number of interpolated virtual cameras (i.e. for virtual image synthesis in Eq. (7)) within exposure time. We choose two sequences from the synthetic dataset of Deblur-NeRF [23] for experiment, i.e. the cozy2room sequence and the factory sequence, which represent sequences with low-level and high-level motion blur respectively. The experiments are conducted by training our network with a varying number of interpolated virtual cameras. The PSNR metrics computed and plotted in Fig. 3. The experimental results demonstrate that the number of virtual cameras does not affect much for images with low-level motion blur. As expected, more virtual cameras are required for images with high-level motion blur. By compromising the image rendering quality and the training complexity (i.e. the larger the number of virtual images, the more computational resource is required for training), we choose 7 virtual images for our experiments."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                795,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4174"
+                    }
+                ]
+            },
+            "bbox": [
+                480,
+                944,
+                516,
+                958
+            ]
+        }
+    ],
+    [
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/82a916c0c70d1dd48fb92d9cbe656ccffa7b7a7c7b4fb764b49086b8bbb0e620.jpg"
+                },
+                "table_caption": [],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\"></td><td colspan=\"3\">Cozy2room</td><td colspan=\"3\">Factory</td><td colspan=\"3\">Pool</td><td colspan=\"3\">Tanabata</td><td colspan=\"3\">Trolley</td><td colspan=\"3\">Average</td></tr><tr><td></td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td><td>PSNR↑</td><td></td><td>SSIM↑ LPIPS↓</td><td>PSNR↑</td><td>SSIM↑ LPIPS↓</td><td></td><td></td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td></tr><tr><td>Park [33]</td><td>23.82</td><td>.7221</td><td>.2020</td><td>21.02</td><td>.5090</td><td>.4193</td><td>27.98</td><td>.7258</td><td>.2305</td><td>17.91</td><td>.4637</td><td>.4030</td><td>19.96</td><td>.5610</td><td>.3222</td><td>22.14</td><td>.5963</td><td>.3154</td></tr><tr><td>MPR [57]</td><td>29.90</td><td>.8862</td><td>.0915</td><td>25.07</td><td>.6994</td><td>.2409</td><td>33.28</td><td>.8938</td><td>.1290</td><td>22.60</td><td>.7203</td><td>.2507</td><td>26.24</td><td>.8356</td><td>.1762</td><td>27.42</td><td>.8071</td><td>.1777</td></tr><tr><td>PVD [44]</td><td>28.06</td><td>.8443</td><td>.1515</td><td>24.57</td><td>.6877</td><td>.3150</td><td>30.38</td><td>.8393</td><td>.1977</td><td>22.54</td><td>.6872</td><td>.3351</td><td>24.44</td><td>.7746</td><td>.2600</td><td>26.00</td><td>.7666</td><td>.2519</td></tr><tr><td>SRNDeblur [48]</td><td>29.47</td><td>.8759</td><td>.0950</td><td>26.54</td><td>.7604</td><td>.2404</td><td>32.94</td><td>.8847</td><td>.1045</td><td>23.20</td><td>.7274</td><td>.2438</td><td>25.36</td><td>.8119</td><td>.1618</td><td>27.50</td><td>.8121</td><td>.1691</td></tr><tr><td>DeblurNeRF [23]</td><td>25.96</td><td>.7979</td><td>.1024</td><td>23.21</td><td>.6487</td><td>.2618</td><td>31.21</td><td>.8518</td><td>.1382</td><td>22.46</td><td>.6946</td><td>.2455</td><td>24.94</td><td>.7923</td><td>.1766</td><td>25.56</td><td>.7571</td><td>.1849</td></tr><tr><td>DeblurNeRF* [23]</td><td>30.26</td><td>.8933</td><td>.0791</td><td>26.40</td><td>.7991</td><td>.2191</td><td>32.30</td><td>.8755</td><td>.1345</td><td>24.56</td><td>.7749</td><td>.2166</td><td>26.24</td><td>.8254</td><td>.1671</td><td>27.95</td><td>.8336</td><td>.1633</td></tr><tr><td>BAD-NeRF (ours)</td><td>32.15</td><td>.9170</td><td>.0547</td><td>32.08</td><td>.9105</td><td>.1218</td><td>33.36</td><td>.8912</td><td>.0802</td><td>27.88</td><td>.8642</td><td>.1179</td><td>29.25</td><td>.8892</td><td>.0833</td><td>30.94</td><td>.8946</td><td>.0916</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                81,
+                89,
+                892,
+                195
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/10c61b12a6ec152db6bba3cb2c15e8d2a5a91230d3dc30d2b01bbf51b5d48219.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 2. Quantitative deblurring comparisons on the synthetic dataset of Deblur-NeRF [23]. Note that DeblurNeRF* is trained with the ground-truth poses, while the other one is trained with the estimated poses by COLMAP [41]. The experimental results demonstrate that our method achieves the best performance over prior methods. It also demonstrates that the DeblurNeRF is sensitive to the accuracy of the provided camera poses."
+                    },
+                    {
+                        "type": "text",
+                        "content": "Table 3. Quantitative novel view synthesis comparisons on the synthetic dataset of Deblur-NeRF [23]. The experimental results demonstrate that our method delivers state-of-the-art performance compared to prior works."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\"></td><td colspan=\"3\">Cozy2room</td><td colspan=\"3\">Factory</td><td colspan=\"3\">Pool</td><td colspan=\"3\">Tanabata</td><td colspan=\"3\">Trolley</td><td colspan=\"3\">Average</td></tr><tr><td></td><td></td><td>PSNR↑ SŠIM↑ LPIPS↓</td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td><td></td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td>PSNR↑</td><td>SSIM↑ LPIPS↓</td><td></td><td></td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td><td>PSNR↑ SSIM↑ LPIPS↓</td><td></td></tr><tr><td>NeRF+Park</td><td>23.44</td><td>.7024</td><td>.2634</td><td>20.83</td><td>.5041</td><td>.4133</td><td>28.69</td><td>.7512</td><td>.2865</td><td>19.29</td><td>.5317</td><td>.4342</td><td>20.73</td><td>.6012</td><td>.3804</td><td>22.60</td><td>.6181</td><td>.3556</td></tr><tr><td>NeRF+MPR</td><td>27.17</td><td>.8334</td><td>.1196</td><td>23.78</td><td>.6375</td><td>.2499</td><td>31.15</td><td>.8402</td><td>.1837</td><td>21.24</td><td>.6914</td><td>.2801</td><td>26.14</td><td>.8154</td><td>.1979</td><td>25.90</td><td>.7636</td><td>.2062</td></tr><tr><td>NeRF+PVD</td><td>26.26</td><td>.7977</td><td>.1764</td><td>23.88</td><td>.6450</td><td>.3074</td><td>29.02</td><td>.7792</td><td>.2287</td><td>21.03</td><td>.6566</td><td>.3406</td><td>23.96</td><td>.7502</td><td>.2772</td><td>24.83</td><td>.7257</td><td>.2661</td></tr><tr><td>NeRF+SRNDeblur</td><td>27.27</td><td>.8321</td><td>.1261</td><td>26.19</td><td>.7494</td><td>.2274</td><td>31.09</td><td>.8375</td><td>.1770</td><td>21.46</td><td>.6943</td><td>.2839</td><td>25.01</td><td>.7883</td><td>.2077</td><td>26.20</td><td>.7803</td><td>.2044</td></tr><tr><td>Deblur-NeRF</td><td>26.05</td><td>.8084</td><td>.1072</td><td>25.17</td><td>.7253</td><td>.2447</td><td>30.97</td><td>.8447</td><td>.1554</td><td>21.77</td><td>.7172</td><td>.2515</td><td>24.45</td><td>.7785</td><td>.2088</td><td>25.68</td><td>.7748</td><td>.1935</td></tr><tr><td>Deblur-NeRF*</td><td>29.88</td><td>.8901</td><td>.0747</td><td>26.06</td><td>.8023</td><td>.2106</td><td>30.94</td><td>.8399</td><td>.1694</td><td>22.56</td><td>.7639</td><td>.2285</td><td>25.78</td><td>.8122</td><td>.1797</td><td>27.04</td><td>.8217</td><td>.1726</td></tr><tr><td>BAD-NeRF (ours)</td><td>30.97</td><td>.9014</td><td>.0552</td><td>31.65</td><td>.9037</td><td>.1228</td><td>31.72</td><td>.8580</td><td>.1153</td><td>23.82</td><td>.8311</td><td>.1378</td><td>28.25</td><td>.8727</td><td>.0914</td><td>29.28</td><td>.8734</td><td>.1045</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                80,
+                253,
+                892,
+                359
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                400,
+                470,
+                565
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Trajectory representations. To evaluate the effect of different trajectory representations, we conduct three experiments: the first is based on optimizing N (i.e. N = 7) camera poses directly, the second is based on optimizing "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { s t a r t } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { \\mathrm { e n d } }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to represent a linear trajectory, and the last is based on a higher order spline (i.e. cubic B-Spline) which jointly optimizes 4 control knots "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { 1 } , \\mathbf { T } _ { 2 } , \\mathbf { T } _ { 3 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "and "
+                    },
+                    {
+                        "type": "equation_inline",
+                        "content": "\\mathbf { T } _ { 4 }"
+                    },
+                    {
+                        "type": "text",
+                        "content": "to represent more complex camera motions. For more detailed formulation of cubic B-Spline, please refer to our supplementary material. Since directly optimizing poses would lose the ordering information, we compute the metrics (e.g. PSNR) for all 7 poses and choose the best one for comparison. The average quantitative results on the datasets of Deblur-NeRF [23] (Cozy2room, Factory, Pool, Tanabata and Trolley) and MBA-VO [21] (ArchViz-low and ArchVizhigh) are shown in Table 1. It demonstrates that directly optimizing N camera poses performs worse than splinebased methods. It also demonstrates that linear interpolation performs comparably as that of cubic B-Spline interpolation. In particular, linear interpolation achieves slightly better performance on the datasets of Deblur-NeRF, and cubic B-Spline performs slightly better on that of MBA-VO, compared to linear motion model. It is due to the relatively short time interval for camera exposure. Linear interpolation is already sufficient to represent the camera motion trajectory accurately within such short time interval."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                569,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/8faa07403d526687ed7391f50e60bb6708429a1af0bd6d7e3513f1c09bda053f.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 4. Quantitative deblurring comparisons on the synthetic dataset of MBA-VO [21]. The experimental results demonstrate that our method achieves the best performance even with a camera that is not moving at a constant velocity within exposure time."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td rowspan=\"2\"></td><td colspan=\"2\">ArchViz-low PSNR↑SSIM↑LPIPS↓</td><td colspan=\"2\">ArchViz-high</td></tr><tr><td></td><td></td><td></td><td>PSNR↑ SSIM↑LPIPS↓</td></tr><tr><td>Park [33]</td><td>21.08</td><td>.6032 .3524</td><td>21.10 .5963</td><td>.4243</td></tr><tr><td>MPR [57]</td><td>29.60</td><td>.8757 .2103</td><td>25.04 .7711</td><td>.3576</td></tr><tr><td>PVD [44]</td><td>27.82</td><td>.8318 .2475</td><td>25.59</td><td>.7792 .3441</td></tr><tr><td>SRNDeblur [48]</td><td>30.15</td><td>.8814 .1703</td><td>27.07</td><td>.8190 .2796</td></tr><tr><td>Deblur-NeRF [23]</td><td>28.06</td><td>.8491 .2036</td><td>25.76</td><td>.7832 .3277</td></tr><tr><td>Deblur-NeRF* [23]</td><td>29.65</td><td>.8744 .1764</td><td>26.44</td><td>.8010 .3172</td></tr><tr><td>BAD-NeRF (ours)</td><td>31.27</td><td>.9005</td><td>.1503 28.07</td><td>.8234 .2460</td></tr></table>",
+                "table_type": "complex_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                503,
+                397,
+                890,
+                523
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                589,
+                893,
+                650
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "4.3. Results"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                657,
+                596,
+                672
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Quantitative evaluation results. For the subsequent experimental results, we use linear interpolation by default, unless explicitly stated. We evaluate the deblurring and novel view image synthesis performance with both the synthetic images from Deblur-NeRF [23] and MBA-VO [21]. We also evaluate the accuracy of the refined camera poses of our method against that from Park [33] and BARF [20] in terms of the ATE metric. Both Table 2 and Table 3 present the experimental results in deblurring and novel view image synthesis respectively, with the dataset from Deblur-NeRF [23]. It reveals that single image based deblurring methods, e.g. MPR [57], PVD [44] and SRNDeblur [48] fail to outperform our method, due to the limited information possessed by a single blurry image and the deblurring network struggles to restore the sharp image. The results also reveal that classic multi-view image deblurring method, i.e. the work from Park et al. [33], cannot outperform our method, thanks to the powerful representation capability of deep neural networks for our method. In the experiments, we also investigate the effect of the input camera poses accuracy to DeblurNeRF [23]. We conduct two experiments, i.e. the DeblurNeRF network is trained with ground truth poses and with that computed by COLMAP [41]. Since the images are motion blurred, the poses estimated by COLMAP are not accurate. The results reveal that the DeblurNeRF network trained with poses from COLMAP [41] performs poorly compared to that of ground truth poses. It further demonstrates that DeblurNeRF is sensitive to the accuracy of the camera poses, since they do not optimize them during training."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                674,
+                895,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4175"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/2339a6ea548e200ee623c7f0efce209a544b7b23b298efc634d7663de96952ee.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Figure 4. Qualitative results of different methods with synthetic datasets. BAD-NeRF achieves the best performance under inaccurate poses on various scenes and different levels of blur. Since DeblurNeRF does not explicitly model occlusions, it fails to render sharp edges (i.e. result in the second column) where large depth change exists."
+                    }
+                ],
+                "image_footnote": []
+            },
+            "bbox": [
+                117,
+                89,
+                856,
+                500
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                75,
+                561,
+                470,
+                790
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To better evaluate the performance of our network, we also conduct experiments with the dataset from MBA-VO [21]. The images from MBA-VO [21] are generated by using real camera motion trajectories from ETH3D dataset [42]. The motion is not at constant velocity compared to that of the dataset from DeblurNeRF [23]. The experimental results presented in Table 4 demonstrate that our network also outperforms other methods, even with a camera that is not moving in constant velocity within exposure time."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                795,
+                472,
+                901
+            ]
+        },
+        {
+            "type": "table",
+            "content": {
+                "image_source": {
+                    "path": "images/1c11c23dfec77ffc9c0b0c156cad0f9bbcac94a0a47aa086da1998cce2f0d9f3.jpg"
+                },
+                "table_caption": [
+                    {
+                        "type": "text",
+                        "content": "Table 5. Pose estimation performance of BAD-NeRF on various blur sequences. The results are in the absolute trajectory error metric (ATE). The COLMAP-blur represents the result of COLMAP with blurry images."
+                    }
+                ],
+                "table_footnote": [],
+                "html": "<table><tr><td></td><td>Cozy2room Factory</td><td>Pool</td><td>Tanabata</td><td>Trolley</td></tr><tr><td>COLMAP-blur [41]</td><td>.128±.090.148±.093.057±.026.103±.090.045±.042</td><td></td><td></td><td></td></tr><tr><td>BARF [20]</td><td>.291±.111 .145±.088 .083±.036.203±.091.244±.074</td><td></td><td></td><td></td></tr><tr><td>BAD-NeRF (ours)</td><td>.050±.025.033±.012.020±.007.016±.008.007±.004</td><td></td><td></td><td></td></tr></table>",
+                "table_type": "simple_table",
+                "table_nest_level": 1
+            },
+            "bbox": [
+                504,
+                560,
+                887,
+                621
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                498,
+                689,
+                893,
+                719
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "To evaluate the performance of camera pose estimation, we also tried to compare our method against the work from Park et al. [33]. However, we found that the method from Park et al. [33] hardly converges and we did not list their metrics. We therefore only present the comparisons of our method against that of COLMAP [41] and BARF [20]. The experiments are conducted on the datasets from DeblurNeRF [23]. The estimated camera poses are aligned with the ground truth poses before the absolute trajectory error metric is computed. The experimental results presented in Table 5 demonstrate that our method can recover the camera poses more accurately."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                719,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4176"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "content": {
+                "image_source": {
+                    "path": "images/32a162754ab14ee203c08db1cda0bdd204c5ce51e754da39596a180653114169.jpg"
+                },
+                "image_caption": [
+                    {
+                        "type": "text",
+                        "content": "Input"
+                    }
+                ],
+                "image_footnote": [
+                    {
+                        "type": "text",
+                        "content": "MPR [57]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "PVD [44]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "SRN [48]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "Deblur-NeRF [23]"
+                    },
+                    {
+                        "type": "text",
+                        "content": "BAD-NeRF"
+                    }
+                ]
+            },
+            "bbox": [
+                120,
+                87,
+                846,
+                397
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Figure 5. Qualitative results of different methods with the real datasets. The experimental results demonstrate that our method achieves superior performance over prior methods on the real dataset as well. Best viewed in high resolution."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                417,
+                892,
+                446
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Qualitative evaluation results. We also evaluate the qualitative performance of our method against the other methods. The experiments are conducted on both synthetic and real-world datasets. The experimental results presented in both Fig. 4 and Fig. 5 demonstrate that our method also outperforms other methods as in the quantitative evaluation section. In particular, single image deblurring networks (i.e. MPR [57], PVD [44] and SRNDeblur [48]) indeed can achieve impressive performance on some images, which are not severely blurred. However, they fail to restore the sharp image and bring in unpleasing artifacts for severely blurred images. On the contrary, our method always delivers consistent performance regardless of the level of motion blur. The reason is that our method takes advantage of multi-view images to recover a consistent 3D representation of the scene. It learns to fuse information from other views to improve the deblurring performance. Our method also delivers better results compared to DeblurNeRF [23]. One reason is that DeblurNeRF does not optimize the camera poses/motion trajectories within exposure time. They can deliver impressive results if the accurate poses are known. However, the performance would degrade if inaccurate poses are provided. Unfortunately, it is usually not trivial to recover accurate camera poses from motion blurred images, especially when the images are severely blurred. Thanks to the explicit modeling of the camera motion trajectory within exposure time, our method does not have such limitations. As shown in Table 5, our method can accurately estimate the camera poses together with the learning of the network. Another reason is caused by the formulation of DeblurNeRF. The motion blur aware image formation model of DeblurNeRF does not model occlusions. They synthesize a blurry image by convolving the rendered image with a learned point spread function. It thus cannot accurately model the image formation process for pixels/3D points lying around an edge, which has a large change of depth. In contrast, our method follows the real physical image formation process of a motion blurred image and does not have such an issue. Fig. 4 clearly shows that DeblurNeRF fails to render sharp images around the edge of the floating box even trained with ground truth poses, caused by the occlusion problem."
+                    }
+                ]
+            },
+            "bbox": [
+                75,
+                454,
+                472,
+                893
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": []
+            },
+            "bbox": [
+                496,
+                454,
+                893,
+                651
+            ]
+        },
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "5. Conclusion"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                500,
+                659,
+                619,
+                676
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "In this paper, we propose a photometric bundle adjustment formulation for motion blurred images by using NeRF to implicitly represent the 3D scene. Our method jointly learns the 3D representation and optimizes the camera poses with blurry images and inaccurate initial poses. Extensive experimental evaluations with both real and synthetic datasets are conducted. The experimental results demonstrate that our method can effectively deblur images, render novel view images and recover the camera motion trajectories accurately within exposure time."
+                    }
+                ]
+            },
+            "bbox": [
+                496,
+                684,
+                893,
+                837
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": {
+                "paragraph_content": [
+                    {
+                        "type": "text",
+                        "content": "Acknowledgements. This work was supported in part by NSFC under Grant 62202389, in part by a grant from the Westlake University-Muyuan Joint Research Institute, and in part by the Westlake Education Foundation."
+                    }
+                ]
+            },
+            "bbox": [
+                498,
+                839,
+                893,
+                901
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4177"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                944,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "content": {
+                "title_content": [
+                    {
+                        "type": "text",
+                        "content": "References"
+                    }
+                ],
+                "level": 2
+            },
+            "bbox": [
+                78,
+                89,
+                174,
+                106
+            ]
+        },
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[1] Shahrukh Athar, Zexiang Xu, Adobe Research, Kalyan Sunkavalli, Eli Shechtman, and Zhixin Shu. RigNeRF: Fully Controllable Neural 3D Portraits. In Computer Vision and Pattern Recognition (CVPR), pages 20364–20373, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[2] Sunghyun Cho and Seungyong Lee. Fast Motion Deblurring. ACM Transactions on Graphics (TOG), 28(5), 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[3] Blender Online Community. Blender - a 3D modelling and rendering package. Blender Foundation, Stichting Blender Foundation, Amsterdam, 2018. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[4] N. Cornelis, B. Leibe, K. Cornelis, and L. J. Van Gool. 3D urban scene modeling integrating recognition and reconstruction. International Journal of Computer Vision (IJCV), 78(2-3):121–141, July 2008. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[5] Amael Delaunoy and Marc Pollefeys. Photometric Bundle¨ Adjustment for Dense Multi-view 3D Modeling. In Computer Vision and Pattern Recognition (CVPR), 2014. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[6] Yu Deng, Jiaolong Yang, Jianfeng Xiang, and Xin Tong. GRAM: Generative Radiance Manifolds for 3D-Aware Image Generation. In Computer Vision and Pattern Recognition (CVPR), volume i, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[7] Rob Fergus, Barun Singh, Aaron Hertzmann, Sam T. Roweis, and William T. Freeman. Removing camera shake from a single photograph. In ACM Transactions on Graphics (TOG), 2006. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[8] Yasutaka Furukawa and Jean Ponce. Accurate, Dense, and Robust Multi-View Stereopsis. IEEE Trans. Pattern Analysis and Machine Intelligence (PAMI), 32(8):1362–1376, 2010. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[9] Guy Gafni, Justus Thies, Michael Zollhofer, and Matthias Niesner. Dynamic Neural Radiance Fields for Monocular 4D Facial Avatar Reconstruction. In Computer Vision and Pattern Recognition (CVPR). IEEE Computer Society, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[10] David Gallup, Marc Pollefeys, and Jan-Michael Frahm. 3D Reconstruction Using an n-Layer Heightmap. In DAGM German Conference on Pattern Recognition (DAGM GCPR), 2010. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[11] Stephan J. Garbin, Marek Kowalski, Matthew Johnson, Jamie Shotton, and Julien Valentin. FastNeRF: High-Fidelity Neural Rendering at 200FPS. In International Conference on Computer Vision (ICCV), 2021. 1, 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[12] Jiatao Gu, Lingjie Liu, Peng Wang, and Christian Theobalt. StyleNeRF: A Style-Based 3D Aware Generator for High Resolution Image Synthesis. In International Conference on Learning Representations (ICLR), pages 1–20, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[13] Yoonwoo Jeong, Seokjun Ahn, Christopher Choy, Animashree Anandkumar, Minsu Cho, and Jaesik Park. Self-Calibrating Neural Radiance Fields. International Conference on Computer Vision (ICCV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[14] Diederik P Kingma and Jimmy Ba. Adam: A Method for Stochastic Optimization. arXiv preprint arXiv:1412.6980, 2014. 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[15] Dilip Krishnan and Rob Fergus. Fast image deconvolution using Hyper-Laplacian priors. In Neural Information Processing Systems (NIPS), 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[16] Orest Kupyn, Tetiana Martyniuk, Junru Wu, and Zhangyang Wang. DeblurGAN-v2: Deblurring (Orders-of-Magnitude)"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "Faster and Better. In International Conference on Computer Vision (ICCV), 2019. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[17] Christoph Lassner and Michael Zollhofer. Pulsar: Efficient sphere-based neural rendering. In Computer Vision and Pattern Recognition (CVPR), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[18] Anat Levin, Yair Weiss, Fredo Durand, and William T. Freeman. Understanding and evaluating blind deconvolution algorithm. In Computer Vision and Pattern Recognition (CVPR), 2009. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[19] Marc Levoy. Efficient Ray Tracing of Volume Data. ACM Transactions on Graphics (TOG), 9(3):245–261, 1990. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[20] Lin, Chen-Hsuan and Ma, Wei-Chiu and Torralba, Antonio and Lucey, Simon. BARF: Bundle-Adjusting Neural Radiance Fields. In International Conference on Computer Vision (ICCV), 2021. 1, 2, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[21] Peidong Liu, Xingxing Zuo, Viktor Larsson, and Marc Pollefeys. MBA-VO: Motion Blur Aware Visual Odometry. In International Conference on Computer Vision (ICCV), pages 5550–5559, 2021. 2, 4, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[22] Steven Liu, Xiuming Zhang, Zhoutong Zhang, Richard Zhang, Jun-Yan Zhu, and Bryan Russell. Editing Conditional Radiance Fields. In International Conference on Computer Vision (ICCV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[23] Li Ma, Xiaoyu Li, Jing Liao, Qi Zhang, Xuan Wang, Jue Wang, and Pedro V Sander. Deblur-NeRF: Neural Radiance Fields from Blurry Images. In Computer Vision and Pattern Recognition (CVPR), pages 12861–12870, 2022. 1, 2, 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[24] Ricardo Martin-Brualla, Noha Radwan, Mehdi S.M. Sajjadi, Jonathan T. Barron, Alexey Dosovitskiy, and Daniel Duckworth. NeRF in the Wild: Neural Radiance Fields for Unconstrained Photo Collections. In Computer Vision and Pattern Recognition (CVPR), pages 7206–7215, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[25] Nelson Max. Optical Models for Direct Volume Rendering. IEEE Transactions on Visualization and Computer Graphics, 1(2):99–108, 1995. 1, 3"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[26] Ben Mildenhall, Peter Hedman, Ricardo Martin-Brualla, Pratul P Srinivasan, and Jonathan T Barron. NeRF in the Dark: High Dynamic Range View Synthesis from Noisy Raw Images. In Computer Vision and Pattern Recognition (CVPR), pages 16190–16199, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[27] Ben Mildenhall, Pratul P Srinivasan, Matthew Tancik, Jonathan T Barron, Ravi Ramamoorthi, and Ren Ng. NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis. In European Conference on Computer Vision (ECCV). 1, 2, 3, 5"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[28] Thomas Muller, Alex Evans, Christoph Schied, and Alexan-¨ der Keller. Instant Neural Graphics Primitives with a Multiresolution Hash Encoding. ACM Transactions on Graphics (TOG), 41(4):102:1–102:15, July 2022. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[29] Seungjun Nah, Tae Hyun Kim, and Kyoung Mu Lee. Deep Multi-Scale Convolutional Neural Network for Dynamic Scene Deblurring. In Computer Vision and Pattern Recognition (CVPR), July 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[30] Michael Niemeyer and Andreas Geiger. GIRAFFE: Representing Scenes as Compositional Generative Neural Feature Fields. In Computer Vision and Pattern Recognition (CVPR), pages 11448–11459, 2021. 2"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                84,
+                114,
+                470,
+                170
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4178"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ],
+    [
+        {
+            "type": "list",
+            "content": {
+                "list_type": "reference_list",
+                "list_items": [
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[31] M. Nießner, M. Zollhofer, S. Izadi, and M. Stamminger.¨ Real-time 3D Reconstruction at Scale using Voxel Hashing. In ACM Transactions on Graphics (TOG), 2013. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[32] Roy Or-El, Xuan Luo, Mengyi Shan, Eli Shechtman, Jeong Joon Park, and Ira Kemelmacher-Shlizerman. StyleSDF: High-Resolution 3D-Consistent Image and Geometry Generation. In Computer Vision and Pattern Recognition (CVPR), pages 13503–13513, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[33] Haesol Park and Kyoung Mu Lee. Joint Estimation of Camera Pose, Depth, Deblurring, and Super-Resolution from a Blurred Image Sequence. In International Conference on Computer Vision (ICCV), pages 4613–4621, 2017. 2, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[34] Keunhong Park, Utkarsh Sinha, Jonathan T. Barron, Sofien Bouaziz, Dan B Goldman, Steven M. Seitz, and Ricardo Martin-Brualla. Nerfies: Deformable Neural Radiance Fields. In International Conference on Computer Vision (ICCV), 2020. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[35] Sida Peng, Junting Dong, Qianqian Wang, Shangzhan Zhang, Qing Shuai, Xiaowei Zhou, and Hujun Bao. Animatable neural radiance fields for modeling dynamic human bodies. In International Conference on Computer Vision (ICCV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[36] Sida Peng, Yuanqing Zhang, Yinghao Xu, Qianqian Wang, Qing Shuai, Hujun Bao, and Xiaowei Zhou. Neural Body: Implicit Neural Representations with Structured Latent Codes for Novel View Synthesis of Dynamic Humans. In Computer Vision and Pattern Recognition (CVPR), pages 9050–9059, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[37] Martin Piala and Ronald Clark. TermiNeRF: Ray Termination Prediction for Efficient Neural Rendering. In International Conference on 3D Vision (3DV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[38] Albert Pumarola, Enric Corona, Gerard Pons-Moll, and Francesc Moreno-Noguer. D-NeRF: Neural Radiance Fields for Dynamic Scenes. In Computer Vision and Pattern Recognition (CVPR), pages 10313–10322, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[39] Daniel Rebain, Wei Jiang, Soroosh Yazdani, Ke Li, Kwang Moo Yi, and Andrea Tagliasacchi. Derf: Decomposed radiance fields. In Computer Vision and Pattern Recognition (CVPR), pages 14148–14156, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[40] Christian Reiser, Songyou Peng, Yiyi Liao, and Andreas Geiger. KiloNeRF: Speeding up Neural Radiance Fields with Thousands of Tiny MLPs. In International Conference on Computer Vision (ICCV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[41] Johannes L Schonberger and Jan-Michael Frahm. Structurefrom-motion Revisited. In Computer Vision and Pattern Recognition (CVPR), pages 4104–4113, 2016. 2, 5, 6, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[42] Thomas Schops, Torsten Sattler, and Marc Pollefeys. Bad slam: Bundle adjusted direct rgb-d slam. In Computer Vision and Pattern Recognition (CVPR), pages 134–144, 2019. 5, 7"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[43] Q Shan, Jiaya Jia, and Agarwala A. High-quality Motion Deblurring from a Single Image. ACM Transactions on Graphics (TOG), 27(3), 2008. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[44] Hyeongseok Son, Junyong Lee, Jonghyeop Lee, Sunghyun Cho, and Seungyong Lee. Recurrent Video Deblurring with Blur-Invariant Motion Estimation and Pixel Volumes. ACM Transactions on Graphics (TOG), 40(5):1–18, 2021. 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[45] F. Steinbruecker, J. Sturm, and D. Cremers. Volumetric 3D Mapping in Real-Time on a CPU. In International Conference on Robotics and Automation (ICRA), 2014. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[46] Shuochen Su, Mauricio Delbracio, and Jue Wang. Deep Video Deblurring for Hand-held Cameras. In Computer Vision and Pattern Recognition (CVPR), 2017. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[47] Matthew Tancik, Vincent Casser, Xinchen Yan, Sabeek Pradhan, Ben Mildenhall, Pratul P. Srinivasan, Jonathan T. Barron, and Henrik Kretzschmar. Block-NeRF: Scalable Large Scene Neural View Synthesis. In Computer Vision and Pattern Recognition (CVPR), 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[48] Xin Tao, Hongyun Gao, Xiaoyong Shen, Jue Wang, and Jiaya Jia. Scale-recurrent network for deep image deblurring. In Computer Vision and Pattern Recognition (CVPR), 2018. 1, 2, 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[49] Haithem Turki, Deva Ramanan, and Mahadev Satyanarayanan. Mega-NeRF: Scalable Construction of Large-Scale NeRFs for Virtual Fly-Throughs. In Computer Vision and Pattern Recognition (CVPR), pages 12922–12931, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[50] Can Wang, Menglei Chai, Mingming He, Dongdong Chen, and Jing Liao. CLIP-NeRF: Text-and-Image Driven Manipulation of Neural Radiance Fields. In Computer Vision and Pattern Recognition (CVPR), pages 1–10, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[51] Chung-Yi Weng, Brian Curless, Pratul P. Srinivasan, Jonathan T. Barron, and Ira Kemelmacher-Shlizerman. HumanNeRF: Free-viewpoint Rendering of Moving People from Monocular Video. In Computer Vision and Pattern Recognition (CVPR), pages 16210–16220, 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[52] Thomas Whelan, Stefan Leutenegger, Renato F. Salas-Moreno, Ben Glocker, and Andrew J. Davison. ElasticFusion: Dense SLAM Without A Pose Graph. In Robotics: Science and Systems (RSS), 2015. 1"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[53] Suttisak Wizadwongsa, Pakkapon Phongthawee, Jiraphon Yenphraphai, and Supasorn Suwajanakorn. NeX: Real-time View Synthesis with Neural Basis Expansion. In Computer Vision and Pattern Recognition (CVPR), pages 8530–8539, 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[54] Yuanbo Xiangli, Linning Xu, Xingang Pan, Nanxuan Zhao, Anyi Rao, Christian Theobalt, Bo Dai, and Dahua Lin. CityNeRF: Building NeRF at City Scale. In European Conference on Computer Vision (ECCV), 2022. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[55] Li Xu and Jiaya Jia. Two-Phase Kernel Estimation for robust motion deblurring. In European Conference on Computer Vision (ECCV), 2010. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[56] Alex Yu, Ruilong Li, Matthew Tancik, Hao Li, Ren Ng, and Angjoo Kanazawa. PlenOctrees for Real-time Rendering of Neural Radiance Fields. In International Conference on Computer Vision (ICCV), 2021. 2"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[57] Syed Waqas Zamir, Aditya Arora, Salman Khan, Munawar Hayat, Fahad Shahbaz Khan, Ming-Hsuan Yang, and Ling Shao. Multi-stage Progressive Image Restoration. In Computer Vision and Pattern Recognition (CVPR), pages 14821– 14831, 2021. 5, 6, 7, 8"
+                            }
+                        ]
+                    },
+                    {
+                        "item_type": "text",
+                        "item_content": [
+                            {
+                                "type": "text",
+                                "content": "[58] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. The Unreasonable Effectiveness of Deep Features as a Perceptual Metric. In Computer Vision and Pattern Recognition (CVPR), pages 586–595, 2018. 5"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "bbox": [
+                78,
+                93,
+                467,
+                133
+            ]
+        },
+        {
+            "type": "page_number",
+            "content": {
+                "page_number_content": [
+                    {
+                        "type": "text",
+                        "content": "4179"
+                    }
+                ]
+            },
+            "bbox": [
+                482,
+                945,
+                516,
+                957
+            ]
+        }
+    ]
+]

@@ -1,0 +1,347 @@
+# Glocal Energy-based Learning for Few-Shot Open-Set Recognition
+
+Haoyu Wang<sup>1\*</sup> Guansong Pang<sup>2\*</sup> Peng Wang<sup>3\*</sup> Lei Zhang<sup>1</sup> Wei Wei<sup>1</sup> Yanning Zhang<sup>1†</sup> <sup>1</sup>Northwestern Polytechnical University <sup>2</sup>Singapore Management University <sup>3</sup>University of Wollonong
+
+## Abstract
+
+Few-shot open-set recognition (FSOR) is a challenging task of great practical value. It aims to categorize a sample to one of the pre-defined, closed-set classes illustrated by few examples while being able to reject the sample from unknown classes. In this work, we approach the FSOR task by proposing a novel energy-based hybrid model. The model is composed of two branches, where a classification branch learns a metric to classify a sample to one ofclosedset classes and the energy branch explicitly estimates the open-set probability. To achieve holistic detection of openset samples, our model leverages both class-wise and pixelwisefeatures to learn a glocal energy-based score, in which a global energy score is learned using the class-wise features, while a local energy score is learned using the pixelwise features. The model is enforced to assign large energy scores to samples that are deviatedfrom thefew-shot examples in either the class-wise features or the pixel-wise features, and to assign small energy scores otherwise. Experiments on three standard FSOR datasets show the superior performance ofour model.<sup>1</sup>
+
+## 1. Introduction
+
+In recent years, deep learning has flourished in various fields with the ever-increasing scale of the training data under the closed-world learning settings, i.e., the training and test sets share exactly the same set of classes. However, such settings often do not hold in many real applications. This is because 1) it is difficult or costly to obtain a large amount of labeled data, and 2) models deployed in openworld environments need to constantly deal with samples from unknown classes. For example, in the application of deep learning for diagnosing rare diseases, the number of samples is limited. In this case, the model is prone to overfitting, resulting in a significant degradation in performance. Further, there can be unknown variants of those diseases due to our limited understanding of the diseases. Thus, the models are required to perform the classification accurately for the classes illustrated by limited samples, while at the same time detecting the samples from unknown classes. The latter ability is important, especially for healthcare or safetycritical applications, e.g., to alert the unknown cases for human investigation in the disease diagnosis example, or to request human intervention for handling unknown objects in autonomous driving.
+
+![](images/69382ba78b8b5dfde0e3200e87a80d055e5f16aac86b00cc5d32f2fabc32c1f9.jpg)  
+Figure 1. Two typical errors with existing methods. Our method can detect unknown open-set samples that are similar to the closed-set samples in either the global class level or the local feature level.
+
+Few shot learning [16, 23, 28, 32, 35, 36] (FSL) and open set recognition [3, 7, 9, 22, 29, 30] (OSR) are two techniques dedicated to solve these two problems, respectively. FSL methods are trained to achieve a good generalization ability on the new task with only a few training samples. But FSL approaches are developed under a closed-set setting. It lacks the ability to distinguish the classes unseen during training. The goal of OSR is, on the other hand, to recognize open-set samples while maintaining the classification ability of closed-set samples. However, its classification ability is often built upon the availability of a large number of training samples. Thus, OSR approaches fail to work effectively when only a few training samples are available.
+
+Few-shot open-set recognition (FSOR), which combines the FSL and OSR problems, is a largely under-explored area. FSOR requires the model to utilize only a few training samples to effectively achieve the ability of both closedset classification and open-set recognition. Existing FSOR methods [6,13,15] are based on the prototype network [32], which performs classification by measuring the distance between the prototype of each class and the query embedding feature of a sample. They improve the original closed-set classifier in recognizing open-set samples by learning an additional open-set class using pseudo open-set samples. However, only the class-wise information of the sample is considered, and the pixel-wise spatial information of the sample is ignored. As shown in Figure 1, these methods fail to distinguish open-set samples from closed-set class samples that share similar global semantic appearances. Further, the optimization objectives of FSL and OSR are different from each other. Thus, training using only an open-set classifier can limit the performance of these models.
+
+To solve the above problems, we propose a novel FSOR method, called Glocal Energy-based Learning (GEL). Different from previous methods, GEL consists of two classification components: one for closed-set classification and one for open-set recognition. Specifically, in addition to use the class-wise features to classify closed-set samples in the closed-set classifier, GEL leverages both class-wise and pixel-wise features to learn a new energy-based openset classifier, in which a global energy score is learned using the class-wise features while a local energy score is learned using the pixel-wise features. GEL is enforced to assign large energy scores to samples that are deviated from the few-shot examples in either the class-wise features or the pixel-wise features, and to assign small energy scores otherwise. In doing so, GEL can detect unknown class samples that are deviated from the known classes in either high-level abstractions or fine-grained appearances, as shown in Figure 1. In summary, this work makes the following three main contributions:
+
+• We propose a novel FSOR framework that learns glocal open scores for detecting unknown samples from the class-wise (global) and pixel-wise (local) scales.
+
+• We further propose a novel energy-based FSOR model, dubbed GEL, that learns glocal energy-based open scores based on the class-wise and pixel-wise similarities of query samples to the support set.
+
+• Through extensive experiments on three widely-used datasets, we show that GEL outperforms state-of-theart competing methods and achieves state-of-the-art results on these benchmarks.
+
+## 2. Related Work
+
+## 2.1. Few-Shot Learning
+
+Few-shot learning has been widely studied in computer vision. The approaches of FSL can be divided into two categories: meta-learning based approaches and transfer learning approaches. There are three subcategory of meta-learning based approaches. The first is metricbased approaches [16, 32, 36] which learn a distance function through training samples. Another subcategory is optimization-based approaches [1, 14, 23, 27, 33, 35, 40, 43], it learns a priors to optimize the model on limited training examples without overfitting. The last subcategory is model-based approaches [5, 19–21, 28]. Different from the previous two approaches, model-based approaches use support samples to generate model weights adapted to new task. Another category of FSL is transfer learning [8, 34, 38]. Transfer learning improve the performance in a new task through transferring knowledge from a learned related task.
+
+## 2.2. Open-Set Recognition
+
+Open-set recognition is a more realistic scenario because it is usually difficult to include all classes when training a classifier. OSR requires the classifier to classify not only known classes, but also unknown classes. There are two mainstream approaches for OSR. One is discriminative model. It includes traditional machine learning methods [2, 25, 29, 30, 42] and deep neural network methods [3, 7, 11, 31]. The former is popular before deep neural network rise. It usually adapt the limitation of traditional methods that training and testing data are from the same distribution for OSR. The latter uses the powerful representation ability of deep neural network to solve OSR through network architecture design. The other mainstream approach is generative model [9,10,22,39]. It usually use generative adversarial network or Dirichlet Process to generate unknown samples as training samples to improve model performance.
+
+## 2.3. Few-Shot Open-Set Recognition
+
+Compared with FSL and OSR, there are few studies focused on few shot open-set recognition, which mainly include the following three methods. The first is the loss function based method. Based on the original distancebased classifier, PEELER [18] proposes an open-set loss to improve the accuracy of open-set recognition by increasing the entropy of classification results of open-set samples. The second method is based on transformation consistency. SnaTCHer [15] adds each query embedding replacement to the prototype set, and determines whether the query sample is an open-set sample by measuring the difference between the sets before and after transformation. By measuring the difference before and after the change of the set, the unknown class distribution estimation problem is transformed into a relative feature transformation problem which is unrelated to the unknown class samples. The third method is to add an extra open-set class. TANE [13] and RFD-Net [6] expands the closed-set classifier by using a generative network to obtain an additional open-set classes prototype from closed-set prototype. They then add the prototype to the original classifier to enable it to perform both closedset classification and open-set recognition. By adding an additional category to classify the query sample, the measuring based on the entropy or the threshold of the sample is changed to dynamic classification.
+
+![](images/acee5399bc4534b90f2507cc1a79528ca94bc3089fe319a291a7be669d2dbaba.jpg)  
+Figure 2. An overview of our model GEL. Our model mainly consists of three parts: a class-wise branch, which is used to calculate th similarity between embeddings for closed-set classification and open-set recognition, a pixel-wise branch, which is used to calculate the similarity between feature maps for open-set recognition, and an energy-based module, which performs open-set recognition on query samples by feeding the similarities from the two branches to learn glocal energy scores.
+
+## 3. Preliminary
+
+The goal of the FSOR is to identify open-set samples while maintaining the classification capability of closed-set with only a few data samples. In particular, for a N-way $\mathrm { K } -$ shot Q-query sampled from dataset D, the FSOR task can be presented as: $\mathcal { T } = \{ \boldsymbol { S } , \mathcal { Q } _ { k } , \mathcal { Q } _ { u } \}$ , where ${ \mathcal { S } } = \{ x _ { i } , y _ { i } \} _ { i = 1 } ^ { | S | }$ and $\mathcal { Q } _ { k } = \{ x _ { i } , y _ { i } \} _ { i = 1 } ^ { | \mathcal { Q } _ { k } | }$ are support set and known query set, respectively. The label y corresponding to the image x in these two sets are from closed-set categories $\mathcal { C } _ { k }$ . Different from FSL, $\mathcal { Q } _ { u } = \{ x _ { i } , y _ { i } \} _ { i = 1 } ^ { | \mathcal { Q } _ { u } | }$ is a set of query samples from unknown classes $\mathcal { C } _ { u } ,$ , and $\mathcal { C } _ { k } \cap \mathcal { C } _ { u } = \mathcal { O }$
+
+## 4. Method
+
+We will describe our approach in detail in this section. First, we will give an overview of our proposed method GEL, then introduce our proposed pixel-wise similarity module, and finally introduce our energy-based open-set recognizer.
+
+## 4.1. Overview
+
+Figure 2 shows the overall architecture of our model. Following previous FSOR methods [6, 13, 15, 18], we use metric-based meta-learning architecture. First, the embedding and feature maps of the support and query samples are obtained through a shared feature extractor $\mathcal { F } _ { \theta }$ , where θ denots the shared parameters. For each input support sample $x _ { i } ^ { S }$ , we obtain its embedding $e _ { i } ^ { S }$ and feature map $f _ { i } ^ { S }$ by $e _ { i } ^ { S } \ = \ a v g$ $p o o l i n g ( \mathcal { F } _ { \theta } ( x _ { i } ^ { S } ) )$ and $f _ { i } ^ { S } ~ = ~ \mathcal { F } _ { \theta } ( x _ { i } ^ { S } )$ , respectively. For each query sample $x _ { i } ^ { \mathcal { Q } }$ , we use the same way to obtain its query embedding $e _ { i } ^ { \mathcal { Q } }$ and feature map $f _ { i } ^ { \mathcal { Q } }$ . The channel dimension of them is dim.
+
+For the class-wise branch, we first compute the prototype p for each of the N classes by averaging over support embeddings. Particularly, for a class n, its prototype $p _ { n }$ is calculated from all support embedding of class n by
+
+$$
+p _ { n } = \frac { 1 } { K } \sum _ { i = 1 } ^ { K } \mathcal { F } _ { \theta } ( e _ { n , i } ^ { S } ) .\tag{1}
+$$
+
+Then we follow [15] to simply use a self-attention module to enhance the class prototypes. For the matrix $P \in$ $\mathbb { R } ^ { N \times d i m }$ composed by all prototypes, the enhanced prototype matrix $P ^ { * }$ is calculated as follows
+
+$$
+P ^ { q } = P W ^ { q } , P ^ { k } = P W ^ { k } , P ^ { v } = P W ^ { v } ,\tag{2}
+$$
+
+$$
+P ^ { * } = s o f t m a x ( \frac { P ^ { q } P ^ { k ^ { T } } } { \sqrt { d _ { P ^ { k } } } } ) P ^ { v } ,\tag{3}
+$$
+
+where $W ^ { q } , W ^ { k } , W ^ { v } \in \mathbb { R } ^ { d i m \times d i m }$ are coefficient matrices that linearly map the prototype matrix, and $d _ { P ^ { k } }$ is the channel dimension of $P ^ { k }$
+
+Finally, we obtain the class-wise similarity $s _ { c }$ by measuring the distance between the query embedding and the enhanced class prototype:
+
+$$
+s _ { c } ^ { i , n } = - d i s t a n c e ( e _ { i } ^ { Q } , p _ { n } ^ { * } ) ,\tag{4}
+$$
+
+where $s _ { c } ^ { i , n }$ is the class-wise similarity between $x _ { i } ^ { \mathcal { Q } }$ and the enhanced prototype of class $n ,$ distance $\therefore ( \cdot , \cdot )$ is a distance function. We use Euclidean distance by default, because we found it performed best through experiments.
+
+In closed-set classification, only the class-wise similarity $s _ { c }$ is used to classify query samples in $\mathcal { Q } _ { k }$ through a softmax function:
+
+$$
+p ( y = n | x _ { i } ) = \frac { e ^ { s _ { c } ^ { i , n } } } { \sum _ { j \in \mathcal { C } _ { k } } e ^ { s _ { c } ^ { i , j } } } .\tag{5}
+$$
+
+Then we use cross entropy loss to optimize the model:
+
+$$
+L _ { c } = \frac { 1 } { N Q } \sum _ { i = 1 } ^ { N Q } \sum _ { j \in \mathcal { C } _ { k } } \mathbb { 1 } _ { x _ { i } = j } l o g ( p ( y = n | x _ { i } ) ) ,\tag{6}
+$$
+
+where $\mathbb { 1 } _ { c o n d i t i o n }$ is an indicative function, which is one if the condition is met, and zero otherwise, andp $\rho ( y = n | x _ { i } )$ is the probability that the label of sample $x _ { i }$ is class n.
+
+Our model extends this popular FSL approach to FSOR by using both class-wise similarity and pixel-wise similarity to learn a global energy-based open-set recognizer. We will detail our proposed module in the next two subsections.
+
+## 4.2. Pixel-wise Similarity Module
+
+In order to have a holistic recognition of open-set samples, in addition to the class-wise information, we also consider the pixel-wise information. As shown in Figure 1, our idea is based on the following two key points. First, if the class of open-set samples is similar to that of closedset samples, the distance between their embeddings would be so small, so it is difficult to distinguish them. However, human beings usually distinguish them by a certain key part. Secondly, if the large background of the open-set and closed-set samples are similar, it is often difficult to extract the class information only by using the embeddings. But humans can pick up the key parts directly from the background. Inspired by these two observations, we propose a novel pixel-wise similarity module. First, we use the same method as the class-wise branch to obtain the feature map for each class. Formally, for a class n, its feature map $f _ { n }$ is defined as
+
+$$
+f _ { n } = \frac { \sum _ { i = 1 } ^ { K } f _ { i } } { K } .\tag{7}
+$$
+
+In order to keep the distance between pixel-wise features and class-wise features within the same scale convenient for fusion and reduce the amount of computation, we first apply a scale calibration module to all feature maps. Specifically, we use a point-wise convolution to halve the channel dimension of the feature map, followed by a Batch Normalization layer and a PReLU activation function:
+
+$$
+f ^ { * } = P R e L U ( B N ( C o n v ( f ) ) ) .\tag{8}
+$$
+
+Finally, for each pixel of the class feature map and query, we calculate the pixel-level similarity using cosine similarity. And for each query pixel, we consider the top-k nearest neighbours in class feature map pixels and calculate the summation for the top-k similarity scores to form a robust fine-grained metric for open-set learning:
+
+$$
+s _ { f } ^ { i , n } = \sum _ { p i x e l } t o p k ( \frac { f _ { i } ^ { * } \cdot f _ { n } } { | | f _ { i } ^ { * } | | \cdot | | f _ { n } | | } ) / T ,\tag{9}
+$$
+
+where $f _ { n } \in \mathbb { R } ^ { \frac { d i m } { 2 } \times m ^ { 2 } }$ and $f _ { i } ^ { * } \in \mathbb { R } ^ { m ^ { 2 } \times \frac { d i m } { 2 } }$ are the feature map of class n and query sample $x _ { i } ,$ respectively; m is the spatial dimension of feature map; $| | \cdot | |$ is applied to the fourth dimension; $\sum { _ { p i x e l } }$ sum over all the remaining pixels after calculating topk; and $T$ is a temperature coefficient.
+
+Remark. Attention mechanism is also a common method to focus on local information in the deep learning approach, but in the few-shot open-set recognition task, this can easily result in over-fitting because of the lack of samples. Our proposed pixel-wise similarity module has only a few learnable parameters in the scale calibration module, well alleviating the over-fitting issue.
+
+## 4.3. Energy-based Module
+
+The existing FSOR methods often use cross-entropybased classifiers, because for closed-set classification, entropy-based classifiers can often achieve better results by classifying the samples using prediction probability. However, for our dual-branch architecture, we have a dedicated energy-based open-set recognizer to classify open-set samples. By using energy-based models, we eliminate the complexity in the process of normalization the probability distribution in entropy-based classification. Thus, they are more suitable for the FSOR task.
+
+Our energy-based module integrates the class-wise and pixel-wise similarity results from the two branches and then feed them to train into glocal energy-based few-shot openset recognizer.
+
+## 4.3.1 Margin-based Energy Loss
+
+We then feed these glocal energy scores to an energy loss function to optimize our model. The model is trained to ensure that the energy is large when the samples are from unknown classes, and it is small otherwise. To achieve this goal, we use a margin-based energy loss to optimize the model. Particularly, for a query sample $x _ { i } ,$ its energy loss is calculated by
+
+$$
+L _ { e } ^ { x _ { i } } = \left\{ \begin{array} { l l } { m a x ( 0 , E ^ { x _ { i } } - M _ { k } ) } & { \mathbb { 1 } _ { y _ { i } \in \mathcal { C } _ { k } } } \\ { m a x ( E ^ { x _ { i } } - M _ { u } , 0 ) } & { \mathbb { 1 } _ { y _ { i } \in \mathcal { C } _ { u } } , } \end{array} \right.\tag{10}
+$$
+
+where $M _ { k }$ and $M _ { u }$ are the margins of closed-set and openset samples, respectively. $\mathcal { C } _ { u }$ are pseudo open set samples, consisting of $Q$ samples of each class from N classes that do not overlap with the closed-set classes $\mathcal { C } _ { k }$ . Both $\mathcal { C } _ { u }$ and $\mathcal { C } _ { k }$ are part of the training set. The energy loss for the task is
+
+$$
+L _ { e } = \sum _ { \mathcal { Q } _ { k } \cup \mathcal { Q } _ { u } } L _ { e } ^ { x _ { i } } .\tag{11}
+$$
+
+Thus, the total loss of our GEL model is
+
+$$
+L = L _ { c } + \lambda L _ { e } ,\tag{12}
+$$
+
+where λ is a hyperparameter that balances the two losses.
+
+## 4.3.2 Glocal Energy Function
+
+For a query sample $x _ { i }$ , its class-wise (global) similarity to class n is $s _ { c } ^ { i , n }$ , while its pixel-wise (local) similarity is $\bar { s } _ { f } ^ { i , n }$ We first use these two similarities to respectively define the global and local energy through the energy function as follows:
+
+$$
+E _ { c } = - l o g \sum _ { n \in \mathcal { C } _ { k } } ( e ^ { s _ { c } ^ { i , n } } ) ,\tag{13}
+$$
+
+$$
+E _ { f } = - l o g \sum _ { n \in \mathcal { C } _ { k } } ( e ^ { s _ { f } ^ { i , n } } ) .\tag{14}
+$$
+
+Since we have used the scale calibration module in the pixel-wise similarity module to adjust the scale of similarity score, the final glocal open-set energy of the sample can be obtained by a simple addition:
+
+$$
+E = E _ { c } + E _ { f } .\tag{15}
+$$
+
+Other combination methods are evaluated and compared in our ablation study in Sec. 6.3.
+
+## 5. Experiments
+
+## 5.1. Datasets
+
+We use miniImageNet [37], tieredImageNet [24] and CIFAR-FS [4] to evaluate the performance of the model. MiniImageNet contains a total of 60,000 images of size 84 × 84 in 100 categories, including 600 samples in each category. The category for training, validation and testing set is 64, 16, and 20, respectively. TieredImageNet is a larger dataset. It contains a total of 779,165 images of size 84 × 84 in 608 categories, including 351 for training, 97 for validation and 160 for testing. Both of them are the subsets of ILSVRC-12 [26]. CIFAR-FS is the subsets of CIFAR100 [17]. It contains a total of 60,000 images of size 32 × 32 in 100 categories. The categories are divided in the same way as miniImageNet.
+
+## 5.2. Metrics
+
+To measure the effectiveness of the FSOR methods, following [6,13,15,18], we use ACC and AUROC as the metrics. ACC is used to measure the classification accuracy of the closed-set samples. It can be calculated by dividing the number of correctly classified samples in $\mathcal { Q } _ { k }$ by the number of samples in $\mathcal { Q } _ { k } .$ . AUROC is used to measure the accuracy of open-set recognition. It is the area under the ROC curve for open-set recognition of all query samples $\mathcal { Q } _ { k } \cup \mathcal { Q } _ { u } .$ . A larger ACC or AUROC indicates better performance.
+
+We also calculate F1 Score, FPR95 and AUPR for the open-set recognition in our ablation study. F1 Score is the harmonic average of precision and recall. FPR95 is short for FPR@TPR95, which is the false positive rate when the true positive rate is 95%. The smaller the FPR95 is, the better the model is. AUPR is the area under the PR curve. Compared to AUROC on balanced datasets, AUPR is a more indicative metric in highly unbalanced datasets.
+
+## 5.3. Implementation Details
+
+Following previous FSOR methods [6, 13, 15, 18], we use ResNet-12 [12] as the feature extractor of our network. By default, it uses 16x drop sampling of the images and generates a feature map with 640 channel dimensions before pooling layer. We use a widely-used FSL method FEAT [41] to pre-train the feature extractor. For the setting of hyperparameters, we set T in Eq. 9 to the k value in the topk function. Because of the scale calibration module, we simply set $M _ { k }$ to -1 and $M _ { u }$ to 1 in Eq. 10. The loss weight λ in Eq. 12 is set to 0.1.
+
+<table><tr><td rowspan="2">Dataset</td><td rowspan="2">Methods</td><td rowspan="2">Publication</td><td colspan="2">1-shot</td><td colspan="2">5-shot</td></tr><tr><td>ACC</td><td>AUROC</td><td>ACC</td><td>AUROC</td></tr><tr><td rowspan="10">miniImageNet</td><td>ProtoNet [32]</td><td>NIPS2017</td><td> $6 4 . 0 1 \pm 0 . 8 8$ </td><td> $5 1 . 8 1 \pm 0 . 9 3$ </td><td> $8 0 . 0 9 \pm 0 . 5 8$ </td><td> $6 0 . 3 9 \pm 0 . 9 2$ </td></tr><tr><td>FEAT [41]</td><td>CVPR2020</td><td> $6 7 . 0 2 \pm 0 . 8 5$ </td><td> $5 7 . 0 1 \pm 0 . 8 4$ </td><td> $8 2 . 0 2 \pm 0 . 5 3$ </td><td> $6 3 . 1 8 \pm 0 . 7 8$ </td></tr><tr><td>PEELER [18]</td><td>CVPR2020</td><td> $5 8 . 3 1 \pm 0 . 5 8$ </td><td> $6 1 . 6 6 \pm 0 . 6 2$ </td><td> $7 5 . 0 8 \pm 0 . 7 2$ </td><td> $6 9 . 8 5 \pm 0 . 7 0$ </td></tr><tr><td>PEELER* [18]</td><td></td><td> $6 5 . 8 6 \pm 0 . 8 5$ </td><td> $6 0 . 5 7 \pm 0 . 8 3$ </td><td> $8 0 . 6 1 \pm 0 . 5 9$ </td><td> $6 7 . 3 5 \pm 0 . 8 0$ </td></tr><tr><td>SnaTCHer-F [15]</td><td></td><td> $6 7 . 0 2 \pm 0 . 8 5$ </td><td> $6 8 . 2 7 \pm 0 . 9 6$ </td><td> $8 2 . 0 2 \pm 0 . 5 3$ </td><td> $7 7 . 4 2 \pm 0 . 7 3$ </td></tr><tr><td>SnaTCHer-T [15]</td><td>CVPR2021</td><td> $6 6 . 6 0 \pm 0 . 8 0$ </td><td> $7 0 . 1 7 \pm 0 . 8 8$ </td><td> $8 1 . 7 7 \pm 0 . 5 3$ </td><td> $7 6 . 6 6 \pm 0 . 7 8$ </td></tr><tr><td>SnaTCHer-L [15]</td><td></td><td> $6 7 . 6 0 \pm 0 . 8 3$ </td><td> $6 9 . 4 0 \pm 0 . 9 2$ </td><td> $8 2 . 3 6 \pm 0 . 5 8$ </td><td> $7 6 . 1 5 \pm 0 . 8 3$ </td></tr><tr><td>ATT [13]</td><td>CVPR2022</td><td> $6 7 . 6 4 \pm 0 . 8 1$ </td><td> $7 1 . 3 5 \pm 0 . 6 8$ </td><td> $8 2 . 3 1 \pm 0 . 4 9$ </td><td> $7 9 . 8 5 \pm 0 . 5 8$ </td></tr><tr><td>ATT-G [13]</td><td></td><td> $6 8 . 1 1 \pm 0 . 8 1$ </td><td> $7 2 . 4 1 \pm 0 . 7 2$ </td><td> ${ \bf 8 3 . 1 2 \pm 0 . 4 8 }$ </td><td> $7 9 . 8 5 \pm 0 . 5 7$ </td></tr><tr><td>RFDNet* [6]</td><td>TMM2022</td><td> $6 6 . 2 3 \pm 0 . 8 0$ </td><td> $7 1 . 3 7 \pm 0 . 8 0$ </td><td> $8 2 . 4 4 \pm 0 . 5 4$ </td><td> $8 0 . 3 1 \pm 0 . 5 9$ </td></tr><tr><td rowspan="10">tieredImageNet</td><td>Ours</td><td></td><td> ${ \bf 6 8 . 2 6 \pm 0 . 8 5 }$ </td><td> ${ \bf 7 3 . 7 0 \pm 0 . 8 2 }$ </td><td> $8 3 . 0 5 \pm 0 . 5 5$ </td><td> ${ \bf 8 2 . 2 9 \pm 0 . 6 0 }$ </td></tr><tr><td>ProtoNet [32]</td><td>NIPS2017</td><td> $6 8 . 2 6 \pm 0 . 9 6$ </td><td> $6 0 . 7 3 \pm 0 . 8 0$ </td><td> $8 3 . 4 0 \pm 0 . 6 5$ </td><td> $6 4 . 9 6 \pm 0 . 8 3$ </td></tr><tr><td>FEAT [41]</td><td>CVPR2020</td><td> $7 0 . 5 2 \pm 0 . 9 6$ </td><td> $6 3 . 5 4 \pm 0 . 7 6$ </td><td> $8 4 . 7 4 \pm 0 . 6 9$ </td><td> $7 0 . 7 4 \pm 0 . 7 5$ </td></tr><tr><td>PEELER* [18]</td><td>CVPR2020</td><td> $6 9 . 5 1 \pm 0 . 9 2$ </td><td> $6 5 . 2 0 \pm 0 . 7 6$ </td><td> $8 4 . 1 0 \pm 0 . 6 6$ </td><td> $7 3 . 2 7 \pm 0 . 7 1$ </td></tr><tr><td>SnaTCHer-F [15]</td><td>CVPR2021</td><td> $7 0 . 5 2 \pm 0 . 9 6$ </td><td> $7 4 . 2 8 \pm 0 . 8 0$ </td><td> $8 4 . 7 4 \pm 0 . 6 9$ </td><td> $8 2 . 0 2 \pm 0 . 6 4$ </td></tr><tr><td>SnaTCHer-T [15]</td><td></td><td> $7 0 . 4 5 \pm 0 . 9 5$ </td><td> $7 4 . 8 4 \pm 0 . 7 9$ </td><td> $8 4 . 4 2 \pm 0 . 6 8$ </td><td> ${ \bf 8 2 . 0 3 \pm 0 . 6 6 }$ </td></tr><tr><td>SnaTCHer-L [15]</td><td></td><td> ${ \bf 7 0 . 8 5 \pm 0 . 9 9 }$ </td><td> $7 4 . 9 5 \pm 0 . 8 3$ </td><td> $8 5 . 2 3 \pm 0 . 6 4$ </td><td> $8 0 . 8 1 \pm 0 . 6 8$ </td></tr><tr><td>ATT [13]</td><td>CVPR2022</td><td> $6 9 . 3 4 \pm 0 . 9 5$ </td><td> $7 2 . 7 4 \pm 0 . 7 8$ </td><td> $8 3 . 8 2 \pm 0 . 6 3$ </td><td> $7 8 . 6 6 \pm 0 . 6 5$ </td></tr><tr><td>ATT-G [13] RFDNet* [6]</td><td>TMM2022</td><td> $7 0 . 5 8 \pm 0 . 9 3$ </td><td> $7 3 . 4 3 \pm 0 . 7 8$ </td><td> ${ \bf 8 5 . 3 8 \pm 0 . 6 1 }$ </td><td> $8 1 . 6 4 \pm 0 . 6 3$ </td></tr><tr><td>Ours</td><td></td><td> $6 6 . 8 4 \pm 0 . 8 9$ </td><td> $7 2 . 6 8 \pm 0 . 7 6$ </td><td> $8 2 . 6 4 \pm 0 . 6 3$ </td><td> $8 0 . 6 3 \pm 0 . 6 3$ </td></tr><tr><td rowspan="7">CIFAR-FS</td><td></td><td></td><td> $7 0 . 5 0 \pm 0 . 9 3$ </td><td> ${ \bf 7 5 . 8 6 \pm 0 . 8 1 }$ </td><td> $8 4 . 6 0 \pm 0 . 6 5$ </td><td> $8 1 . 9 5 \pm 0 . 7 2$ </td></tr><tr><td>FEAT* [41]</td><td>CVPR2020</td><td> $7 0 . 8 9 \pm 0 . 8 9$ </td><td> $7 4 . 8 3 \pm 0 . 7 9$ </td><td> $8 3 . 9 6 \pm 0 . 6 4$ </td><td> $8 2 . 8 8 \pm 0 . 6 7$ </td></tr><tr><td>PEELER* [18]</td><td>CVPR2020</td><td> $7 1 . 4 7 \pm 0 . 6 7$ </td><td> $7 1 . 2 8 \pm 0 . 5 7$ </td><td> $8 5 . 4 6 \pm 0 . 4 7$ </td><td> $7 5 . 9 7 \pm 0 . 3 3$ </td></tr><tr><td>SnaTCHer-F* [15]</td><td>CVPR2021</td><td> $7 5 . 0 9 \pm 0 . 8 7$ </td><td> $7 8 . 1 5 \pm 0 . 7 7$ </td><td> $8 7 . 1 8 \pm 0 . 6 2$ </td><td> $8 5 . 8 1 \pm 0 . 6 4$ </td></tr><tr><td>ATT-G [13]</td><td>CVPR2022</td><td> $7 2 . 4 3 \pm 0 . 6 5$ </td><td> $7 6 . 7 2 \pm 0 . 5 9$ </td><td> $8 6 . 5 2 \pm 0 . 4 9$ </td><td> $8 4 . 6 4 \pm 0 . 3 8$ </td></tr><tr><td>RFDNet* [6]</td><td>TMM2022</td><td> $7 3 . 8 3 \pm 0 . 9 2$ </td><td> $7 5 . 3 5 \pm 0 . 7 7$ </td><td> $8 5 . 1 2 \pm 0 . 7 4$ </td><td> $8 4 . 4 0 \pm 0 . 6 4$ </td></tr><tr><td>Ours Ours w/o Pix</td><td></td><td> ${ \bf 7 6 . 7 7 \pm 0 . 8 8 }$   $7 6 . 6 7 \pm 0 . 9 0$ </td><td> $7 8 . 6 7 \pm 0 . 8 0$   ${ \bf 7 9 . 4 3 \pm 0 . 7 2 }$ </td><td> $8 6 . 7 4 \pm 0 . 6 6$   ${ \bf 8 7 . 6 3 \pm 0 . 6 2 }$ </td><td> $8 6 . 5 6 \pm 0 . 5 9$   ${ \bf 8 6 . 8 4 \pm 0 . 5 8 }$ </td></tr></table>
+
+Table 1. 5-way 1-shot and 5-shot results on miniImageNet, tieredImageNet and CIFAR-FS. We calculated ACC and AUROC of each model. \* denotes implementation on ResNet-12.
+
+## 6. Results
+
+## 6.1. Comparison Methods
+
+During the training phase, we use the SGD optimizer to train the model for over 60,000 tasks. The learning rate is set to 0.0001 for feature extractor and 0.001 for the other initially and decayed by the factor of 10 for every 12,000 tasks. We then select the model with the best results through the validation set for testing. For data augmentation, following [13], in the pre-training phase, RandomCrop, Color-Jitter, RandomHorizontalFilp, and RandomRotate are used; and only RandomCrop and RandomHorizontalFilp are used for meta-training and testing.
+
+For a N-way K-shot FSOR task, we following previous FSOR methods [6, 13, 15, 18] to select 2N classes in the dataset, half of which are known classes and the other are unknown classes. For known classes, we sample K images for each class as support set and another 15 images as known query set. For each unknown classes, we only sample 15 images as unknown query set. During the testing phase, the first 75 query samples with the highest open-set scores (i.e., the energy score in Eq. 15) are taken as open-set samples to calculate the open-set recognition metrics.
+
+Our method GEL is compared with the FSL approach ProtoNet [32] and FEAT [41]. Since most of the existing FSOR methods are based on the metric-based FSL method, we compare the most representative method ProtoNet and the most competitive method FEAT. In order to evaluate the open-set recognition performance, we input the open-set samples into their closed-set classifier and recognize them by thresholding the entropy. We also make a comparison with existing SOTA few-shot openset approaches PEELER [18], SnaTCHer [15], ATT [13] and RFDNet [6]. For fair comparison, since the original PEELER and RFDNet used ResNet-18 as the feature extractor, we re-implemented a version based on ResNet-12, named PEELER\* and RFDNet\*. We use the source code of FEAT and SnaTCHer-F from github to do the experiment on the CIFAR-FS. In addition, SEMAN-G [13] uses additional word embedding information, which we do not have, and so its results cannot be fairly compared to GEL and the other methods.
+
+![](images/6b3b6e334bb22dca315515cc4eb7d8197eb97ce8ed3639e9ddb77520c60d553a.jpg)  
+(a) SnaTCHer-F, IoU=0.57
+
+![](images/9392d40f91c3ef8eb26fd5b2165b4030f148d426dbb2eab30d4462d5af95f00c.jpg)  
+(b) ATT-G, IoU=0.53
+
+![](images/a7ecec51da22ab73fa8ad8b81a1b7600730dd74e4d09a3691c5be4903d962721.jpg)
+
+![](images/cf308004f9d7b436118edbc236ddc917e7c973deab7e23036d9be3d324a99ce4.jpg)  
+(c) RFDNet, IoU=0.55  
+(d) Ours, IoU=0.47  
+Figure 3. Density map for normalized score histogram on miniImageNet 5-way 1-shot. By sampling 600 tasks for each method, we first make the open set score non-negative, then use the maximum value in each task for normalization. We can see that our method can better distinguish between known and unknown samples.
+
+## 6.2. FSOR Results
+
+Table 1 shows the results of our method GEL compared to the others on three datasets and two different shots. As can be observed, although the FSL method has a good performance in closed-set classification, its open-set recognition is poor. Compared to the previous FSOR methods, our method is substantially more effective: it obtains the best open-set recognition results (i.e., AUROC) across the three datasets in the 1-shot setting, and it is the best performer in AUROC on two datasets in the 5-shot setting, while at the same time maintaining the very competitive closed-set classification accuracy. It is worth mentioning that compared with the other two datasets, the image resolution of CIFAR-FS is very small. After the feature extraction, the spatial dimension of the feature map is only 2 × 2, which makes it difficult for the pixel branch to learn useful local information. Therefore, we also give the results without using the pixel branch on this dataset (i.e., Ours w/o Pix). It can be seen from the results that when the image size is small, only using the energy-based open-set recognizer can often achieve better results.
+
+To further demonstrate the power of our model, we compare the open-set score distribution for known and unknown samples in miniImageNet 5-way 1-shot in 600 tasks. Figure 3 compares the normalized score histogram of openset scores between SnaTCHer-F, ATT-G, RFDNet and Our method. Since the open-set score (energy for ours and entropy for others) of known samples in our method is usually negative, we first subtract the minimum value in each task if it is negative. Then we normalized the open-set scores of all samples obtained from each task by dividing it by the maximum value, and subsequently calculate the density. We use the intersection over union (IoU) to quantitatively evaluate the overlap between the known and unknown distribution (the smaller the better), i.e. OSR capability. As can be seen from the figure, the overlap of two different color areas of our method is smaller. In other words, our method can better distinguish the known and unknown samples.
+
+![](images/a4a20e15768b4416d542fb894ef33d631a235ff5c62c35a039c9d3bd1806a133.jpg)  
+(a) Ablation study of the value of topk on miniImageNet under 5- way 1-shot setting.
+
+![](images/aeb61eb68f6f8c1824e59517dc25ba2d605d864547fe577a24f283afa3f885f5.jpg)  
+(b) Ablation study of margin distance on miniImageNet under 5- way 1-shot setting.  
+Figure 4. Ablation study of two hyperparameters on mimiImageNet under 5-way 1-shot setting .
+
+## 6.3. Ablation Study
+
+Table 2 presents the ablation study results of the 5-way 1- shot experiments on two different datasets for our three proposed modules. In addition to ACC and AUROC, we also calculate F1 Score, FPR95 and AUPR of open-set recognition. From the results, it can be seen that all the three proposed modules we propose can improve the performance of open-set recognition while keeping the closed-set classification ability almost unchanged.
+
+In addition, we also evaluate the effect of k in $\operatorname { E q } .$ . 9 and distance between $M _ { k }$ and $M _ { u }$ in Eq. 10 on the performance. As shown in Figure 4 (a), for the selection of different k values in our method, the variation range of AU-ROC is only 0.08, indicating that our method is robust to the selection of this hyperparameters. And for the choice of margin distance, in the experiment, we calculate the size of the two margins with zero as the center. As shown in Figure 4 (b), the margin distances is greater than zero, and a smaller margin often enables the model to perform better.
+
+For the calculation of open-set scores, in addition to combining the energy calculation as we did, called ahead combine below, the energy can be calculated only for the pixel branch at first, and then combined with the class-wise similarity, which is denoted as delay combine. We perform the ablation study on miniImageNet with the above two methods. As can be seen in Table 3, the ahead combine method improves the performance of open-set recognition, especially when the shot is large.
+
+<table><tr><td>Method</td><td>Dataset</td><td>ACC↑</td><td>AUROC↑</td><td>F1 Score↑</td><td>FPR95↓</td><td>AUPR↑</td></tr><tr><td>Baseline</td><td rowspan="4">miniImageNet</td><td> ${ \bf 6 8 . 5 3 \pm 0 . 7 8 }$ </td><td> $6 9 . 8 5 \pm 0 . 8 7$ </td><td> $6 5 . 0 6 \pm 0 . 6 9$ </td><td> $7 9 . 3 5 \pm 1 . 4 5$ </td><td> $7 0 . 5 3 \pm 0 . 8 3$ </td></tr><tr><td>+ Energy Loss</td><td> $6 8 . 1 4 \pm 0 . 7 8$ </td><td> $7 1 . 9 7 \pm 0 . 8 3$ </td><td> $6 5 . 9 2 \pm 0 . 6 9$ </td><td> $7 7 . 8 8 \pm 1 . 3 4$ </td><td> $7 1 . 9 6 \pm 0 . 8 3$ </td></tr><tr><td>+ Pixel wise</td><td> $6 8 . 4 0 \pm 0 . 8 6$ </td><td> $7 2 . 4 9 \pm 0 . 7 6$ </td><td> $6 7 . 3 8 \pm 0 . 6 9$ </td><td> $7 4 . 9 9 \pm 1 . 3 5$ </td><td> $7 3 . 2 8 \pm 0 . 8 5$ </td></tr><tr><td>+ Combine score</td><td> $6 8 . 2 6 \pm 0 . 8 5$ </td><td> ${ \bf 7 3 . 7 0 \pm 0 . 8 2 }$ </td><td> ${ \bf 6 7 . 7 2 \pm 0 . 7 0 }$ </td><td> ${ \bf 7 4 . 1 0 \pm 1 . 3 8 }$ </td><td> $\mathbf { 7 3 . 8 0 \pm 0 . 8 7 }$ </td></tr><tr><td>Baseline</td><td rowspan="4">tieredImageNet</td><td> $7 0 . 5 5 \pm 0 . 9 3$ </td><td> $7 1 . 6 6 \pm 0 . 8 2$ </td><td> $6 7 . 0 2 \pm 0 . 6 3$ </td><td> $7 4 . 6 6 \pm 1 . 4 0$ </td><td> $7 1 . 0 1 \pm 0 . 8 3$ </td></tr><tr><td>+ Energy Loss</td><td> ${ \bf 7 0 . 6 0 \pm 0 . 9 4 }$ </td><td> $7 3 . 5 7 \pm 0 . 8 4$ </td><td> $6 7 . 9 0 \pm 0 . 6 1$ </td><td> $7 2 . 6 0 \pm 1 . 4 6$ </td><td> $7 3 . 4 8 \pm 0 . 8 6$ </td></tr><tr><td>+ Pixel wise</td><td> $7 0 . 3 9 \pm 0 . 9 6$ </td><td> $7 4 . 0 6 \pm 0 . 7 3$ </td><td> $6 7 . 9 0 \pm 0 . 6 1$ </td><td> $7 1 . 7 2 \pm 1 . 3 2$ </td><td> $7 3 . 1 0 \pm 0 . 7 5$ </td></tr><tr><td>+ Combine score</td><td> $7 0 . 5 0 \pm 0 . 9 3$ </td><td> ${ \bf 7 5 . 8 6 \pm 0 . 8 1 }$ </td><td> ${ \bf 6 9 . 4 4 \pm 0 . 6 8 }$ </td><td> ${ \bf 7 0 . 2 2 \pm 1 . 4 7 }$ </td><td> $\mathbf { 7 5 . 7 8 \pm 0 . 8 0 }$ </td></tr></table>
+
+Table 2. Ablation study of three modules proposed in GEL. We report the 5-way 1-shot results on both miniImageNet and tieredImageNet to demonstrate the effectiveness of our modules.
+
+<table><tr><td>Method</td><td>ACC</td><td>AUROC</td></tr><tr><td>Delay Combine</td><td> $6 8 . 3 9 \pm 0 . 8 6$ </td><td> $7 3 . 1 7 \pm 0 . 8 3$ </td></tr><tr><td>Ahead Combine</td><td> $6 8 . 2 6 \pm 0 . 8 5$ </td><td> $7 3 . 7 0 \pm 0 . 8 2$ </td></tr><tr><td colspan="3">(a) miniImageNet 5-way 1-shot</td></tr><tr><td>Method</td><td>ACC</td><td>AUROC</td></tr><tr><td>Delay Combine</td><td> $8 3 . 0 0 \pm 0 . 5 5$ </td><td> $8 0 . 6 7 \pm 0 . 6 5$ </td></tr><tr><td>Ahead Combine</td><td> $8 3 . 0 5 \pm 0 . 5 5$ </td><td> $8 2 . 2 9 \pm 0 . 6 0$ </td></tr></table>
+
+(b) miniImageNet 5-way 5-shot
+
+Table 3. Ablation study of glocal energy score combination of the class-wise branch and pixel-wise branch on miniImageNet under 5-way 1-shot and 5-shot setting.
+<table><tr><td>Method</td><td>ACC</td><td>AUROC</td></tr><tr><td>Fixed value</td><td> $8 3 . 0 5 \pm 0 . 5 5$ </td><td> $8 2 . 2 9 \pm 0 . 6 0$ </td></tr><tr><td>Learnable</td><td> $8 3 . 0 8 \pm 0 . 5 6$ </td><td> $8 1 . 3 7 \pm 0 . 6 4$ </td></tr><tr><td>Task-adaptive</td><td> $8 3 . 0 0 \pm 0 . 5 6$ </td><td> $8 1 . 3 4 \pm 0 . 6 2$ </td></tr><tr><td colspan="3">(a) miniImageNet 5-way 5-shot</td></tr><tr><td>Method</td><td>ACC</td><td>AUROC</td></tr><tr><td>Fixed value</td><td> $8 4 . 6 0 \pm 0 . 6 5$ </td><td> $8 1 . 9 5 \pm 0 . 7 2$ </td></tr><tr><td>Learnable</td><td> $8 4 . 8 4 \pm 0 . 6 5$ </td><td> $8 0 . 8 6 \pm 0 . 7 0$ </td></tr><tr><td>Task-adaptive</td><td> $8 4 . 7 9 \pm 0 . 6 6$ </td><td> $8 0 . 4 9 \pm 0 . 7 2$ </td></tr></table>
+
+(b) tieredImageNet 5-way 5-shot  
+Table 4. Ablation study of combination coefficients between classwise energy and pixel-wise energy on miniImageNet and tieredImageNet under 5-way 5-shot setting.
+
+We also conduct an ablation study on the combination coefficient between class-wise energy and pixel-wise energy in Eq. 15. Three methods are used: fixed value, learnable coefficient, and task-adaptive learnable coefficient on miniImageNet 5-way 5-shot. For method with a fixed value, we simply set the weight of the two branches to one. For the method with learnable coefficient, we use two learnable parameters with an initial value of one to learn the coefficients, and for the method with task-adaptive learnable coefficient, we use a linear layer to generate two coefficients from the prototypes in each task. As shown in Table 4, although learnable coefficient methods can slightly improve the classification ability of the closed-set samples, the fixed coefficient method can greatly improve the recognition ability of detecting open-set samples.
+
+## 7. Conclusion
+
+In this paper, we explore the under-explored problem, few-shot open-set recognition (FSOR). To have holistic detection of open-set samples, we propose a novel FSOR method, called Glocal Energy-based Learning (GEL). GEL improves the open-set recognition capability in few-shot settings by fusing global and local information. By combining the similarities from the class-wise and pixel-wise branches, GEL learns glocal energy scores, in which large energy scores are enforced for samples that are deviated from the few-shot examples in either the class-wise features or the pixel-wise features, and small energy scores are enforced otherwise. In doing so, GEL can detect open-set samples that are similar to the closed-set samples in either the global class level or the local feature level, while the existing methods fail to do. Extensive experiments on multiple datasets demonstrate the effectiveness of our proposed method.
+
+## 8. Acknowledgments
+
+This work was supported in part by the National Natural Science Foundation of Chain under Grant 62101454, Grant 62071387, and Grant U19B2037; in part by the Fundamental Research Funds for the Central Universities; and in part by the Shenzhen Fundamental Research Program under Grant JCYJ20190806160210899. P. Wang’s participation was in part supported by Australian Research Council Discovery Projects (DP220101784). G. Pang was supported in part by the Singapore Ministry of Education (MoE) Academic Research Fund (AcRF) Tier 1 grant (21SISSMU031).
+
+## References
+
+[1] Antreas Antoniou, Harrison Edwards, and Amos Storkey. How to train your maml. arXiv preprint arXiv:1810.09502, 2018. 2
+
+[2] Abhijit Bendale and Terrance Boult. Towards open world recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1893–1902, 2015. 2
+
+[3] Abhijit Bendale and Terrance E Boult. Towards open set deep networks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 1563–1572, 2016. 1, 2
+
+[4] Luca Bertinetto, Joao F Henriques, Philip HS Torr, and Andrea Vedaldi. Meta-learning with differentiable closed-form solvers. arXiv preprint arXiv:1805.08136, 2018. 5
+
+[5] Qi Cai, Yingwei Pan, Ting Yao, Chenggang Yan, and Tao Mei. Memory matching networks for one-shot image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4080–4088, 2018. 2
+
+[6] Shule Deng, Jin-Gang Yu, Zihao Wu, Hongxia Gao, Yansheng Li, and Yang Yang. Learning relative feature displacement for few-shot open-set recognition. IEEE Transactions on Multimedia, 2022. 2, 3, 5, 6
+
+[7] Akshay Raj Dhamija, Manuel Gunther, and Terrance Boult.¨ Reducing network agnostophobia. Advances in Neural Information Processing Systems, 31, 2018. 1, 2
+
+[8] Guneet S Dhillon, Pratik Chaudhari, Avinash Ravichandran, and Stefano Soatto. A baseline for few-shot image classification. arXiv preprint arXiv:1909.02729, 2019. 2
+
+[9] ZongYuan Ge, Sergey Demyanov, Zetao Chen, and Rahil Garnavi. Generative openmax for multi-class open set classification. arXiv preprint arXiv:1707.07418, 2017. 1, 2
+
+[10] Chuanxing Geng and Songcan Chen. Collective decision for open set recognition. IEEE Transactions on Knowledge and Data Engineering, 34(1):192–204, 2020. 2
+
+[11] Mehadi Hassen and Philip K Chan. Learning a neuralnetwork-based representation for open set recognition. In Proceedings of the 2020 SIAM International Conference on Data Mining, pages 154–162. SIAM, 2020. 2
+
+[12] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings ofthe IEEE conference on computer vision and pattern recognition, pages 770–778, 2016. 5
+
+[13] Shiyuan Huang, Jiawei Ma, Guangxing Han, and Shih-Fu Chang. Task-adaptive negative envision for few-shot openset recognition. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 7171– 7180, 2022. 2, 3, 5, 6
+
+[14] Muhammad Abdullah Jamal and Guo-Jun Qi. Task agnostic meta-learning for few-shot learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11719–11727, 2019. 2
+
+[15] Minki Jeong, Seokeon Choi, and Changick Kim. Few-shot open-set recognition by transformation consistency. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 12566–12575, 2021. 2, 3, 4, 5, 6
+
+[16] Gregory Koch, Richard Zemel, Ruslan Salakhutdinov, et al. Siamese neural networks for one-shot image recognition. In ICML deep learning workshop, volume 2, page 0. Lille, 2015. 1, 2
+
+[17] Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. Cifar-10 (canadian institute for advanced research). URL http://www. cs. toronto. edu/kriz/cifar. html, 5(4):1, 2010. 5
+
+[18] Bo Liu, Hao Kang, Haoxiang Li, Gang Hua, and Nuno Vasconcelos. Few-shot open-set recognition using metalearning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8798– 8807, 2020. 3, 5, 6
+
+[19] Nikhil Mishra, Mostafa Rohaninejad, Xi Chen, and Pieter Abbeel. A simple neural attentive meta-learner. arXiv preprint arXiv:1707.03141, 2017. 2
+
+[20] Tsendsuren Munkhdalai and Hong Yu. Meta networks. In International Conference on Machine Learning, pages 2554– 2563. PMLR, 2017. 2
+
+[21] Tsendsuren Munkhdalai, Xingdi Yuan, Soroush Mehri, and Adam Trischler. Rapid adaptation with conditionally shifted neurons. In International Conference on Machine Learning, pages 3664–3673. PMLR, 2018. 2
+
+[22] Lawrence Neal, Matthew Olson, Xiaoli Fern, Weng-Keen Wong, and Fuxin Li. Open set learning with counterfactual images. In Proceedings of the European Conference on Computer Vision (ECCV), pages 613–628, 2018. 1, 2
+
+[23] Sachin Ravi and Hugo Larochelle. Optimization as a model for few-shot learning. 2016. 1, 2
+
+[24] Mengye Ren, Eleni Triantafillou, Sachin Ravi, Jake Snell, Kevin Swersky, Joshua B Tenenbaum, Hugo Larochelle, and Richard S Zemel. Meta-learning for semi-supervised fewshot classification. arXiv preprint arXiv:1803.00676, 2018. 5
+
+[25] Ethan M Rudd, Lalit P Jain, Walter J Scheirer, and Terrance E Boult. The extreme value machine. IEEE transactions on pattern analysis and machine intelligence, 40(3):762–768, 2017. 2
+
+[26] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al. Imagenet large scale visual recognition challenge. International journal of computer vision, 115(3):211–252, 2015. 5
+
+[27] Andrei A Rusu, Dushyant Rao, Jakub Sygnowski, Oriol Vinyals, Razvan Pascanu, Simon Osindero, and Raia Hadsell. Meta-learning with latent embedding optimization. arXiv preprint arXiv:1807.05960, 2018. 2
+
+[28] Adam Santoro, Sergey Bartunov, Matthew Botvinick, Daan Wierstra, and Timothy Lillicrap. Meta-learning with memory-augmented neural networks. In International conference on machine learning, pages 1842–1850. PMLR, 2016. 1, 2
+
+[29] Walter J Scheirer, Anderson de Rezende Rocha, Archana Sapkota, and Terrance E Boult. Toward open set recognition. IEEE transactions on pattern analysis and machine intelligence, 35(7):1757–1772, 2012. 1, 2
+
+[30] Walter J Scheirer, Lalit P Jain, and Terrance E Boult. Probability models for open set recognition. IEEE transactions
+
+on pattern analysis and machine intelligence, 36(11):2317– 2324, 2014. 1, 2
+
+[31] Lei Shu, Hu Xu, and Bing Liu. Doc: Deep open classification of text documents. arXiv preprint arXiv:1709.08716, 2017. 2
+
+[32] Jake Snell, Kevin Swersky, and Richard Zemel. Prototypical networks for few-shot learning. Advances in neural information processing systems, 30, 2017. 1, 2, 6
+
+[33] Qianru Sun, Yaoyao Liu, Tat-Seng Chua, and Bernt Schiele. Meta-transfer learning for few-shot learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 403–412, 2019. 2
+
+[34] Yonglong Tian, Yue Wang, Dilip Krishnan, Joshua B Tenenbaum, and Phillip Isola. Rethinking few-shot image classification: a good embedding is all you need? In European Conference on Computer Vision, pages 266–282. Springer, 2020. 2
+
+[35] Eleni Triantafillou, Tyler Zhu, Vincent Dumoulin, Pascal Lamblin, Utku Evci, Kelvin Xu, Ross Goroshin, Carles Gelada, Kevin Swersky, Pierre-Antoine Manzagol, et al. Meta-dataset: A dataset of datasets for learning to learn from few examples. arXiv preprint arXiv:1903.03096, 2019. 1, 2
+
+[36] Oriol Vinyals, Charles Blundell, Timothy Lillicrap, Daan Wierstra, et al. Matching networks for one shot learning. Advances in neural information processing systems, 29, 2016. 1, 2
+
+[37] Oriol Vinyals, Charles Blundell, Timothy Lillicrap, Daan Wierstra, et al. Matching networks for one shot learning. Advances in neural information processing systems, 29, 2016. 5
+
+[38] Yan Wang, Wei-Lun Chao, Kilian Q Weinberger, and Laurens van der Maaten. Simpleshot: Revisiting nearestneighbor classification for few-shot learning. arXiv preprint arXiv:1911.04623, 2019. 2
+
+[39] Yang Yang, Chunping Hou, Yue Lang, Dai Guan, Danyang Huang, and Jinchen Xu. Open-set human activity recognition based on micro-doppler signatures. Pattern Recognition, 85:60–69, 2019. 2
+
+[40] Huaxiu Yao, Ying Wei, Junzhou Huang, and Zhenhui Li. Hierarchically structured meta-learning. In International Conference on Machine Learning, pages 7045–7054. PMLR, 2019. 2
+
+[41] Han-Jia Ye, Hexiang Hu, De-Chuan Zhan, and Fei Sha. Fewshot learning via embedding adaptation with set-to-set functions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8808–8817, 2020. 5, 6
+
+[42] He Zhang and Vishal M Patel. Sparse representation-based open set recognition. IEEE transactions on pattern analysis and machine intelligence, 39(8):1690–1696, 2016. 2
+
+[43] Luisa Zintgraf, Kyriacos Shiarli, Vitaly Kurin, Katja Hofmann, and Shimon Whiteson. Fast context adaptation via meta-learning. In International Conference on Machine Learning, pages 7693–7702. PMLR, 2019. 2
