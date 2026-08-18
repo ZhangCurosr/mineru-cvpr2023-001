@@ -4,5 +4,33 @@
  "title": "A-General-Regret-Bound-of-Preconditioned-Gradient-Method-for",
  "token": "sk-nY8L7ieIq...",
  "created_at": "2026-08-13 05:39:44",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/1ec431b6-b94f-4a90-a7d3-93cce370f4e1.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/1ec431b6-b94f-4a90-a7d3-93cce370f4e1.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:48:47",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "DNN优化器",
+    "后悔界理论",
+    "预条件梯度",
+    "Kronecker因式分解",
+    "块对角约束",
+    "AdaBK",
+    "SGDM BK",
+    "AdamW BK"
+   ],
+   "field": "深度学习优化理论",
+   "innovations": [
+    "提出约束全矩阵预条件梯度的通用后悔界定理，将预条件器更新转化为引导函数最小化问题",
+    "在块对角与Kronecker因式分解约束下，从理论推导得出AdaBK优化器更新公式",
+    "设计梯度范数恢复、高效矩阵逆根计算等工程技巧，使方法可无缝嵌入现有优化器并显著提升性能"
+   ],
+   "benchmarks": [
+    "CIFAR-100/10",
+    "ImageNet-1k",
+    "MS COCO (Object Detection & Segmentation)"
+   ]
+  }
+ }
 }

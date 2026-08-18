@@ -4,5 +4,10 @@
  "title": "BUOL-A-Bottom-Up-Framework-with-Occupancy-aware-Lifting-for",
  "token": "sk-9BdnpHblK...",
  "created_at": "2026-08-13 05:39:40",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/ddddad0c-52d6-4744-802d-c6d7ae74f102.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/ddddad0c-52d6-4744-802d-c6d7ae74f102.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:52:07",
+  "chunks": 1
+ }
 }

@@ -4,5 +4,28 @@
  "title": "3D-Human-Pose-Estimation-with-Spatio-Temporal-Criss-cross-At",
  "token": "sk-mBuyDYvkR...",
  "created_at": "2026-08-13 05:40:27",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/9c71832d-b04a-49b1-8b78-03af5eacb820.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/9c71832d-b04a-49b1-8b78-03af5eacb820.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:48:25",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D human pose estimation",
+    "spatio-temporal attention",
+    "transformer",
+    "position embedding",
+    "video understanding"
+   ],
+   "field": "单目 3D 人体姿态估计",
+   "innovations": [
+    "提出 STC 双通路并行时空注意力，将复杂度从 O(T²S²) 降至 O(T²S)+O(TS²)",
+    "设计结构增强位置编码 SPE，结合关节组嵌入与空时卷积捕获人体局部拓扑先验"
+   ],
+   "benchmarks": [
+    "Human3.6M",
+    "MPI-INF-3DHP"
+   ]
+  }
+ }
 }

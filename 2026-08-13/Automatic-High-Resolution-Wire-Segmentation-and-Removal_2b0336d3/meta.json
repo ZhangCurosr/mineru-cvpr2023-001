@@ -4,5 +4,10 @@
  "title": "Automatic-High-Resolution-Wire-Segmentation-and-Removal",
  "token": "sk-sKVjU65N5...",
  "created_at": "2026-08-13 05:40:25",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/75d528d5-5aa4-4ec2-a1b7-89d6eee6b1ad.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/75d528d5-5aa4-4ec2-a1b7-89d6eee6b1ad.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:24",
+  "chunks": 1
+ }
 }

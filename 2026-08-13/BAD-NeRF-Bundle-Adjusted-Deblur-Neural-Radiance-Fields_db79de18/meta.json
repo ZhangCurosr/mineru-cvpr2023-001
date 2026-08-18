@@ -4,5 +4,31 @@
  "title": "BAD-NeRF-Bundle-Adjusted-Deblur-Neural-Radiance-Fields",
  "token": "sk-NnOQ8YDzm...",
  "created_at": "2026-08-13 04:51:10",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f115da24-41cb-463f-ab92-8eb8ad747a81.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f115da24-41cb-463f-ab92-8eb8ad747a81.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:26",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "NeRF",
+    "运动模糊",
+    "Bundle Adjustment",
+    "Novel View Synthesis",
+    "Deblurring",
+    "Camera Pose Estimation",
+    "SE(3)"
+   ],
+   "field": "NeRF 与 3D 重建",
+   "innovations": [
+    "提出光度束调整框架，显式建模运动模糊物理成像过程，联合优化 NeRF 与曝光时间内相机运动轨迹",
+    "使用 SE(3) 线性插值表示曝光轨迹，区别于固定姿态优化方法",
+    "通过平均虚拟清晰图像替代 PSF 卷积，自然建模遮挡关系"
+   ],
+   "benchmarks": [
+    "Deblur-NeRF Synthetic Dataset",
+    "MBA-VO Dataset"
+   ]
+  }
+ }
 }

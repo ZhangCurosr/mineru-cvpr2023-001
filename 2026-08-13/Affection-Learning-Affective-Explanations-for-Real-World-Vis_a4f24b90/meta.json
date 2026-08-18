@@ -4,5 +4,35 @@
  "title": "Affection-Learning-Affective-Explanations-for-Real-World-Vis",
  "token": "sk-dY4OBV5wM...",
  "created_at": "2026-08-13 05:40:48",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2256795e-8f56-41ed-8e71-3b0367d9cb81.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2256795e-8f56-41ed-8e71-3b0367d9cb81.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:50:16",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "情感解释字幕生成",
+    "Affective Explanation Captioning",
+    "图像情感分析",
+    "语用文本生成",
+    "CLIP",
+    "大规模情感数据集",
+    "可控图像描述"
+   ],
+   "field": "多模态情感计算与视觉语言理解",
+   "innovations": [
+    "首次提出面向真实世界图像的情感解释字幕生成任务AEC并构建大规模Affection数据集",
+    "设计支持情感控制与语用控制的神经生成器变体，利用CLIP对生成结果重排以提升多样性与判别细节",
+    "提出情感对齐率、CLIP-Diversity-Cosine等专用评估指标并结合情感图灵测试进行全面评测"
+   ],
+   "benchmarks": [
+    "Affection",
+    "ArtEmis",
+    "COCO",
+    "Flickr30k Entities",
+    "Visual Genome",
+    "Emotional-Machines"
+   ]
+  }
+ }
 }

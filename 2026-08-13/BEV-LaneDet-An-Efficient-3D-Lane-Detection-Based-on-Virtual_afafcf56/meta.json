@@ -4,5 +4,30 @@
  "title": "BEV-LaneDet-An-Efficient-3D-Lane-Detection-Based-on-Virtual",
  "token": "sk-iG65PZaJv...",
  "created_at": "2026-08-13 07:11:55",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/617f3736-d05c-4a50-8035-f56f82b0c7cb.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/617f3736-d05c-4a50-8035-f56f82b0c7cb.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:43",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D车道检测",
+    "单目感知",
+    "BEV变换",
+    "虚拟相机",
+    "关键点表示",
+    "实时检测"
+   ],
+   "field": "自动驾驶感知",
+   "innovations": [
+    "提出虚拟相机预处理统一相机内外参分布",
+    "设计轻量级关键点表示替代复杂anchor",
+    "构建MLP驱动的空间变换金字塔实现高效BEV变换"
+   ],
+   "benchmarks": [
+    "OpenLane",
+    "Apollo 3D Lane Synthetic"
+   ]
+  }
+ }
 }

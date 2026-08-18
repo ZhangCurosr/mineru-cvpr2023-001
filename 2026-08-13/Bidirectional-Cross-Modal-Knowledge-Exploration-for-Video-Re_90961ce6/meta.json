@@ -4,5 +4,35 @@
  "title": "Bidirectional-Cross-Modal-Knowledge-Exploration-for-Video-Re",
  "token": "sk-wGl2gwQjA...",
  "created_at": "2026-08-13 07:10:57",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0842b09c-8ec3-4228-9699-7600b9608240.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0842b09c-8ec3-4228-9699-7600b9608240.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:52:10",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "视频识别",
+    "视觉-语言模型",
+    "跨模态迁移",
+    "CLIP",
+    "双向知识探索",
+    "时序显著性",
+    "少样本学习"
+   ],
+   "field": "视频理解与跨模态学习",
+   "innovations": [
+    "提出BIKE框架，利用VLM双向跨模态知识增强视频识别",
+    "Video-Attributes Association机制，从预定义词表检索属性文本生成辅助识别分支",
+    "Video Concept Spotting机制，用词汇嵌入查询生成类别依赖的时序显著性权重替代均值池化"
+   ],
+   "benchmarks": [
+    "Kinetics-400",
+    "Kinetics-600",
+    "UCF-101",
+    "HMDB-51",
+    "ActivityNet-v1.3",
+    "Charades"
+   ]
+  }
+ }
 }

@@ -4,5 +4,31 @@
  "title": "3D-Human-Mesh-Estimation-from-Virtual-Markers",
  "token": "sk-JiEKTe0tT...",
  "created_at": "2026-08-13 07:11:03",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/8264eb26-dc46-4c1f-bf13-9196e596b6f3.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/8264eb26-dc46-4c1f-bf13-9196e596b6f3.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:47:51",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D human mesh estimation",
+    "virtual markers",
+    "archetypal analysis",
+    "intermediate representation",
+    "SMPL",
+    "mocap data"
+   ],
+   "field": "3D人体网格重建",
+   "innovations": [
+    "提出虚拟标记点中间表示，通过典型分析从动捕数据学习身体表面关键地标",
+    "设计基于置信度动态更新的系数矩阵机制，自适应缓解遮挡带来的检测误差",
+    "以极简的线性插值框架实现高精度网格恢复，超越复杂图卷积与参数优化方法"
+   ],
+   "benchmarks": [
+    "H3.6M",
+    "3DPW",
+    "SURREAL"
+   ]
+  }
+ }
 }

@@ -3,5 +3,31 @@
  "batch_id": "e1a9b6d9-bc5e-42da-b456-024dbb83ad41",
  "token": "sk-7NOZt17oN...",
  "created_at": "2026-08-12 16:05:12",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/ee1af42b-549d-479d-93b8-c7dd0b3eb8df.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/ee1af42b-549d-479d-93b8-c7dd0b3eb8df.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:47:40",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "隐式神经表示",
+    "视频压缩",
+    "视频表征",
+    "运动估计",
+    "时序建模",
+    "视频理解"
+   ],
+   "field": "视频表征与压缩",
+   "innovations": [
+    "解耦clip特定视觉内容与共享运动信息进行统一编码",
+    "引入全局时序MLP与任务导向流联合建模时空冗余",
+    "以INR作为高效数据加载器提升下游动作识别精度"
+   ],
+   "benchmarks": [
+    "UCF101",
+    "UVG",
+    "DAVIS"
+   ]
+  }
+ }
 }

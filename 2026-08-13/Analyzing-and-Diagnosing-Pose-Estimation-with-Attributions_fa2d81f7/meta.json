@@ -4,5 +4,31 @@
  "title": "Analyzing-and-Diagnosing-Pose-Estimation-with-Attributions",
  "token": "sk-zybFjYcVd...",
  "created_at": "2026-08-13 07:10:19",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/c57ad0c6-5937-4810-a21d-11225306aefe.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/c57ad0c6-5937-4810-a21d-11225306aefe.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:07",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "PoseIG",
+    "Integrated Gradients",
+    "Pose Estimation",
+    "Attribution Analysis",
+    "Keypoint Inversion",
+    "Shortcut Learning",
+    "Interpretability Metrics"
+   ],
+   "field": "姿态估计可解释性与诊断",
+   "innovations": [
+    "提出首个面向姿态估计的梯度归因方法 PoseIG，统一异构输出空间并构造似然近似函数",
+    "设计 FI/LI/DI 三个正交定量指标，实现跨框架归因行为的数值化对比",
+    "诊断并量化手部 MCP 捷径学习与身体关键点反转错误，提出训练策略与 GCN 细化缓解方案"
+   ],
+   "benchmarks": [
+    "FreiHand",
+    "MS COCO"
+   ]
+  }
+ }
 }

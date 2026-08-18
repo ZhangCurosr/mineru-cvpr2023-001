@@ -4,5 +4,29 @@
  "title": "An-Actor-centric-Causality-Graph-for-Asynchronous-Temporal-I",
  "token": "sk-JMLCbBCEj...",
  "created_at": "2026-08-13 07:10:26",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/42e791d9-0493-4ef3-a502-53fca9b90cc3.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/42e791d9-0493-4ef3-a502-53fca9b90cc3.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:50:35",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "group activity recognition",
+    "causality graph",
+    "asynchronous temporal inference",
+    "Granger causality",
+    "actor relation learning"
+   ],
+   "field": "群体活动识别",
+   "innovations": [
+    "提出Actor-Centric Causality Graph模型，通过Granger因果检验检测异步时序因果关系",
+    "设计因果特征融合模块，通过时间延迟同步对齐cause/effect actor特征",
+    "将异步因果关系图与同步Transformer图互补融合，提升群体活动识别精度"
+   ],
+   "benchmarks": [
+    "Volleyball",
+    "Collective Activity"
+   ]
+  }
+ }
 }

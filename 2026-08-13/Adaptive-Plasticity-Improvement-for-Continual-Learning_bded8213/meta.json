@@ -4,5 +4,31 @@
  "title": "Adaptive-Plasticity-Improvement-for-Continual-Learning",
  "token": "sk-wGl2gwQjA...",
  "created_at": "2026-08-13 07:10:57",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/48402e12-b432-4302-a50f-7b8b5a88874e.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/48402e12-b432-4302-a50f-7b8b5a88874e.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:49:42",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "continual learning",
+    "catastrophic forgetting",
+    "adaptive plasticity",
+    "gradient projection",
+    "dual gradient projection memory"
+   ],
+   "field": "持续学习",
+   "innovations": [
+    "提出DualGPM通过维护梯度子空间及其正交补中较小者实现内存先增后减",
+    "首次定义AGRR量化评估模型可塑性并与准确率强相关",
+    "基于GRR自适应扩展输入维度以按需提升可塑性"
+   ],
+   "benchmarks": [
+    "Split CIFAR100",
+    "CIFAR100-sup",
+    "Split Mini-Imagenet",
+    "5-Datasets"
+   ]
+  }
+ }
 }

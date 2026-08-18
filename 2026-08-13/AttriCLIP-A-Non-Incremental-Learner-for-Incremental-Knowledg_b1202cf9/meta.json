@@ -4,5 +4,30 @@
  "title": "AttriCLIP-A-Non-Incremental-Learner-for-Incremental-Knowledg",
  "token": "sk-dY4OBV5wM...",
  "created_at": "2026-08-13 05:40:46",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/58c5476c-ae2d-4ebd-a559-ded6b42f3eb4.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/58c5476c-ae2d-4ebd-a559-ded6b42f3eb4.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:07",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "持续学习",
+    "Prompt Tuning",
+    "CLIP",
+    "灾难性遗忘",
+    "属性词库",
+    "Cross-Datasets Continual Learning"
+   ],
+   "field": "持续学习/视觉-语言模型",
+   "innovations": [
+    "基于属性词库的动态prompt选择机制实现免重放内存的非增量持续学习",
+    "冻结CLIP双编码器仅训练属性词库，支持无限类别输出",
+    "提出CDCL评估设置验证长序列域转移下的泛化与抗遗忘能力"
+   ],
+   "benchmarks": [
+    "CIFAR-100",
+    "ImageNet100"
+   ]
+  }
+ }
 }

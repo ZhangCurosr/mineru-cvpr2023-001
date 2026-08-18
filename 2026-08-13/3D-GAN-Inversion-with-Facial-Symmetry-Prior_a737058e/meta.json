@@ -4,5 +4,28 @@
  "title": "3D-GAN-Inversion-with-Facial-Symmetry-Prior",
  "token": "sk-sKVjU65N5...",
  "created_at": "2026-08-13 05:39:56",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/7efc9a3f-41d0-4952-808d-5d23ba3cbe5d.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/7efc9a3f-41d0-4952-808d-5d23ba3cbe5d.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:48:05",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D GAN Inversion",
+    "Facial Symmetry Prior",
+    "Depth-guided Warping",
+    "Novel View Synthesis",
+    "Single-image 3D Reconstruction"
+   ],
+   "field": "3D感知生成模型",
+   "innovations": [
+    "引入面部对称先验解决单图3D反演几何塌陷问题",
+    "深度引导3D扭曲生成伪监督视角提升未见视角纹理质量"
+   ],
+   "benchmarks": [
+    "CelebA-HQ",
+    "MEAD"
+   ]
+  }
+ }
 }

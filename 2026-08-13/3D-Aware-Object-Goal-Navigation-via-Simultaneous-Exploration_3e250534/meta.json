@@ -4,5 +4,31 @@
  "title": "3D-Aware-Object-Goal-Navigation-via-Simultaneous-Exploration",
  "token": "sk-Ir4JqYCnj...",
  "created_at": "2026-08-13 05:40:53",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b5cdd4c8-e4ac-41d9-8699-bfa4b757b80e.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b5cdd4c8-e4ac-41d9-8699-bfa4b757b80e.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:47:11",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "Object Goal Navigation",
+    "3D Scene Representation",
+    "Embodied AI",
+    "Reinforcement Learning",
+    "Semantic Mapping",
+    "Simultaneous Exploration"
+   ],
+   "field": "具身导航与3D感知",
+   "innovations": [
+    "首个3D感知ObjectNav框架，在线点云融合提升语义精度",
+    "角落引导探索+类别感知识别双策略并行机制，显著改善样本效率",
+    "动态置信度阈值与octree一致性验证减少目标误识别"
+   ],
+   "benchmarks": [
+    "Matterport3D",
+    "Gibson",
+    "Habitat ObjectNav"
+   ]
+  }
+ }
 }

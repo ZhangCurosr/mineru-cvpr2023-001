@@ -4,5 +4,33 @@
  "title": "3D-Video-Loops-from-Asynchronous-Input",
  "token": "sk-5WOIsMt5v...",
  "created_at": "2026-08-13 07:10:20",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/99d38288-ea26-4659-a0df-f2eb11f60d28.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/99d38288-ea26-4659-a0df-f2eb11f60d28.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:48:29",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D视频循环",
+    "异步多视图",
+    "Multi-tile Video",
+    "神经渲染",
+    "循环损失",
+    "新视角合成"
+   ],
+   "field": "动态场景3D重建与渲染",
+   "innovations": [
+    "提出Multi-tile Video稀疏表示压缩4D内存98%",
+    "设计基于时间重定向的循环损失保证无缝循环",
+    "两阶段流水线从异步视频构建视图一致3D循环"
+   ],
+   "benchmarks": [
+    "VLPIPS",
+    "STDerr",
+    "Completeness",
+    "Coherence",
+    "LoopQ"
+   ]
+  }
+ }
 }

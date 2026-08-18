@@ -4,5 +4,31 @@
  "title": "Aligning-Step-by-Step-Instructional-Diagrams-to-Video-Demons",
  "token": "sk-aknYEUs8O...",
  "created_at": "2026-08-13 05:40:34",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b1331aa8-245c-407f-98c9-2815c0049c84.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b1331aa8-245c-407f-98c9-2815c0049c84.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:50:26",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "多模态对齐",
+    "对比学习",
+    "视频-图像检索",
+    "指令演示",
+    "最优传输",
+    "进度编码"
+   ],
+   "field": "视频理解与多模态对齐",
+   "innovations": [
+    "提出三种专用对比损失解决示意图与在野视频的对齐问题",
+    "引入SPRF正弦进度特征替代Transformer位置编码",
+    "构建IAW大规模家具组装视频-示意图对齐数据集"
+   ],
+   "benchmarks": [
+    "IAW",
+    "Video-to-Diagram Retrieval",
+    "Diagram-to-Video Retrieval"
+   ]
+  }
+ }
 }

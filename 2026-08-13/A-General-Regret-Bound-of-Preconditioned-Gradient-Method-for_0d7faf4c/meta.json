@@ -4,5 +4,33 @@
  "title": "A-General-Regret-Bound-of-Preconditioned-Gradient-Method-for",
  "token": "sk-nY8L7ieIq...",
  "created_at": "2026-08-13 07:10:24",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/1ec431b6-b94f-4a90-a7d3-93cce370f4e1.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/1ec431b6-b94f-4a90-a7d3-93cce370f4e1.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:48:45",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "DNN优化器",
+    "预条件梯度",
+    "遗憾界",
+    "Kronecker因子化",
+    "自适应学习率",
+    "AdaBK",
+    "计算机视觉"
+   ],
+   "field": "深度学习优化算法",
+   "innovations": [
+    "建立约束满矩阵预条件梯度的通用遗憾界理论，将遗憾界最小化转化为引导函数最小化",
+    "在分块对角和Kronecker因子化约束下严格推导更新公式，提出AdaBK优化器",
+    "设计Schur-Newton矩阵逆根、低频统计更新、自适应dampening和梯度范数恢复四组实用化技术"
+   ],
+   "benchmarks": [
+    "CIFAR-100",
+    "CIFAR-10",
+    "ImageNet-1k",
+    "COCO"
+   ]
+  }
+ }
 }

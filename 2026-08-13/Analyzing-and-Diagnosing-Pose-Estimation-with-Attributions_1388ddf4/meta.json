@@ -4,5 +4,30 @@
  "title": "Analyzing-and-Diagnosing-Pose-Estimation-with-Attributions",
  "token": "sk-7NOZt17oN...",
  "created_at": "2026-08-13 05:39:42",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/c57ad0c6-5937-4810-a21d-11225306aefe.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/c57ad0c6-5937-4810-a21d-11225306aefe.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:51:02",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "姿态估计",
+    "可解释性",
+    "集成梯度",
+    "属性分析",
+    "MCP捷径",
+    "关键点反转"
+   ],
+   "field": "姿态估计的可解释性与诊断",
+   "innovations": [
+    "提出PoseIG，首次将集成梯度适配并统一应用于多种姿态估计框架进行像素级归因",
+    "设计FI、LI、DI三个定量指标，系统化分析姿态估计模型的属性分布",
+    "诊断出手部估计的MCP捷径学习问题和人体估计的关键点反转问题并提出缓解方案"
+   ],
+   "benchmarks": [
+    "FreiHand",
+    "MS COCO"
+   ]
+  }
+ }
 }

@@ -4,5 +4,34 @@
  "title": "Affection-Learning-Affective-Explanations-for-Real-World-Vis",
  "token": "sk-gD7m2ian9...",
  "created_at": "2026-08-13 07:11:32",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2256795e-8f56-41ed-8e71-3b0367d9cb81.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2256795e-8f56-41ed-8e71-3b0367d9cb81.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 18:50:00",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "affective captioning",
+    "emotion recognition",
+    "pragmatic re-ranking",
+    "CLIP",
+    "image-to-text generation",
+    "Emotional Turing test",
+    "diversity metric"
+   ],
+   "field": "情感化视觉-语言理解",
+   "innovations": [
+    "提出首个面向真实世界图像的大规模情感解释数据集 Affection（85,007 图像、526,749 解释）",
+    "定义 AEC 任务并设计情感 grounding 与 CLIP pragmatic re-ranking 可控生成变体",
+    "提出 ClipDivCos 多样性指标与情感图灵测试评测协议"
+   ],
+   "benchmarks": [
+    "Affection",
+    "MS-COCO",
+    "ArtEmis",
+    "Flickr30k Entities",
+    "Visual Genome"
+   ]
+  }
+ }
 }
