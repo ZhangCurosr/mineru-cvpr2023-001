@@ -4,5 +4,29 @@
  "title": "CFA-Class-wise-Calibrated-Fair-Adversarial-Training",
  "token": "sk-mBuyDYvkR...",
  "created_at": "2026-08-13 05:40:37",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/d2b976e6-6c78-49f4-9071-f79837fda426.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/d2b976e6-6c78-49f4-9071-f79837fda426.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:40:42",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "adversarial training",
+    "robust fairness",
+    "class-wise robustness",
+    "fair adversarial training",
+    "customized training configuration"
+   ],
+   "field": "对抗鲁棒性与公平性",
+   "innovations": [
+    "首次从类别视角提出自适应对抗训练框架CFA，动态定制每类别的扰动边界和正则化",
+    "提出FAWA机制，在EMA中过滤不公平checkpoint以稳定最坏类别鲁棒性",
+    "理论证明强攻击对困难类别有害，揭示类别鲁棒差异的内在原因"
+   ],
+   "benchmarks": [
+    "CIFAR-10",
+    "Tiny-ImageNet"
+   ]
+  }
+ }
 }

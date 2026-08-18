@@ -4,5 +4,10 @@
  "title": "CUDA-Convolution-based-Unlearnable-Datasets",
  "token": "sk-mBuyDYvkR...",
  "created_at": "2026-08-13 05:40:30",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f9b12f65-1d01-47c9-b65b-63ca004a244d.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f9b12f65-1d01-47c9-b65b-63ca004a244d.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:42:13",
+  "chunks": 1
+ }
 }

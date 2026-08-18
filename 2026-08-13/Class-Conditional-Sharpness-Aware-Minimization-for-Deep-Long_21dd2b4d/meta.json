@@ -4,5 +4,34 @@
  "title": "Class-Conditional-Sharpness-Aware-Minimization-for-Deep-Long",
  "token": "sk-dD4E81LFV...",
  "created_at": "2026-08-13 07:11:01",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4f38c71c-9263-4754-9d8c-2ed5ad3229ec.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4f38c71c-9263-4754-9d8c-2ed5ad3229ec.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:42:54",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "long-tailed recognition",
+    "sharpness-aware minimization",
+    "PAC-Bayesian",
+    "decoupled training",
+    "adversarial robustness",
+    "open-set recognition"
+   ],
+   "field": "长尾视觉识别",
+   "innovations": [
+    "基于PAC-Bayesian推导类条件特征半径并实现自适应扰动",
+    "将锐度感知优化嵌入两阶段解耦训练框架",
+    "通过对抗特征渐进训练增强尾类决策边界鲁棒性"
+   ],
+   "benchmarks": [
+    "CIFAR-10-LT",
+    "CIFAR-100-LT",
+    "Places-LT",
+    "ImageNet-LT",
+    "iNaturalist 2018",
+    "OLTR"
+   ]
+  }
+ }
 }

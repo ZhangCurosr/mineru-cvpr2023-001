@@ -4,5 +4,29 @@
  "title": "Compression-Aware-Video-Super-Resolution",
  "token": "sk-xfpcKPjW4...",
  "created_at": "2026-08-13 07:11:52",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f525f2ec-d008-4ff8-aa42-9075b95b31db.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f525f2ec-d008-4ff8-aa42-9075b95b31db.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:43:40",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "压缩视频超分辨率",
+    "压缩感知",
+    "元数据辅助对齐",
+    "学习-排序",
+    "视频恢复"
+   ],
+   "field": "视频超分辨率",
+   "innovations": [
+    "压缩编码器基于学习-排序隐式建模压缩级别",
+    "元数据辅助的对齐与传播机制充分利用比特流信息"
+   ],
+   "benchmarks": [
+    "Vid4",
+    "Vimeo-90k",
+    "YouTube compressed videos"
+   ]
+  }
+ }
 }

@@ -4,5 +4,30 @@
  "title": "CXTrack-Improving-3D-Point-Cloud-Tracking-with-Contextual-In",
  "token": "sk-aQHhxC28I...",
  "created_at": "2026-08-13 14:54:51",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2ed393b6-142d-4527-aa29-5e835e32291f.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/2ed393b6-142d-4527-aa29-5e835e32291f.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:42:00",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D Single Object Tracking",
+    "Point Cloud",
+    "Transformer",
+    "Contextual Information",
+    "Object Detection"
+   ],
+   "field": "3D点云单目标跟踪",
+   "innovations": [
+    "提出不裁剪目标的跟踪新范式，完整保留跨帧上下文信息",
+    "设计Target-Centric Transformer与级联掩码细化机制",
+    "提出X-RPN定位头及中心嵌入模块，有效抑制同类干扰物"
+   ],
+   "benchmarks": [
+    "KITTI",
+    "nuScenes",
+    "Waymo Open Dataset"
+   ]
+  }
+ }
 }

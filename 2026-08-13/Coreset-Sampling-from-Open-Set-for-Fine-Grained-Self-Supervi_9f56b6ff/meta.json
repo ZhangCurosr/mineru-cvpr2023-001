@@ -4,5 +4,43 @@
  "title": "Coreset-Sampling-from-Open-Set-for-Fine-Grained-Self-Supervi",
  "token": "sk-Zs9k8BxOo...",
  "created_at": "2026-08-13 07:13:25",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/106f5845-4ffd-4bda-9f73-577c8b8a8f3b.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/106f5845-4ffd-4bda-9f73-577c8b8a8f3b.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:44:32",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "自监督学习",
+    "细粒度识别",
+    "Coreset采样",
+    "开放集学习",
+    "表征学习",
+    "数据选择"
+   ],
+   "field": "自监督学习与细粒度视觉识别",
+   "innovations": [
+    "提出OpenSSL问题设定，将细粒度目标数据集与无标注开放集结合进行自监督预训练",
+    "设计SimCore算法，通过隐空间最近邻匹配从开放集中采样语义相关的coreset",
+    "引入自适应停止准则，动态控制采样预算以避免无关样本污染"
+   ],
+   "benchmarks": [
+    "Aircraft",
+    "Cars",
+    "Pet",
+    "Birds",
+    "Dogs",
+    "Flowers",
+    "Action",
+    "Indoor",
+    "Textures",
+    "Faces",
+    "Food",
+    "ImageNet-1k",
+    "MS COCO",
+    "iNaturalist",
+    "Places365"
+   ]
+  }
+ }
 }

@@ -4,5 +4,31 @@
  "title": "Connecting-Vision-and-Language-with-Video-Localized-Narrativ",
  "token": "sk-JMLCbBCEj...",
  "created_at": "2026-08-13 07:10:27",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/cae6febb-0b9f-4f21-a3d2-1ffaf294b8e9.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/cae6febb-0b9f-4f21-a3d2-1ffaf294b8e9.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:43:44",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "Video Localization",
+    "Vision-Language",
+    "Video Annotation",
+    "Narrative Grounding",
+    "Video Question Answering",
+    "Multimodal Learning"
+   ],
+   "field": "视频视觉-语言理解",
+   "innovations": [
+    "提出分主体叙事的视频标注协议 VidLNs，解决多主体复杂交互的稠密词级 grounding",
+    "构建 Video Narrative Grounding (VNG) 新任务与 OVIS-VNG/UVO-VNG 基准，聚焦同一名词多实例消歧",
+    "基于高质量叙事自动生成 VideoQA 基准（Oops-QA），包含文本输出与位置输出两类问题"
+   ],
+   "benchmarks": [
+    "OVIS-VNG",
+    "UVO-VNG",
+    "Oops-QA"
+   ]
+  }
+ }
 }

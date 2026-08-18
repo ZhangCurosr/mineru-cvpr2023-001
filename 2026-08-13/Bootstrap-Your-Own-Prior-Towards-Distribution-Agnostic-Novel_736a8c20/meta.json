@@ -4,5 +4,32 @@
  "title": "Bootstrap-Your-Own-Prior-Towards-Distribution-Agnostic-Novel",
  "token": "sk-sKVjU65N5...",
  "created_at": "2026-08-13 07:10:28",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/57488a06-2cfe-40a3-bb39-0d869737c1a8.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/57488a06-2cfe-40a3-bb39-0d869737c1a8.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:40:49",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "Novel Class Discovery",
+    "Distribution-Agnostic",
+    "Imbalanced Learning",
+    "Optimal Transport",
+    "Self-supervised Clustering",
+    "Pseudo-label"
+   ],
+   "field": "开放世界视觉识别",
+   "innovations": [
+    "提出distribution-agnostic NCD任务，放松均匀分布假设",
+    "设计BYOP迭代先验估计与动态温度技术解决长尾NCD",
+    "将最优传输聚类与在线先验估计结合实现自适应伪标签生成"
+   ],
+   "benchmarks": [
+    "CIFAR10",
+    "CIFAR100-20",
+    "CIFAR100-50",
+    "Tiny-ImageNet"
+   ]
+  }
+ }
 }

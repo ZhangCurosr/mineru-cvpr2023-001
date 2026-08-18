@@ -4,5 +4,31 @@
  "title": "CLIP-for-All-Things-Zero-Shot-Sketch-Based-Image-Retrieval-F",
  "token": "sk-zybFjYcVd...",
  "created_at": "2026-08-13 07:10:20",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0ac80974-0104-43d3-aa34-d73e045dd27f.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0ac80974-0104-43d3-aa34-d73e045dd27f.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:41:19",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "零样本检索",
+    "草图图像检索",
+    "CLIP",
+    "提示学习",
+    "细粒度匹配",
+    "跨模态检索"
+   ],
+   "field": "草图图像检索",
+   "innovations": [
+    "首次将CLIP适配于零样本草图检索，提出prompt learning+LayerNorm微调范式",
+    "提出f-Divergence正则化稳定多类别三元损失的全局margin参数",
+    "设计Patch Shuffling技术学习跨模态结构对应关系"
+   ],
+   "benchmarks": [
+    "Sketchy",
+    "TUBerlin",
+    "QuickDraw"
+   ]
+  }
+ }
 }

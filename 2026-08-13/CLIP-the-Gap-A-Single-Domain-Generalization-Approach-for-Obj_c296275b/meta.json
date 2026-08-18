@@ -4,5 +4,29 @@
  "title": "CLIP-the-Gap-A-Single-Domain-Generalization-Approach-for-Obj",
  "token": "sk-1jVZGxTQ1...",
  "created_at": "2026-08-13 07:10:54",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/34267b14-64a0-45de-a37e-693057121ca9.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/34267b14-64a0-45de-a37e-693057121ca9.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:41:21",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "单域泛化",
+    "目标检测",
+    "CLIP",
+    "语义增强",
+    "域偏移",
+    "视觉-语言模型"
+   ],
+   "field": "域泛化目标检测",
+   "innovations": [
+    "利用CLIP联合嵌入空间进行特征级语义增强",
+    "文本嵌入分类损失替代标准softmax分类头",
+    "首次将预训练视觉-语言模型应用于SDG目标检测"
+   ],
+   "benchmarks": [
+    "Diverse Weather Driving Dataset"
+   ]
+  }
+ }
 }

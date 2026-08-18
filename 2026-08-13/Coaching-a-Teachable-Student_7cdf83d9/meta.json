@@ -4,5 +4,30 @@
  "title": "Coaching-a-Teachable-Student",
  "token": "sk-I70XXkbCl...",
  "created_at": "2026-08-13 07:11:28",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b140f4aa-cfad-4123-bf2a-cd0a9702e092.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/b140f4aa-cfad-4123-bf2a-cd0a9702e092.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:43:19",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "知识蒸馏",
+    "自动驾驶",
+    "BEV表示",
+    "模仿学习",
+    "视觉导航",
+    "CARLA"
+   ],
+   "field": "端到端自动驾驶",
+   "innovations": [
+    "IPM-Transformer对齐模块实现图像到BEV的显式特征蒸馏",
+    "安全提示增强BEV设计使离线行为克隆教师超越RL教师",
+    "学生节奏协同机制平滑困难样本目标提升蒸馏效率"
+   ],
+   "benchmarks": [
+    "CARLA Longest6",
+    "nuScenes"
+   ]
+  }
+ }
 }

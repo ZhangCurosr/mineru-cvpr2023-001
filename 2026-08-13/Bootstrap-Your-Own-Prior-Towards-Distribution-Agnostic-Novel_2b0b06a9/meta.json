@@ -4,5 +4,31 @@
  "title": "Bootstrap-Your-Own-Prior-Towards-Distribution-Agnostic-Novel",
  "token": "sk-JMLCbBCEj...",
  "created_at": "2026-08-13 05:39:50",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/57488a06-2cfe-40a3-bb39-0d869737c1a8.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/57488a06-2cfe-40a3-bb39-0d869737c1a8.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:40:18",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "Novel Class Discovery",
+    "分布无关学习",
+    "类别先验",
+    "自监督聚类",
+    "长尾学习",
+    "伪标签"
+   ],
+   "field": "开放世界视觉识别",
+   "innovations": [
+    "提出分布无关新类发现任务，放松均匀分布假设",
+    "设计BYOP方法通过迭代自举估计类别先验",
+    "发明动态温度技术自适应调节预测置信度"
+   ],
+   "benchmarks": [
+    "CIFAR10",
+    "CIFAR100",
+    "Tiny-ImageNet"
+   ]
+  }
+ }
 }

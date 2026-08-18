@@ -4,5 +4,30 @@
  "title": "Co-speech-Gesture-Synthesis-by-Reinforcement-Learning-with-C",
  "token": "sk-aknYEUs8O...",
  "created_at": "2026-08-13 05:40:36",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f76ed173-0b95-4873-9d4b-3e391b25a510.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f76ed173-0b95-4873-9d4b-3e391b25a510.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:43:02",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "co-speech gesture synthesis",
+    "reinforcement learning",
+    "contrastive learning",
+    "offline RL",
+    "VQ-VAE",
+    "multi-modal generation"
+   ],
+   "field": "多模态人机交互与动作生成",
+   "innovations": [
+    "将同步语音手势合成建模为MDP并使用CQL离线强化学习求解",
+    "提出对比预训练奖励模型捕捉跨模态语音-手势语义对齐",
+    "GPT式因果Q网络实现自回归离散动作序列生成"
+   ],
+   "benchmarks": [
+    "Trinity Gesture Dataset (GENEA Challenge 2020)",
+    "Chinese Co-speech Gesture Dataset (self-collected)"
+   ]
+  }
+ }
 }

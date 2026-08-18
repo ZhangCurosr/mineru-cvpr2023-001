@@ -4,5 +4,10 @@
  "title": "Burstormer-Burst-Image-Restoration-and-Enhancement-Transform",
  "token": "sk-aknYEUs8O...",
  "created_at": "2026-08-13 05:40:39",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f380748f-aa0c-49c6-98c5-97b19ac387de.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/f380748f-aa0c-49c6-98c5-97b19ac387de.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:40:54",
+  "chunks": 1
+ }
 }

@@ -4,5 +4,31 @@
  "title": "Connecting-the-Dots-Floorplan-Reconstruction-Using-Two-Level",
  "token": "sk-7NOZt17oN...",
  "created_at": "2026-08-13 05:39:41",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/d64c20d9-77db-4182-878b-a9dbbbc11162.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/d64c20d9-77db-4182-878b-a9dbbbc11162.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:44:13",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "floorplan reconstruction",
+    "two-level queries",
+    "polygon prediction",
+    "transformer",
+    "structured prediction",
+    "3D point cloud",
+    "end-to-end training"
+   ],
+   "field": "室内场景重建",
+   "innovations": [
+    "提出两层查询 Transformer 架构实现可变顶点多边形并行预测",
+    "设计多边形匹配策略处理循环等价性和可变长度序列",
+    "单阶段端到端可训练避免多阶段启发式设计"
+   ],
+   "benchmarks": [
+    "Structured3D",
+    "SceneCAD"
+   ]
+  }
+ }
 }

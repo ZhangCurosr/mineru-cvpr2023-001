@@ -4,5 +4,33 @@
  "title": "Continuous-Sign-Language-Recognition-with-Correlation-Networ",
  "token": "sk-OZiRtsQic...",
  "created_at": "2026-08-13 05:39:46",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/db41f0d5-8560-4a0e-9cb4-9045d80e4588.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/db41f0d5-8560-4a0e-9cb4-9045d80e4588.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:44:40",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "连续手语识别",
+    "CSLR",
+    "相关性网络",
+    "人体轨迹",
+    "时空建模",
+    "多尺度空洞卷积",
+    "弱监督"
+   ],
+   "field": "连续手语识别（CSLR）",
+   "innovations": [
+    "提出Correlation Module，显式计算相邻帧间像素级语义相关性以捕捉手语人体轨迹",
+    "提出Identification Module，以多尺度空洞卷积分支动态定位并强化轨迹区域，无需额外姿态监督",
+    "端到端轻量模块，以残差方式融入任意特征层，α初始化保证训练稳定性"
+   ],
+   "benchmarks": [
+    "PHOENIX14",
+    "PHOENIX14-T",
+    "CSL-Daily",
+    "CSL"
+   ]
+  }
+ }
 }

@@ -3,5 +3,33 @@
  "batch_id": "dbd1efcc-e6c4-401d-a40a-7dea5c1b0342",
  "token": "sk-Ir4JqYCnj...",
  "created_at": "2026-08-13 02:59:04",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4d4706c1-5428-4167-bba4-69dd595ae212.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4d4706c1-5428-4167-bba4-69dd595ae212.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:42:35",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "Multi-View Stereo",
+    "Depth Estimation",
+    "Cost Volume",
+    "Recurrent Indexing",
+    "GRU",
+    "Transformer",
+    "Pose Correction"
+   ],
+   "field": "多视图立体深度估计",
+   "innovations": [
+    "提出基于 GRU 迭代优化索引场的代价体递归索引范式，实现端到端可微的多视图深度估计",
+    "仅在参考视图引入 Transformer 自注意力构建不对称代价体，平衡全局上下文与局部匹配",
+    "残差位姿网络隐式校正 SLAM 位姿噪声，提升扭曲对齐精度"
+   ],
+   "benchmarks": [
+    "ScanNet",
+    "DTU",
+    "7-Scenes",
+    "RGB-D Scenes V2"
+   ]
+  }
+ }
 }

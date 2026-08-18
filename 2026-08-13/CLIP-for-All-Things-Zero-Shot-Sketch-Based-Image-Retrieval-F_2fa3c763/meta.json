@@ -4,5 +4,31 @@
  "title": "CLIP-for-All-Things-Zero-Shot-Sketch-Based-Image-Retrieval-F",
  "token": "sk-Ir4JqYCnj...",
  "created_at": "2026-08-13 05:39:43",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0ac80974-0104-43d3-aa34-d73e045dd27f.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/0ac80974-0104-43d3-aa34-d73e045dd27f.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:41:17",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "zero-shot sketch-based image retrieval",
+    "CLIP",
+    "prompt learning",
+    "fine-grained retrieval",
+    "cross-modal matching",
+    "ViT"
+   ],
+   "field": "跨模态检索与细粒度识别",
+   "innovations": [
+    "首次将CLIP适配到ZS-SBIR，提出sketch/photo双提示+LayerNorm微调的高效适配范式",
+    "提出相对距离分布KL散度正则化实现跨类别统一triplet margin的零样本细粒度训练",
+    "提出patch shuffling triplet以轻量方式学习实例级结构对应"
+   ],
+   "benchmarks": [
+    "Sketchy",
+    "TUBerlin",
+    "QuickDraw Extended"
+   ]
+  }
+ }
 }

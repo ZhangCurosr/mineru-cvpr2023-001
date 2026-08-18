@@ -4,5 +4,28 @@
  "title": "CLIP-the-Gap-A-Single-Domain-Generalization-Approach-for-Obj",
  "token": "sk-sKVjU65N5...",
  "created_at": "2026-08-13 05:40:20",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/34267b14-64a0-45de-a37e-693057121ca9.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/34267b14-64a0-45de-a37e-693057121ca9.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:41:21",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "单域泛化",
+    "目标检测",
+    "CLIP",
+    "语义增强",
+    "视觉-语言模型",
+    "域外泛化"
+   ],
+   "field": "单域泛化目标检测",
+   "innovations": [
+    "提出基于CLIP特征空间语义增强的单域泛化目标检测方法，首次在目标检测中利用视觉-语言模型联合嵌入空间进行域偏移建模",
+    "设计文本嵌入分类损失L_clip-t，将检测特征约束在CLIP预训练语义空间中以提升跨域泛化能力"
+   ],
+   "benchmarks": [
+    "Diverse Weather Driving Dataset"
+   ]
+  }
+ }
 }

@@ -4,5 +4,30 @@
  "title": "Continual-Semantic-Segmentation-with-Automatic-Memory-Sample",
  "token": "sk-45Ifw5Iq3...",
  "created_at": "2026-08-13 07:12:04",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/41366790-4950-471d-9cc3-dfd51503a7a9.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/41366790-4950-471d-9cc3-dfd51503a7a9.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:44:08",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "持续语义分割",
+    "灾难性遗忘",
+    "记忆样本选择",
+    "强化学习",
+    "多结构图相似度",
+    "类增量学习"
+   ],
+   "field": "持续学习与语义分割",
+   "innovations": [
+    "将CSS记忆样本选择建模为MDP并用RL自动学习最优策略",
+    "设计融合多样性与遗忘度的多因子状态表示及多图细粒度相似度",
+    "提出选择-增强双阶段动作空间以全面提升重放效果"
+   ],
+   "benchmarks": [
+    "Pascal-VOC 2012",
+    "ADE 20K"
+   ]
+  }
+ }
 }

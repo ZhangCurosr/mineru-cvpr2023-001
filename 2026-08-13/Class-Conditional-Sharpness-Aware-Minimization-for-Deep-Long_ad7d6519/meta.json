@@ -4,5 +4,33 @@
  "title": "Class-Conditional-Sharpness-Aware-Minimization-for-Deep-Long",
  "token": "sk-mBuyDYvkR...",
  "created_at": "2026-08-13 05:40:13",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4f38c71c-9263-4754-9d8c-2ed5ad3229ec.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/4f38c71c-9263-4754-9d8c-2ed5ad3229ec.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:42:41",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "long-tailed recognition",
+    "sharpness-aware minimization",
+    "PAC-Bayesian",
+    "class-conditional",
+    "decoupled training",
+    "robust optimization"
+   ],
+   "field": "长尾视觉识别",
+   "innovations": [
+    "基于PAC-Bayesian理论推导类条件扰动半径，实现类自适应的平坦化优化",
+    "将CC-SAM集成到两阶段解耦框架，第一阶段类条件参数扰动+第二阶段对抗特征训练",
+    "在多个长尾benchmark上取得SOTA或接近SOTA性能，并在开放长尾识别中展现强鲁棒性"
+   ],
+   "benchmarks": [
+    "CIFAR-10-LT",
+    "CIFAR-100-LT",
+    "Places-LT",
+    "ImageNet-LT",
+    "iNaturalist 2018"
+   ]
+  }
+ }
 }

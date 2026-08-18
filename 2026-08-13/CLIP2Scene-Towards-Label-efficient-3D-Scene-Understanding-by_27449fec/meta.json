@@ -4,5 +4,30 @@
  "title": "CLIP2Scene-Towards-Label-efficient-3D-Scene-Understanding-by",
  "token": "sk-Ar06zcDAy...",
  "created_at": "2026-08-13 07:10:17",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/90f4b0b5-d71a-4dfd-a151-9c787a53c772.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/90f4b0b5-d71a-4dfd-a151-9c787a53c772.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:41:44",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "3D语义分割",
+    "CLIP",
+    "跨模态知识蒸馏",
+    "自监督学习",
+    "零样本学习",
+    "点云理解"
+   ],
+   "field": "3D点云场景理解",
+   "innovations": [
+    "首次将CLIP知识蒸馏到3D点云网络用于语义分割",
+    "提出语义驱动的跨模态对比学习框架解决优化冲突问题"
+   ],
+   "benchmarks": [
+    "nuScenes",
+    "SemanticKITTI",
+    "ScanNet"
+   ]
+  }
+ }
 }

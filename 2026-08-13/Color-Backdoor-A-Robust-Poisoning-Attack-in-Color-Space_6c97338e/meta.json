@@ -4,5 +4,31 @@
  "title": "Color-Backdoor-A-Robust-Poisoning-Attack-in-Color-Space",
  "token": "sk-JMLCbBCEj...",
  "created_at": "2026-08-13 07:10:26",
- "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/a762c0f5-21dc-4923-b05b-bd221859d6de.zip"
+ "result_url": "https://cdn-mineru.openxlab.org.cn/pdf/2026-08-13/a762c0f5-21dc-4923-b05b-bd221859d6de.zip",
+ "summarized": {
+  "model": "agnes-2.5-flash",
+  "at": "2026-08-18 19:43:22",
+  "chunks": 1,
+  "meta": {
+   "keywords": [
+    "后门攻击",
+    "颜色空间偏移",
+    "粒子群优化",
+    "数据投毒",
+    "鲁棒性防御",
+    "隐蔽触发器"
+   ],
+   "field": "深度学习安全与后门攻击",
+   "innovations": [
+    "提出全局颜色空间偏移触发器实现隐蔽且鲁棒的后门攻击",
+    "设计基于PSO和无梯度代理模型的黑盒触发器搜索框架"
+   ],
+   "benchmarks": [
+    "CIFAR-10",
+    "CIFAR-100",
+    "GTSRB",
+    "ImageNet"
+   ]
+  }
+ }
 }
